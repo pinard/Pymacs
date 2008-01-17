@@ -441,6 +441,7 @@ The timer is used only if `post-gc-hook' is not available.")
   ;; This function gets called automatically, as needed.
   (let ((buffer (get-buffer-create "*Pymacs*")))
     (with-current-buffer buffer
+      (buffer-disable-undo)
       (save-match-data
 	;; Launch the Python helper.
 	(let ((process (apply 'start-process "pymacs" buffer "pymacs-services"

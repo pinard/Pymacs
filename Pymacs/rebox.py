@@ -254,15 +254,16 @@ def main(*arguments):
                              % (old_style, new_style))
 
 def pymacs_load_hook():
-    global lisp, Let, region, comment, set_default_style
+    global interactions, lisp, Let, region, comment, set_default_style
     from Pymacs import lisp, Let
     emacs_rebox = Emacs_Rebox()
     # Declare functions for Emacs to import.
+    interactions = {}
     region = emacs_rebox.region
+    interactions[region] = 'P'
     comment = emacs_rebox.comment
+    interactions[comment] = 'P'
     set_default_style = emacs_rebox.set_default_style
-
-interactions = {}
 
 class Emacs_Rebox:
 
@@ -280,14 +281,12 @@ Set the default style to STYLE.
 Rebox the boxed comment in the current region, obeying FLAG.
 """
         self.emacs_engine(flag, self.find_region)
-    interactions[region] = 'P'
 
     def comment(self, flag):
         """\
 Rebox the surrounding boxed comment, obeying FLAG.
 """
         self.emacs_engine(flag, self.find_comment)
-    interactions[comment] = 'P'
 
     def emacs_engine(self, flag, find_limits):
         """\
@@ -428,7 +427,7 @@ of comments.  Extend it as far as possible in both directions.
                     break
                 if lisp.point() < 2:
                     break
-                lisp.backward-char(2)
+                lisp.backward_char(2)
                 if not lisp.looking_at('\\*/'):
                     break
                 lisp.re_search_backward('/\\*')

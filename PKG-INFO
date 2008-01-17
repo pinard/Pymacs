@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: Pymacs
-Version: 0.17
+Version: 0.18
 Summary: Interface between Emacs LISP and Python.
 Home-page: http://www.iro.umontreal.ca/~pinard
 Author: François Pinard

@@ -493,7 +493,7 @@ class Lisp_Interface:
         self.__dict__['_protocol'] = Protocol()
 
     def __call__(self, text):
-        self._protocol.send(text)
+        self._protocol.send('(progn %s)' % text)
         return self._protocol.loop()
 
     def __getattr__(self, name):

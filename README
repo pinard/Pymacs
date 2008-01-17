@@ -20,14 +20,13 @@
 
 . : Warning to Pymacs users.
 
-    I expect average Pymacs users to have a deeper knowledge of Python than
-    Emacs Lisp.  So, the few examples at the end of this file are meant for
-    Python users having a limited experience with Emacs.  Currently, there
-    are only contains two examples, one which is too small, another which
-    is too big :-).  It would be useful to have more: my intent is to wait
-    until such examples pop up naturally.  As there is no dedicated mailing
-    list nor discussion group for Pymacs, let's use `python-list@python.org'
-    for asking questions or discussing Pymacs related matters.
+    I expect average Pymacs users to have a deeper knowledge of Python
+    than Emacs Lisp.  Some examples at the end of this file are meant
+    for Python users having a limited experience with the Emacs API.
+    Currently, there are only contains two examples, one is too small,
+    the other is too big :-).  As there is no dedicated mailing list nor
+    discussion group for Pymacs, let's use `python-list@python.org' for
+    asking questions or discussing Pymacs related matters.
 
     This is beta status software: specifications are slightly frozen, yet
     changes may still happen that would require small adaptations in your
@@ -36,6 +35,14 @@
     the `python-list@python.org' mailing list, to help brain-storming! :-)
 
 . : History and references.
+
+    I once starved for a Python-extensible editor, and pondered the idea of
+    dropping Emacs for other avenues, but found nothing much convincing.
+    Moreover, looking at all LISP extensions I wrote for myself, and
+    considering all those superb tools written by others and that became
+    part of my computer life, it would have been a huge undertaking for
+    me to reprogram these all in Python.  So, when I began to see that
+    something like Pymacs was possible, I felt strongly motivated! :-)
 
     Pymacs revisits previous Cedric Adjih's works about running Python as a
     process separate from Emacs.  See `http://www.crepuscule.com/pyemacs/',
@@ -106,7 +113,7 @@
       (autoload 'pymacs-eval "pymacs" nil t)
       (autoload 'pymacs-apply "pymacs")
       ;;(eval-after-load "pymacs"
-      ;;  (add-to-list 'pymacs-load-path "YOUR-PYMACS-DIRECTORY"))
+      ;;  '(add-to-list 'pymacs-load-path "YOUR-PYMACS-DIRECTORY"))
 
     If you plan to use a special directory to hold your own Pymacs code in
     Python, which should be searched prior to the usual Python import search
@@ -414,6 +421,12 @@
      to preset `pymacs-load-path, `nil' by default, to a list of these
      directory names.  (Tilde expansions and such occur automatically.)
 
+     Here is how it works.  The first time Pymacs is needed from Emacs,
+     `pymacs-services' is called, and given as arguments all strings in the
+     `pymacs-load-path' list.  These arguments are added at the beginning
+     of `sys.path', or moved at the beginning if they were already on
+     `sys.path'.  So in practice, nothing is removed from `sys.path'.
+
 .  , pymacs-trace-transit
 
      The `*Pymacs*' buffer, within Emacs, holds a trace of transactions
@@ -625,17 +638,18 @@
 
 . : Raw Emacs Lisp expressions.
 
-    Pymacs offers a device for evaluating a raw Emacs Lisp expression
-    expressed as a string.  One merely uses `lisp' as a function, like this:
+    Pymacs offers a device for evaluating a raw Emacs Lisp expression,
+    or a sequence of such, expressed as a string.  One merely uses `lisp'
+    as a function, like this:
 
         lisp("""
         ...
-        POSSIBLY-LONG-LISP-EXPRESSION
+        POSSIBLY-LONG-SEQUENCE-OF-LISP-EXPRESSIONS
         ...
         """)
 
-    The Emacs Lisp value of the expression becomes the value of the `lisp'
-    call, after conversion back to Python.
+    The Emacs Lisp value of the last or only expression in the sequence
+    becomes the value of the `lisp' call, after conversion back to Python.
 
 . : User interaction.
 
