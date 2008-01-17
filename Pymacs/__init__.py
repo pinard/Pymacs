@@ -26,5 +26,5 @@ from pymacs import Let, lisp
 
 # Identification of version.
 
-package = 'Pymacs'
-version = '0.20'
+__package__ = 'Pymacs'
+__version__ = '0.21'

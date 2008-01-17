@@ -1,10 +1,23 @@
+2002-12-14  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.21.
+
+	* Pymacs/__init__.py (__package__, __version__): New names for
+	package and version.
+	* setup, setup.py, Pymacs/pymacs.py: Adjusted.
+
+	* pymacs.el (pymacs-print-for-eval): In the case of pymacs-python,
+	done was not set to t, causing spurious text when passing opaque
+	Python references back to Python.
+	Reported by Marco Gidde.
+
 2002-11-23  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.20.
 
 	* Pymacs/__init__.py: Integrate version.py.
 	* Pymacs/version.py: Deleted.
-	* setup.py, Pymacs/pymacs.py: Adjusted.
+	* setup, setup.py, Pymacs/pymacs.py: Adjusted.
 
 2002-11-15  François Pinard  <pinard@iro.umontreal.ca>
 

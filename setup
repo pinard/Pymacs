@@ -22,7 +22,7 @@ Usage: setup [OPTION]
 import os, string, sys
 
 sys.path.insert(0, '.')
-from Pymacs import package, version
+from Pymacs import __package__, __version__
 del sys.path[0]
 
 AUTOCONF = ()                           # neither a string nor None
@@ -45,7 +45,7 @@ def main(*arguments):
             sys.stdout.write(__doc__)
             sys.exit(0)
         elif option == '-V':
-            sys.stdout.write('%s-%s' % (package, version))
+            sys.stdout.write('%s-%s' % (__package__, __version__))
             sys.exit(0)
         elif option == '-e':
             run.dot_emacs = 1
@@ -105,7 +105,7 @@ def check_with_user():
     sys.stderr.write("""\
 Install tool for %s version %s.
 """
-                     % (package, version))
+                     % (__package__, __version__))
     run.lispdir = user_select('lispdir', run.lispdir, """\
 This is where `pymacs.el', the Emacs side code of Pymacs, should go:
 somewhere on your Emacs `load-path'.
@@ -192,7 +192,7 @@ Use `-l LISPDIR' to select where `pymacs.el' should go.\n")
         % run.__dict__)
 
 def complete_install():
-    run.substitute = {'PACKAGE': package, 'VERSION': version}
+    run.substitute = {'PACKAGE': __package__, 'VERSION': __version__}
     if run.lispdir:
         goal = os.path.join(run.lispdir, 'pymacs.el')
         install('pymacs.el', goal, 0644)

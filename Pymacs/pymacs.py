@@ -41,13 +41,13 @@ This program is meant to be called from Emacs, using `pymacs.el'.
 
 The program arguments are additional search paths for Python modules.
 """
-    from Pymacs import version
+    from Pymacs import __version__
     arguments = list(arguments)
     arguments.reverse()
     for argument in arguments:
         if os.path.isdir(argument):
             sys.path.insert(0, argument)
-    lisp._protocol.send('(pymacs-version "%s")' % version)
+    lisp._protocol.send('(pymacs-version "%s")' % __version__)
     lisp._protocol.loop()
 
 class Protocol:
