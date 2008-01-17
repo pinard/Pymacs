@@ -67,7 +67,7 @@ If NOERROR is not nil, do not raise error when the module is not found."
 			       nil nil default)))
      (list module prefix)))
   (message "Pymacs loading %s..." module)
-  (let ((lisp-code (pymacs-apply "pymacs_load_helper" (list module prefix))))
+  (let ((lisp-code (pymacs-call "pymacs_load_helper" module prefix)))
     (cond (lisp-code (let ((result (eval lisp-code)))
 		       (message "Pymacs loading %s...done" module)
 		       result))
@@ -77,7 +77,7 @@ If NOERROR is not nil, do not raise error when the module is not found."
 (defun pymacs-eval (text)
   "Compile TEXT as a Python expression, and return its value."
   (interactive "sPython expression? ")
-  (let ((value (pymacs-apply "eval" (list text))))
+  (let ((value (pymacs-call "eval" text)))
     (when (interactive-p)
       (message "%S" value))
     value))
@@ -91,6 +91,13 @@ This functionality is experimental, and does not appear to be useful."
     (when (interactive-p)
       (message "%S" value))
     value))
+
+(defun pymacs-call (function &rest arguments)
+  "Return the result of calling a Python function FUNCTION over ARGUMENTS.
+FUNCTION is a string denoting the Python function, ARGUMENTS are separate
+Lisp expressions, one per argument.  Immutable Lisp constants are converted
+to Python equivalents, other structures are converted into Lisp handles."
+  (pymacs-apply function arguments))
 
 (defun pymacs-apply (function arguments)
   "Return the result of calling a Python function FUNCTION over ARGUMENTS.
@@ -153,9 +160,9 @@ equivalents, other structures are converted into Lisp handles."
 	      (not (pymacs-file-force
 		    'file-readable-p (list (car arguments))))
 	      (file-readable-p (car arguments)))
-	 (let ((lisp-code (pymacs-apply
-			   "pymacs_load_helper"
-			   (list (substring (car arguments) 0 -3) nil))))
+	 (let ((lisp-code (pymacs-call "pymacs_load_helper"
+				       (substring (car arguments) 0 -3)
+				       nil)))
 	   (unless lisp-code
 	     (error "Python import error"))
 	   (eval lisp-code)))
@@ -163,9 +170,9 @@ equivalents, other structures are converted into Lisp handles."
 	      (not (pymacs-file-force
 		    'file-readable-p (list (car arguments))))
 	      (file-readable-p (car arguments)))
-	 (let ((lisp-code (pymacs-apply
-			   "pymacs_load_helper"
-			   (list (substring (car arguments) 0 -3) nil))))
+	 (let ((lisp-code (pymacs-call "pymacs_load_helper"
+				       (substring (car arguments) 0 -3)
+				       nil)))
 	   (unless lisp-code
 	     (error "Python import error"))
 	   (insert (prin1-to-string lisp-code))))
@@ -261,7 +268,7 @@ The timer is used only if `post-gc-hook' is not available.")
 	      (interactive ,interaction)
 	      (pymacs-apply ',object arguments)))
 	  (t `(lambda (&rest arguments)
-		(interactive (pymacs-apply ',(pymacs-python interaction) nil))
+		(interactive (pymacs-call ',(pymacs-python interaction)))
 		(pymacs-apply ',object arguments))))))
 
 (defun pymacs-python (index)

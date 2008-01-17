@@ -1,5 +1,10 @@
 * README for `Pymacs'				allout -*- outline -*-
 
+  `http://www.iro.umontreal.ca/~pinard/pymacs/' contains a copy of this
+  `README' file in HTML form.  The canonical Pymacs distribution is
+  available as `http://www.iro.umontreal.ca/~pinard/pymacs/Pymacs.tar.gz'.
+  Report problems and suggestions to `mailto:pinard@iro.umontreal.ca'.
+
 .. Presentation.
 
 . : What is Pymacs?
@@ -65,10 +70,9 @@
 
 . : Install the Pymacs proper.
 
-    We then invite you to follow the instructions below.  Currently,
-    there are two installation scripts, and both should be run.  If you
-    prefer, you may use `make install lispdir=LISPDIR', where LISPDIR is
-    some directory along the list kept in your Emacs `load-path'.
+    Currently, there are two installation scripts, and both should be run.
+    If you prefer, you may use `make install lispdir=LISPDIR', where
+    LISPDIR is some directory along the list kept in your Emacs `load-path'.
 
     The first installation script installs the Python package, including the
     Pymacs examples, using the Python standard Distutils tool.  Merely `cd'
@@ -99,7 +103,7 @@
     you should then get a line ending with "(pymacs-version VERSION)",
     and another saying: "Protocol error: `>' expected.".
 
-    Currently, there is only one installed Pymacs example, which come
+    Currently, there is only one installed Pymacs example, which comes
     in two parts: a batch script `rebox' and a `Pymacs.rebox' module.
     To check that both are properly installed, type `rebox </dev/null'
     in a shell; you should not receive any output nor see any error.
@@ -112,6 +116,7 @@
       (autoload 'pymacs-load "pymacs" nil t)
       (autoload 'pymacs-eval "pymacs" nil t)
       (autoload 'pymacs-apply "pymacs")
+      (autoload 'pymacs-call "pymacs")
       ;;(eval-after-load "pymacs"
       ;;  '(add-to-list 'pymacs-load-path "YOUR-PYMACS-DIRECTORY"))
 
@@ -336,14 +341,14 @@
      modified using the basic library of Python functions.  For example, in:
 
        (setq matcher (pymacs-eval "re.compile('PATTERN').match"))
-       (pymacs-apply matcher (list ARGUMENT))
+       (pymacs-call matcher ARGUMENT)
 
      the initial `setq' above could be decomposed into:
 
        (setq compiled (pymacs-eval "re.compile('PATTERN')")
-             matcher (pymacs-apply "getattr" (list compiled "match")))
+             matcher (pymacs-call "getattr" compiled "match"))
 
-     This example shows that one may use `pymacs-apply' with "getattr"
+     This example shows that one may use `pymacs-call' with "getattr"
      as the function, to get a wanted attribute for a Python object.
 
 .. Usage on the Emacs Lisp side.
@@ -353,16 +358,24 @@
     Function `(pymacs-eval TEXT)' gets TEXT evaluated as a Python expression,
     and returns the value of that expression converted back to Emacs Lisp.
 
+. : `pymacs-call'.
+
+    Function `(pymacs-call FUNCTION ARGUMENT...)' will get Python to apply
+    the given FUNCTION over zero or more ARGUMENT.  FUNCTION is either
+    a Python string holding an expression yielding a Python function, or
+    else, a Python handle previously received from Python, and hopefully
+    holding a callable Python object.  Each ARGUMENT gets separately
+    converted to Python before the function is called.  `pymacs-call'
+    returns the resulting value of the function call, converted back to
+    Emacs Lisp.
+
 . : `pymacs-apply'.
 
-    Function `(pymacs-apply FUNCTION ARGUMENTS)' will get Python to apply the
-    given FUNCTION over the given ARGUMENTS.  ARGUMENTS is a list containing
-    all arguments, or `nil' if there is none.  FUNCTION is either a Python
-    string holding an expression yielding a Python function, or else, a
-    Python handle previously received from Python, and hopefully holding
-    a callable Python object.  Each argument gets separately converted
-    to Python before the function is called.  `pymacs-apply' returns the
-    resulting value of the function call, converted back to Emacs Lisp.
+    Function `(pymacs-apply FUNCTION ARGUMENTS)' will get Python to apply
+    the given FUNCTION over the given ARGUMENTS.  ARGUMENTS is a list
+    containing all arguments, or `nil' if there is none.  Besides arguments
+    being bundled together instead of given separately, the function acts
+    pretty much like `pymacs-call'.
 
 . : `pymacs-load'.
 
@@ -397,12 +410,12 @@
 
 . : Expected usage.
 
-    We do not expect that `pymacs-eval' or `pymacs-apply' will be much used,
-    if ever.  In practice, the Emacs Lisp side of a Pymacs application might
-    call `pymacs-load' a few times for linking into the Python modules,
-    with the indirect effect of defining trampoline functions for these
-    modules on the Emacs Lisp side, than can be called like usual Emacs
-    Lisp functions.
+    We do not expect that `pymacs-eval', `pymacs-call' or `pymacs-apply'
+    will be much used, if ever.  In practice, the Emacs Lisp side
+    of a Pymacs application might call `pymacs-load' a few times for
+    linking into the Python modules, with the indirect effect of defining
+    trampoline functions for these modules on the Emacs Lisp side, than
+    can be called like usual Emacs Lisp functions.
 
     These imported functions are really those which are of interest for
     the user, and the preferred way to call Python services with Pymacs.
@@ -583,7 +596,7 @@
     When the `Let' instance disappears, either because the programmer does
     `del let' or `let = None', or just because the Python `let' variable
     goes out of scope, all remaining `let.pop()' get automatically executed,
-    so the `try'/'finally' statement may be omitted in practice.  For this
+    so the `try'/`finally' statement may be omitted in practice.  For this
     omission to work flawlessly, the programmer should be careful at not
     keeping extra references to the `Let' instance.
 
@@ -626,15 +639,16 @@
     the instance generation.  For example, one may write:
 
         let = Let().push_excursion()
-        if 1:
+        if True:
             ... USER CODE ...
         del let
 
-    The `if 1:' (some people might prefer writing `if let:'), has the only
-    goal of indenting USER CODE, so the scope of the `let' variable is made
-    very explicit.  This is purely stylistic, and not at all necessary.
-    The last `del let' might be omitted in a few circumstances, for example
-    if the excursion lasts until the end of the Python function.
+    The `if True:' (use `if 1:' with older Python releases, some people
+    might prefer writing `if let:' anyway), has the only goal of indenting
+    USER CODE, so the scope of the `let' variable is made very explicit.
+    This is purely stylistic, and not at all necessary.  The last `del let'
+    might be omitted in a few circumstances, for example if the excursion
+    lasts until the end of the Python function.
 
 . : Raw Emacs Lisp expressions.
 
@@ -660,19 +674,37 @@
     As Python does not have a corresponding facility, a bit of trickery
     was needed to retrofit that facility on the Python side.
 
-    Whenever a Python module contains an `interactions' global variable
-    which is a dictionary, Pymacs uses that dictionary at load time to find
-    out the interaction specification of each imported function from this
-    module.  If the dictionary has no entry for a given function, or if the
-    dictionary value is None, that function is not going to be interactive
-    on the Emacs side.  Otherwise, the function is interactive, and the
-    dictionary value should either be a string or another Python function.
+    After loading a Python module but prior to creating an Emacs view
+    for this module, Pymacs decides whether loaded functions will be
+    interactively callable from Emacs, or not.  Whenever a function has an
+    `interaction' attribute, this attribute holds the Emacs interaction
+    specification for this function.  The specification is either another
+    Python function or a string.  In the former case, that other function
+    is called without arguments and should, maybe after having consulted
+    the user, return a list of the actual arguments to be used for the
+    original function.  In the latter case, the specification string is
+    used verbatim as the argument to the `(interactive ...)' function
+    on the Emacs side.  To get a short reminder about how this string is
+    interpreted on the Emacs side, try `C-h f interactive' within Emacs.
+    Here is an example where an empty string is used to specify that an
+    interactive has no arguments:
 
-    If the interaction specification is a string, that string is used
-    verbatim as the argument to the `(interactive ...)' function on the
-    Emacs side.  Within Emacs, you may execute `C-h f interactive' to get a
-    short reminder about how this string is interpreted on the Emacs side.
-    For an interactive function having no arguments, use the empty string:
+        from Pymacs import lisp
+
+        def hello_world():
+            "`Hello world' from Python."
+            lisp.insert("Hello from Python!")
+        hello_world.interaction = ''
+
+    Versions of Python released before the integration of PEP 232 do not
+    allow users to add attributes to functions.  But there is a fallback
+    mechanism.  Let's presume that a given function does not have an
+    `interaction' attribute as explained above.  If the Python module
+    contains an `interactions' global variable which is a dictionary,
+    if that dictionary has an entry for the given function with a value
+    other than None, that function is going to be interactive on the
+    Emacs side.  Here is how the preceeding example should be written
+    for an older version of Python, or when portability is at premium:
 
         from Pymacs import lisp
         interactions = {}
@@ -682,28 +714,14 @@
             lisp.insert("Hello from Python!")
         interactions[hello_world] = ''
 
-    If the interaction specification is not a string, but another Python
-    function, that function is called without arguments and should return
-    a list of the actual arguments to be used for the original function.
-
-    Python 2.x users may install an `interaction' attribute to a given
-    function, in which case it will be used instead of the `interactions'
-    dictionary.  So the last line in the above example could be written as:
-
-        hello_world.interaction = ''
-
-    However, such writings are not portable to any Python released before
-    PEP 232 was integrated, and should probably be discouraged for a while.
-
-    One might wonder why we did not use `lisp.interactive(...)' from Python.
-    The requirement that "(interactive ...)" be first in an Emacs Lisp
-    `defun' suggests that there is some magic in the Emacs Lisp interpreter
-    itself, which looks for that call _before_ the function is actually
-    entered.  Looking for `lisp.interactive' would be the difficult part,
-    as this Python code is already in compiled form when it gets executed.
-    Pymacs could try to scan the generated code, but given the computation
+    One might wonder why we do not merely use `lisp.interactive(...)' from
+    within Python.  There is some magic in the Emacs Lisp interpreter
+    itself which looks for that call _before_ the function is actually
+    entered, this is why "(interactive ...)" has to appear first in an
+    Emacs Lisp `defun'.  Pymacs could try to scan the already compiled form
+    of the Python code, seeking for `lisp.interactive', but the evaluation
     of `lisp.interactive' arguments could get arbitrarily complex, it would
-    be rather difficult to un-compile that evaluation into Emacs Lisp code.
+    a real challenge un-compiling that evaluation into Emacs Lisp code.
 
 . : Keybindings.
 
@@ -739,12 +757,13 @@
 
     Emacs and Python are two separate processes (well, each may use more
     than one process).  Pymacs implements a simple communication protocol
-    between both, and does whatever needed so the programmers do not have to
-    worry about details.  The main debugging tool is the communication buffer
-    between Emacs and Python, which is named `*Pymacs*'.  To make good use
-    of it, first set `pymacs-trace-transit' to `t', so all exchanges are
-    accumulated in that buffer.  It helps understanding the communication
-    protocol, so it is shortly explained here.  Consider:
+    between both, and does whatever needed so the programmers do not have
+    to worry about details.  The main debugging tool is the communication
+    buffer between Emacs and Python, which is named `*Pymacs*'.  To make
+    good use of it, first set `pymacs-trace-transit' to `t', so all
+    exchanges are accumulated in that buffer.  As it is sometimes helpful
+    to understand the communication protocol, it is briefly explained here,
+    using an artificially complex example to do so.  Consider:
 
     ---------------------------------------------------------------------->
     (pymacs-eval "lisp('(pymacs-eval \"`2L**111`\")')")
@@ -914,7 +933,6 @@
      This piece of Python code eases my life on this.  It may be used
      interactively from within Emacs through the Pymacs interface, or in
      batch as a script which filters a single region to be reformatted.
-     Pymacs features are used exclusively within the `Emacs_Rebox' class.
 
      In batch, the reboxing is driven by command options and arguments
      and expects a complete, self-contained boxed comment from a file.
@@ -925,8 +943,11 @@
 .  , Python side.
 
      The Python code is too big to be inserted in this documentation: see
-     file `Pymacs/rebox.py' in the Pymacs distribution.  This section is
-     meant to discuss some of the design choices, in Pymacs context.
+     file `Pymacs/rebox.py' in the Pymacs distribution.  You will observe
+     in the code that Pymacs specific features are used exclusively from
+     within the `pymacs_load_hook' function and the `Emacs_Rebox' class.
+     In batch mode, `Pymacs' is not even imported.  Here, we mean to
+     discuss some of the design choices in the context of Pymacs.
 
      In batch mode, as well as with `rebox-region', the text to handle is
      turned over to Python, and fully processed in Python, with practically

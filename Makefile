@@ -11,28 +11,30 @@ lispdir =
 #
 ### End of customisation.
 
-SETUP = python setup.py
+PYSETUP = python setup.py
 DISTRIBUTION := $(shell ./setup -V)
 
 all:
-	$(SETUP) build
+	$(PYSETUP) build
 
 install: all
 	@./setup -l '$(lispdir)'
-	$(SETUP) install
+	$(PYSETUP) install
 
 tags:
 	(find bin -type f; find -name '*.py') | grep -v '~$$' | etags -
 
 dist:
-	$(SETUP) sdist
+	$(PYSETUP) sdist
 	mv dist/$(DISTRIBUTION).tar.gz .
 	rmdir dist
 	ls -l *.gz
 
 publish: dist
-	chmod 644 $(DISTRIBUTION).tar.gz
-	scp -p $(DISTRIBUTION).tar.gz bor:w/pymacs/
+	traiter README.html > index.html
+	chmod 644 index.html $(DISTRIBUTION).tar.gz
+	scp -p index.html $(DISTRIBUTION).tar.gz bor:w/pymacs/
+	rm index.html $(DISTRIBUTION).tar.gz
 	ssh bor rm -vf w/pymacs/Pymacs.tar.gz
 	ssh bor ln -vs $(DISTRIBUTION).tar.gz w/pymacs/Pymacs.tar.gz
 	ssh bor ls -Llt w/pymacs

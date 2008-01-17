@@ -2,11 +2,16 @@
 
 .. Internal cleanup.
 
-. : `(pymacs-eval "dir()"' shows too many things.
+. : `(pymacs-eval "dir()")' shows too many things.
 
 .. Type conversions.
 
 . : Convert LISP hash tables into Python dicts and vice-versa.
+
+.. Iterator protocol.
+
+. : Should Lisp objects might support the iterator protocol.  How being
+. : portable?  Python 1.5.2 does not know __future__.
 
 .. Rebox.
 

@@ -207,6 +207,9 @@ After Emacs could be extended with Python, in 2001, I translated `rebox.el'
 into `rebox.py', and added the facility to use it as a batch script.
 """
 
+## Note: This code is currently compatible down to Python version 1.5.2.
+## It is probably worth keeping it that way for a good while, still.
+
 ## Note: a double hash comment introduces a group of functions or methods.
 
 import re, string, sys

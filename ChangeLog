@@ -1,3 +1,20 @@
+2002-11-14  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.19.
+
+	* Pymacs/pymacs.py (List.__getitem__): Raise IndexError when
+	out of bounds.  This should allow for iterating over a list.
+
+	* README.html: New, merely a template for Webert.
+
+2002-11-13  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-call): New.  Use it whenever adequate.
+
+2002-09-26  François Pinard  <pinard@iro.umontreal.ca>
+
+	* Makefile (publish): Revised.
+
 2002-08-18  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.18.

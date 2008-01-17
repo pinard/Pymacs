@@ -27,6 +27,9 @@ This module may also be usefully imported by those other Python modules.
 See the Pymacs documentation (in `README') for more information.
 """
 
+## Note: This code is currently compatible down to Python version 1.5.2.
+## It is probably worth keeping it that way for a good while, still.
+
 import os, string, sys, types
 
 # Python services for Emacs applications.
@@ -440,7 +443,10 @@ class List(Lisp):
         return lisp('(length %s)' % self)
 
     def __getitem__(self, key):
-        return lisp('(nth %d %s)' % (key, self))
+        value = lisp('(nth %d %s)' % (key, self))
+        if value is None and key >= len(self):
+            raise IndexError, key
+        return value
 
     def __setitem__(self, key, value):
         fragments = []
