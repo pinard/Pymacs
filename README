@@ -69,14 +69,14 @@
 . : Prepare your `.emacs' file.
 
     The ".emacs" file is not given in the distribution, you likely have
-    one already in your home directory.  You need to add these two lines:
+    one already in your home directory.  You need to add these lines:
 
        (autoload 'pymacs-load "pymacs" nil t)
        (autoload 'pymacs-eval "pymacs" nil t)
        (autoload 'pymacs-apply "pymacs")
 
     If the file "$HOME/.emacs" does not exist, merely create it with the
-    two above lines.  You are now all set to use Pymacs.
+    above lines.  You are now all set to use Pymacs.
 
     To check this, start a fresh Emacs session, and type `M-x pymacs-eval'.
     Emacs should prompt you for a Python expression.  Try "`2L**111`" (type
@@ -131,6 +131,7 @@
     numbers, with the exception of long Python integers and complex numbers.
 
     LISP strings are usually converted into equivalent Python narrow strings.
+    As Python strings do not have text properties, these are not reflected.
     This may be changed by setting the `pymacs-mutable-strings' option: if
     this variable is not `nil', LISP strings are then transmitted opaquely.
     Python strings, except Unicode, are always converted into LISP strings.
@@ -154,11 +155,11 @@
     normally transmitted opaquely to Python.  If `pymacs-forget-mutability'
     is set, or if Python later asks for these to be expanded, proper LISP
     lists get converted into Python lists.  In the other direction, Python
-    lists are always converted into proper LISP lists.
+    lists are always converted into proper LISP lists, if we except the
+    empty list, which is always converted as Python `None'.
 
-    LISP vectors are normally transmitted opaquely to Python, if we except
-    the empty vector, which is always converted as Python `None'.  However,
-    if `pymacs-forget-mutability' is set, or if Python later asks for these
+    LISP vectors are normally transmitted opaquely to Python.  However, if
+    `pymacs-forget-mutability' is set, or if Python later asks for these
     to be expanded, LISP vectors get converted into Python tuples.  In the
     other direction, Python tuples are always converted into LISP vectors.
 
@@ -176,7 +177,7 @@
 
     or more simply:
 
-       (push accumulator new-item)
+       (push accumulator 'new-item)
 
     So, in case speed is especially important and many modifications happen
     in a row on the same side, while order of elements ought to be preserved,
@@ -293,7 +294,7 @@
     to Python before the function is called.  `pymacs-apply' returns the
     resulting value of the function call, converted back to LISP.
 
-. : `pymacs-load',
+. : `pymacs-load'.
 
     Function `(pymacs-load MODULE PREFIX)' imports the Python MODULE into
     LISP space.  Each top-level function in the module produces a trampoline
@@ -389,9 +390,10 @@
 
      Strictly speaking, Emacs LISP strings are mutable. Yet, it does not
      come naturally to a Python programmer to modify a string "in-place",
-     as Python strings are never mutable.  When `pymacs-mutable-strings' is
-     `nil', and this is the default setting, LISP strings are transmitted
-     to Python as Python strings, and so, loose their mutability.  If that
+     as Python strings are never mutable.  When `pymacs-mutable-strings'
+     is `nil', which is the default setting, LISP strings are transmitted
+     to Python as Python strings, and so, loose their mutability.  Also,
+     with the default setting, text properties are not reflected.  If that
      variable is not `nil', LISP strings are rather passed as LISP handles.
      This variable is ignored whenever `pymacs-forget-mutability' is set.
 
@@ -456,18 +458,17 @@
 . : Dynamic bindings.
 
     As Emacs LISP uses dynamic bindings, it is common that LISP programs
-    use `let' for temporarily setting new values for some LISP variables.
-    These variables recover their previous value automatically when the
-    `let' gets completed, even if an error occurs which interrupts the
-    normal flow of execution.
+    use `let' for temporarily setting new values for some LISP variables
+    having global scope.  These variables recover their previous value
+    automatically when the `let' gets completed, even if an error occurs
+    which interrupts the normal flow of execution.
 
     Pymacs has a `pymacs.Let' class to represent such temporary settings.
     Suppose for example that you want to recover the value of `lisp.mark()'
-    when the transient mark mode is active on the LISP side.  The simplest
-    way is to use `lisp.mark(lisp.t)' to "force" reading the mark
-    nevertheless, but for the sake of illustration here, let's suppose
-    we want to temporarily deactivate transient mark mode.  This could be
-    done this way:
+    when the transient mark mode is active on the LISP side.  One could
+    surely use `lisp.mark(lisp.t)' to "force" reading the mark in such cases,
+    but for the sake of illustration, let's ignore that, and temporarily
+    deactivate transient mark mode instead.  This could be done this way:
 
     try:
         let = pymacs.Let()
@@ -505,6 +506,10 @@
     variable.  Otherwise, the instance would disappear immediately after
     having been created, restoring the LISP variable much too soon.
 
+    Any variable to be bound with `pymacs.Let' should have been bound
+    in advance on the LISP side.  This restriction usually does no kind
+    of harm.  Yet, it will likely be lifted in some later version of Pymacs.
+
     The `pymacs.Let' class has other methods meant for some macros which
     are common in Emacs LISP programming, in the spirit of `let' bindings.
     These method names look like `push_*' or `pop_*', where LISP macros are
@@ -525,12 +530,16 @@
     For example, one may write:
 
     let = pymacs.Let()
-    let.push_excursion()
-    ... USER CODE ...
-    let = None
+    if 1:
+        let.push_excursion()
+        ... USER CODE ...
+    del let
 
-    The last `let = None' might be omitted in a few circumstances, for
-    example if the excursion lasts until the end of the Python function.
+    The `if 1:' (some people might prefer writting `if let:'), has the only
+    goal of indenting USER CODE, so the scope of the `let' variable is made
+    quite explicit.  This is purely stylistic, and not at all necessary.
+    The last `del let' might be omitted in a few circumstances, for example
+    if the excursion lasts until the end of the Python function.
 
 . : Raw LISP expressions.
 

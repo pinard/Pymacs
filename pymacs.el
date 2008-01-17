@@ -103,7 +103,7 @@ equivalents, other structures are converted into LISP handles."
 		(eq (caar body) 'pymacs-apply)
 		(cadr (car body)))))))
 
-;; The following functions are very experimental --they are satisfactory yet.
+;; The following functions are experimental -- they are not satisfactory yet.
 
 (defun pymacs-file-handler (operation &rest arguments)
   ;; Integration of load-file, autoload, etc.
@@ -309,7 +309,11 @@ The timer is used only if `post-gc-hook' is not available.")
 	  ((stringp expression)
 	   (when (or pymacs-forget-mutability
 		     (not pymacs-mutable-strings))
-	     (prin1 expression)
+	     (let ((text (copy-sequence expression)))
+	       (set-text-properties 0 (length text) nil text)
+	       (princ (mapconcat 'identity
+				 (split-string (prin1-to-string text) "\n")
+				 "\\n")))
 	     (setq done t)))
 	  ((symbolp expression)
 	   (let ((name (symbol-name expression)))

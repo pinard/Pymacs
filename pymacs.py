@@ -243,6 +243,11 @@ class Let:
 	    elif type == 'window_excursion':
 		self.pop_window_excursion()
 
+    def __nonzero__(self):
+        # So stylistic `if let:' executes faster.
+        return 1
+
+
     def push(self, **keywords):
 	saved = []
 	for name, value in keywords.items():

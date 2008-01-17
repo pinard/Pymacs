@@ -1,3 +1,17 @@
+2001-10-12  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.10.
+
+	* pymacs.el (pymacs-print-for-eval): Handle multi-line strings.
+	Reported by Dave Sellars.
+
+	* pymacs.el (pymacs-print-for-eval): Remove string text properties.
+	Reported by Eli Zaretskii.
+
+2001-10-06  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.py (Let.__nonzero__): New.
+
 2001-09-28  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.9.
