@@ -1,5 +1,5 @@
 PACKAGE = pymacs
-VERSION = 0.1
+VERSION = 0.2
 
 FILES = README TODO Makefile pymacs.el pymacs.py pymacs-services \
 pymacs-test.el pymacs_test.py
@@ -16,3 +16,5 @@ dist:
 	cp -p $(FILES) $(PACKAGE)-$(VERSION)
 	tar cfz $(PACKAGE)-$(VERSION).tar.gz $(PACKAGE)-$(VERSION)
 	rm -rf $(PACKAGE)-$(VERSION)
+	chmod 644 $(PACKAGE)-$(VERSION).tar.gz
+	scp -p $(PACKAGE)-$(VERSION).tar.gz bor:pymacs/

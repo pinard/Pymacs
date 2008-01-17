@@ -1,15 +1,9 @@
 * TODO for `Pymacs'				allout -*- outline -*-
 
-.. Python side library.
+.. Type conversions.
 
-. : Convert key-binding strings.
-
-.. More objects.
-
+. : Boost those pymacs-handle-* functions to handle more LISP types.
 . : Convert LISP hash tables into Python dicts and vice-versa.
-. : Boost those pymacs-handle-* functions to handle hash tables.
-. : Support Python functions on LISP side.
-. : Import all Python module objects, more than functions only.
 
 .. Internal cleanup.
 

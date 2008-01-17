@@ -26,6 +26,12 @@
     to later adapt your code to specification changes, and to report the
     problems you see to François Pinard at `pinard@iro.umontreal.ca'.
 
+    One thing I did not address yet is portability.  Things work with my
+    setup which, currently, is Emacs 21.0.105 and Python 1.5.2.  But I
+    also have Emacs 20.6 and Python 2.2a2, and I should try the other
+    combinations.  Brian McErlean is using XEmacs, so if we really join
+    our efforts, I guess he would take care of XEmacs portability.
+
 . : History and references.
 
     Pymacs revisits previous Cedric Adjih's works about running Python as a
@@ -158,6 +164,11 @@
     unnatural to Python, trying to retrofit that facility on the Python side.
     You need to define your own trampoline functions in LISP if you want
     them interactive.  See the examples provided elsewhere in this document.
+
+    I thought about supply the `interactive` declaration in Python
+    doc-strings, but remembered all the protests John Aycock received because
+    he used doc-strings for SPARK.  Not that this bothered me...  Yet,
+    I understand that users might want keeping doc-strings for themselves.
 
 . : Expected usage.
 
@@ -357,6 +368,32 @@
     ...
     """)
 
+. : Keybindings.
+
+    To bind the F1 key to the `helper' function in some `module':
+
+        lisp.global_set_key([lisp.f1], lisp.module_helper)
+
+    [item] is a Python list yielding a LISP vector.  `lisp.f1' translates
+    to the LISP symbol `f1'.  So, Python `[lisp.f1]' is LISP `[f1]'.
+    Keys like `[M-f2]' might require some more ingenuity.  One may write
+    either [lisp['M-f2']] or [lisp.M_f2] on the Python side.
+
+    To translate bindings like "C-x w", say, might have to know a bit more
+    how LISP processes string escapes like "\C-x" or "\M-\C-x" in LISP,
+    and emulate it within Python strings, since Python does not have
+    such escapes.  "\C-L", where L is an upper case letter, produces a
+    character which ordinal is the result of subtracting 0x40 from ordinal
+    of `L'.  "\M-" has the ordinal one gets by adding 0x80 to the ordinal
+    of following described character.  So people can use self-inserting
+    non-ASCII characters, "\M-" is given another representation, which is
+    to replace the addition of 0x80 by prefixing with `ESC', that is 0x1b.
+
+    So "\C-x" in Emacs is '\x18' in Python.  This is easily found, using an
+    interactive Python session, by givin it: chr(ord('X') - ord('A') + 1).
+    An easier way would be using the `kbd' function on the LISP side,
+    like with lisp.kbd('C-x w') or lisp.kbd('M-<f2>').
+
 .. Debugging.
 
 . : The `*Pymacs*' buffer.
@@ -420,94 +457,6 @@
     and the diagnostic gets transmitted back and forth, slightly growing
     as we go.  I hope my logic is correct: these things are a bit complex
     to sort out and I did not overly tested it yet.
-
-.. Keybindings.
-
-   > lisp.global_set_key([lisp.f7], lisp.manglers_break_on_whitespace)
-
-   > So you want to put all the possible keys in the lisp namespace?
-   > Seems messy.
-
-   My knowledge of English fails on me, here.  I do not understand your
-   comment.  Would you be kind enough to explain?
-
-   Maybe you are worried with `[lisp.f7]' ?  There is nothing special with
-   it.  [item] is a Python list, which yields a LISP vector.  `lisp.f7'
-   merely translates to the LISP symbol `f7'.  So, Python `[lisp.f7]'
-   is LISP `[f7]'.
-
-   > And what about key combinations?  How would you say something like
-   > 'C-x w'?  I would suggest simply writing them as strings, and the
-   > programmer will have to know the elisp way of naming them.  Example:
-
-   > lisp.global_set_key(['C-x w'], lisp.manglers_break_on_whitespace)
-
-   In LISP, this would be written:
-
-      (global-set-key "\C-xw" manglers-break-on-whitespace)
-
-   Triggering this from Python requires that you write the string the
-   Python way, and Python does not recognise the "\C-" escape.  Knowing that
-   `C-x' is chr(0x18), one could write:
-
-      lisp.global_set_key('\x18w', lisp.manglers_break_on_whitespace)
-
-   Maybe it could be useful to have a service function to help writing more
-   LISP-looking strings in Python?  `pymacs' does not have any service
-   library yet, but if the need arise, we can progressively build one.
-   Maybe there would not be much things in it, if any.  Hard to know
-   in advance.  I'd rather keep the API as bare as possible, if this
-   is reasonable.
-
-   > So to take a real example from my .emacs file:
-   >    (global-set-key [M-f2] 'redo)
-   > ... might become something like, on the python side,
-   >    lisp.global_set_key(['M-f2'], lisp.redo)
-
-   I'm not utterly familiar with how `[SYMBOL]' works on the Emacs side to
-   represent key-bindings, but I would guess Emacs developers made a few
-   stunts for it to look good.  For what I guess these stunts are, I would
-   write on the Python side:
-
-       lisp.global_set_key([lisp['M-f2']], lisp.redo)
-
-   or even more tricky:
-
-       lisp.global_set_key([lisp.M_f2], lisp.redo)
-
-   > >   (global-set-key "\C-xw" manglers-break-on-whitespace)
-   > > [to become]
-   > >   lisp.global_set_key('\x18w', lisp.manglers_break_on_whitespace)
-
-   > IMHO this is a heavy burden to place on the person trying to write
-   > python functions.
-
-   Really?  We'll have to do something about it, then.
-
-   > I have no idea how I would find out that C-x is equivalent to chr(0x18).
-
-   Oh!  `C-x' stands for Control-X.  In an ASCII table, there are control
-   characters from 0x00 to 0x20 (excluded).  0x01 is Control-A, 0x02 is
-   Control-B, etc.  Knowing this, Control-X is: chr(ord('X') - ord('A') + 1).
-   Give the above to an interactive Python session, you will get: '\x18'.
-
-   > Furthermore, there must be many combinations of control, meta, and
-   > other keys that have no single-character equivalent [...]
-
-   Control is the equivalent of subtracting 0x40 from the upper case letter.
-   Meta is the equivalent of adding 0x80 to the rest.  However, so people can
-   use non-ASCII charsets, Meta is given another representation in key maps,
-   and this is to prefix the character to "meta" in the string with `ESC',
-   which is 0x1b.  That's all, I think, for when users specify strings.
-   For the rest, Emacs uses the vector notation, with no strings.
-
-   > >Maybe it could be useful to have a service function to help writing more
-   > >LISP-looking strings in Python?
-
-   > Yes, that's exactly what I'm suggesting.
-
-   Then this routine -- let's tentatively call it `pymacs.key()' -- and the
-   convention for writing its argument, should be precisely documented.
 
 .. Exemples.
 

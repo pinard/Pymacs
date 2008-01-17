@@ -42,11 +42,10 @@ not given, it defaults to MODULE followed by a dash."
   (unless prefix
     (setq prefix (concat module "-")))
   (message "Importing %s..." module)
-  (let ((value (pymacs-apply
-		"pymacs_load_helper" (list module prefix))))
-    (unless value
+  (let ((text (pymacs-apply "pymacs_load_helper" (list module prefix))))
+    (unless text
       (error "Importing %s...failed" module))
-    (eval value)
+    (eval (read text))
     (message "Importing %s...done" module)))
 
 (defun pymacs-eval (text)
@@ -94,22 +93,22 @@ equivalents, other structures are converted into LISP handles."
 	      (not (pymacs-file-force
 		    'file-readable-p (list (car arguments))))
 	      (file-readable-p (car arguments)))
-	 (let ((lisp-code (pymacs-apply
-			   "pymacs_load_helper"
-			   (list (substring (car arguments) 0 -3) nil))))
-	   (unless lisp-code
+	 (let ((text (pymacs-apply
+		      "pymacs_load_helper"
+		      (list (substring (car arguments) 0 -3) nil))))
+	   (unless text
 	     (error "Python import error"))
-	   (eval lisp-code)))
+	   (eval (read text))))
 	((and (eq operation 'insert-file-contents)
 	      (not (pymacs-file-force
 		    'file-readable-p (list (car arguments))))
 	      (file-readable-p (car arguments)))
-	 (let ((lisp-code (pymacs-apply
-			   "pymacs_load_helper"
-			   (list (substring (car arguments) 0 -3) nil))))
-	   (unless lisp-code
+	 (let ((text (pymacs-apply
+		      "pymacs_load_helper"
+		      (list (substring (car arguments) 0 -3) nil))))
+	   (unless text
 	     (error "Python import error"))
-	   (insert lisp-code)))
+	   (insert text)))
 	(t (pymacs-file-force operation arguments))))
 
 (defun pymacs-file-force (operation arguments)
@@ -126,10 +125,10 @@ equivalents, other structures are converted into LISP handles."
 ;;; Gargabe collection of Python IDs.
 
 ;; Python objects which have no LISP representation are allocated on the
-;; Python side as `handles[INDEX]', and `(pymacs-id INDEX)' is returned
-;; instead.  Whenever LISP does not need a Python object anymore, it should be
-;; freed on the Python side.  The following variables and functions are meant
-;; to fill this duty.
+;; Python side as `handles[INDEX]', and INDEX is transmitted to Emacs, with
+;; the value to use on the LISP side for it.  Whenever LISP does not need a
+;; Python object anymore, it should be freed on the Python side.  The
+;; following variables and functions are meant to fill this duty.
 
 (defvar pymacs-used-ids nil
   "List of received IDs, currently allocated on the Python side.")
@@ -163,13 +162,19 @@ equivalents, other structures are converted into LISP handles."
     (when unused-ids
       (pymacs-apply "free_handles" (list unused-ids)))))
 
-(defun pymacs-id (index)
-  ;; Register INDEX on the LISP side, then return `(pymacs-id INDEX)'.
-  ;; This form is recognised specially by `print-for-eval'.
-  (let ((object (list 'pymacs-id index)))
-    (puthash index object pymacs-weak-hash)
-    (setq pymacs-used-ids (cons index pymacs-used-ids))
-    object))
+(defun pymacs-defun (index name)
+  (fset name (pymacs-register
+	      index
+	      `(lambda (&rest arguments)
+		 (pymacs-apply ,(format "handles[%d]" index) arguments)))))
+
+
+(defun pymacs-register (index object)
+  ;; Register INDEX with OBJECT on the LISP side.  An OBJECT of the form
+  ;; `(pymacs-id INDEX)' is recognised specially by `print-for-eval'.
+  (puthash index object pymacs-weak-hash)
+  (setq pymacs-used-ids (cons index pymacs-used-ids))
+  object)
 
 ;;; Communication protocol.
 

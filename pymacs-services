@@ -3,7 +3,7 @@
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
 """\
-Python functions available within Emacs.
+Interface between Emacs LISP and Python - Python process starter.
 
 One of the goals of this small bootstrap is so `pymacs.py' can be kept
 in compiled form.

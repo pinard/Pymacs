@@ -100,8 +100,8 @@ def error(message):
     raise Server.ErrorException, "Emacs: %s" % message
 
 def pymacs_load_helper(lisp_module, lisp_prefix):
-    # This function imports a Python module, then returns a single
-    # LISP expression, which when later evaluated, installs trampoline
+    # This function imports a Python module, then returns a LISP string,
+    # which when later LISP-read and evaluated, will install trampoline
     # definitions in Emacs for accessing the Python module facilities.
     # MODULE may be a full path, yet without the `.py' or `.pyc' extension,
     # in which case the directory is temporarily added to the Python search
@@ -124,16 +124,16 @@ def pymacs_load_helper(lisp_module, lisp_prefix):
         if directory:
             del sys.path[0]
     globals().update({python_module: object})  # FIXME: use a better way...
-    defuns = [lisp.progn]
+    fragments = []
+    write = fragments.append
+    write('(progn')
     for name, value in object.__dict__.items():
-        if type(value) in (types.BuiltinFunctionType, types.FunctionType):
-            defuns.append(
-                (lisp.defun,
-                 lisp[lisp_prefix + string.replace(name, '_', '-')],
-                 (lisp['&rest'], lisp.arguments),
-                 (lisp.pymacs_apply,
-                  "%s.%s" % (python_module, name), lisp.arguments)))
-    return tuple(defuns)
+        if callable(value):
+            write(' (pymacs-defun %d \'%s)'
+                  % (allocate_handle(value),
+                     lisp_prefix + string.replace(name, '_', '-')))
+    write(' nil)')
+    return string.join(fragments, '')
 
 # Many Python types do not have direct LISP equivalents, and may not be
 # directly returned to LISP for this reason.  They are rather allocated in
@@ -319,8 +319,13 @@ def print_lisp(value, write, quoted=0):
         write('(aref pymacs-handles %d)' % value.index)
     elif isinstance(value, Symbol):
         write(value.text)
+    elif callable(value):
+        id = allocate_handle(value)
+        write('(pymacs-register %d (lambda (&rest arguments)'
+              ' (pymacs-apply "handles[%d]" arguments)))' % (id, id))
     else:
-        write('(pymacs-id %d)' % allocate_handle(value))
+        id = allocate_handle(value)
+        write("(pymacs-register %d '(pymacs-id %d))" % (id, id))
 
 if __name__ == '__main__':
     apply(main, sys.argv[1:])
