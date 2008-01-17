@@ -1,5 +1,9 @@
 * TODO for `Pymacs'				allout -*- outline -*-
 
+.. Installation
+
+. : Write a ./setup interactive installer.
+
 .. Debugging facilities
 
 . : *Pymacs*
@@ -8,8 +12,6 @@
 .  , Highlight.
 
 . : Test suite.  (Brian has one.)
-
-. : Auto-reloading on save.
 
 . : Python shell link to helper.
 

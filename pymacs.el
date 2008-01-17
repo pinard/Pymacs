@@ -39,14 +39,13 @@ not given, it defaults to MODULE followed by a dash."
 	  (prefix (read-string (format "Prefix? [%s] " default)
 			       nil nil default)))
      (list module prefix)))
-  (unless prefix
-    (setq prefix (concat module "-")))
   (message "Pymacs loading %s..." module)
   (let ((lisp-code (pymacs-apply "pymacs_load_helper" (list module prefix))))
     (unless lisp-code
       (error "Pymacs loading %s...failed" module))
-    (eval lisp-code)
-    (message "Pymacs loading %s...done" module)))
+    (let ((result (eval lisp-code)))
+      (message "Pymacs loading %s...done" module)
+      result)))
 
 (defun pymacs-eval (text)
   "Compile TEXT as a Python expression, and return its value."
@@ -73,11 +72,39 @@ LISP expressions.  Immutable LISP constants are converted to Python
 equivalents, other structures are converted into LISP handles."
   (pymacs-serve-until-reply `(pymacs-print-for-apply ',function ',arguments)))
 
-;;; Interface for load-file, autoload, etc.
+;;; Integration details.
 
-;; This function is very experimental -- it does not even work! :-)
+;; Python functions and modules should ideally look like LISP functions and
+;; modules.  This page tries to increase the integration seamlessness.
+;; These functions are very experimental -- none are satisfactory yet.
+
+(defun pymacs-documentation (object)
+  ;; Integration of doc-strings.
+  (let ((reference (cond ((and (consp object)
+			       (eq (car object) 'pymacs-python))
+			  (format "python[%d]" (cdr object)))
+			 ((functionp object)
+			  (let* ((definition (if (symbolp object)
+						 (symbol-function object)
+					       object))
+				 (body (and (consp definition)
+					    (eq (car definition) 'lambda)
+					    (cddr definition))))
+			    (when (and body
+				       (= (length (cddr definition)) 1)
+				       (eq (caar body) 'pymacs-apply))
+			      (cadr (car body))))))))
+    (when reference
+      (pymacs-eval (format "doc_string(%s)" reference)))))
+
+;(defadvice documentation (around pymacs-documentation activate)
+;  (let ((raw-doc-string (pymacs-documentation function)))
+;    (if raw-doc-string
+;	(if raw raw-doc-string (substitute-command-keys raw-doc-string))
+;      ad-do-it)))
 
 (defun pymacs-file-handler (operation &rest arguments)
+  ;; Integration of load-file, autoload, etc.
   ;; Emacs might want the contents of some `MODULE.el' which does not exist,
   ;; while there is a `MODULE.py' or `MODULE.pyc' file in the same directory.
   ;; The goal is to generate a virtual contents for this `MODULE.el' file, as
@@ -161,21 +188,31 @@ The timer is used only if `post-gc-hook' is not available.")
     (setq pymacs-used-ids used-ids
 	  pymacs-gc-wanted nil)
     (when unused-ids
-      (pymacs-apply "free_python" (list unused-ids)))))
+      (pymacs-apply "free_python" unused-ids))))
+
+(defun pymacs-python (index)
+  ;; The result is recognised specially by `print-for-eval'.
+  (pymacs-save index (cons 'pymacs-python index)))
 
 (defun pymacs-defuns (arguments)
+  ;; Take one argument, a single list holding an even number of items.
+  ;; The first argument is an INDEX, the second is a NAME, and so forth.
+  ;; Register Python INDEX with a function with that NAME on the LISP side.
+  ;; The strange calling convention is to minimise quoting at call time.
   (while (>= (length arguments) 2)
     (let ((index (car arguments))
 	  (name (cadr arguments)))
-      (fset name (pymacs-register
-		  index
-		  `(lambda (&rest arguments)
-		     (pymacs-apply ,(format "python[%d]" index) arguments))))
+      (fset name (pymacs-defun index))
       (setq arguments (cddr arguments)))))
 
-(defun pymacs-register (index object)
-  ;; Register INDEX with OBJECT on the LISP side.  An OBJECT of the form
-  ;; `(pymacs-python . INDEX)' is recognised specially by `print-for-eval'.
+(defun pymacs-defun (index)
+  ;; Register Python INDEX with an unnamed function on the LISP side.
+  (pymacs-save index
+	       `(lambda (&rest arguments)
+		  (pymacs-apply ,(format "python[%d]" index) arguments))))
+
+(defun pymacs-save (index object)
+  ;; Register Python INDEX with OBJECT on the LISP side.
   (puthash index object pymacs-weak-hash)
   (setq pymacs-used-ids (cons index pymacs-used-ids))
   object)
@@ -223,14 +260,15 @@ The timer is used only if `post-gc-hook' is not available.")
     (aset pymacs-lisp index expression)
     index))
 
-(defun pymacs-free-lisp (index)
-  ;; This function is triggered from Python side whenever a LISP handle looses
-  ;; its last reference.  The reference should be cut on the LISP side as
-  ;; well, or else, the object will never be garbage-collected.
-  (aset pymacs-lisp index nil)
-  (setq pymacs-freed-list (cons index pymacs-freed-list))
-  ;; Avoid transmitting back useless information.
-  nil)
+(defun pymacs-free-lisp (&rest indices)
+  ;; This function is triggered from Python side for LISP handles which lost
+  ;; their last reference.  These references should be cut on the LISP side as
+  ;; well, or else, the objects will never be garbage-collected.
+  (while indices
+    (let ((index (car indices)))
+      (aset pymacs-lisp index nil)
+      (setq pymacs-freed-list (cons index pymacs-freed-list)
+	    indices (cdr indices)))))
 
 (defun pymacs-print-for-apply-expanded (function arguments)
   ;; This function acts like `print-for-apply', but produce arguments which
@@ -341,16 +379,9 @@ The timer is used only if `post-gc-hook' is not available.")
 ;; first message is received from the Python side, it is `(version VERSION)'.
 
 (defun pymacs-start-services ()
-  ;; This function gets called automatically, as needed.  However, it is
-  ;; marked interactive as a debugging convenience to reload a new copy of the
-  ;; Python process, after having changed the Python code.
-  (interactive)
-  ;; Start with a fresh `*Pymacs*' buffer.
-  (let ((name "*Pymacs*"))
-    (when (get-buffer name)
-      (kill-buffer name))
-    (setq pymacs-transit-buffer (get-buffer-create name)))
-  (with-current-buffer pymacs-transit-buffer
+  ;; This function gets called automatically, as needed.
+  (with-current-buffer (setq pymacs-transit-buffer
+			     (get-buffer-create "*Pymacs*"))
     ;; Launch the Python helper.
     (let ((process (apply 'start-process
 			  "pymacs" pymacs-transit-buffer "pymacs-services"
@@ -359,7 +390,7 @@ The timer is used only if `post-gc-hook' is not available.")
       ;; Receive the synchronising reply.
       (while (progn
 	       (goto-char (point-min))
-	       (not (re-search-forward "^<\\([0-9]+\\)\t" nil t)))
+	       (not (re-search-forward "<\\([0-9]+\\)\t" nil t)))
 	(unless (accept-process-output process 5)
 	  (error "Pymacs helper did not start within 5 seconds.")))
       (let ((marker (process-mark process))
@@ -384,7 +415,7 @@ The timer is used only if `post-gc-hook' is not available.")
   (if pymacs-weak-hash
       (when pymacs-used-ids
 	(let ((pymacs-forget-mutability t))
-	  (pymacs-apply "zombie_python" (list pymacs-used-ids))))
+	  (pymacs-apply "zombie_python" pymacs-used-ids)))
     (setq pymacs-weak-hash (make-hash-table :weakness 'value)))
   (if (boundp 'post-gc-hook)
       (add-hook 'post-gc-hook 'pymacs-schedule-gc)
@@ -392,6 +423,7 @@ The timer is used only if `post-gc-hook' is not available.")
 
 (defun pymacs-terminate-services ()
   ;; This function is mainly provided for documentation purposes.
+  (interactive)
   (garbage-collect)
   (pymacs-garbage-collect)
   (when (or (not pymacs-used-ids)
@@ -485,7 +517,7 @@ Killing the helper might create zombie objects.  Kill? "))
 	(while (and (eq status 'run)
 		    (progn
 		      (goto-char reply-position)
-		      (not (re-search-forward "^<\\([0-9]+\\)\t" nil t))))
+		      (not (re-search-forward "<\\([0-9]+\\)\t" nil t))))
 	  (unless (accept-process-output process 4)
 	    (setq status (process-status process))))
 	(when (eq status 'run)

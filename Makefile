@@ -21,7 +21,7 @@ pymacsdir = $(HOME)/share/emacs/python
 ### End of customisation.
 
 PACKAGE = pymacs
-VERSION = 0.4
+VERSION = 0.5
 
 FILES = ChangeLog Makefile README TODO elc pyc pymacs.el pymacs.py \
 pymacs-services pymacs-test.el pymacs_test.py
@@ -48,3 +48,5 @@ dist:
 	rm -rf $(PACKAGE)-$(VERSION)
 	chmod 644 $(PACKAGE)-$(VERSION).tar.gz
 	scp -p $(PACKAGE)-$(VERSION).tar.gz bor:pymacs/
+	ssh bor rm -vf pymacs/$(PACKAGE).tar.gz
+	ssh bor ln -vs $(PACKAGE)-$(VERSION).tar.gz pymacs/$(PACKAGE).tar.gz

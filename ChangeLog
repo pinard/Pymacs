@@ -1,4 +1,37 @@
+2001-09-13  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.5.
+
+	* pymacs.el (documentation, pymacs-documentation): New, experimental.
+	* pymacs.py (doc_string): New.
+	(pymacs_load_helper): The result should evaluate to the module.
+
+2001-09-12  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.py (pymacs_load_helper): Use reload instead of __import__
+	whenever the module was already loaded.
+
+	* pymacs.py (pymacs_load_helper): Return t when there is nothing
+	to define, instead of returning a noisy pymacs-defuns noop.
+
+	* Makefile (dist): Update a version-less symbolic link.
+
+	* pymacs.el (pymacs-python, pymacs-defun): New functions.
+	(pymacs-defuns): Use pymacs-defun.
+	* pymacs.py (print_lisp): Use the above.
+
+	* pymacs.py (Server): Free all accumulated LISP indices, while
+	replying for another reason.  This should decrease overhead.
+	(Lisp.__del__): Delay freeing LISP, do not free one index at a time.
+	* pymacs.el (pymacs-free-lisp): Free many indices at once.
+
+	* pymacs.el (pymacs-start-services, pymacs-round-trip): Recognise
+	reply even when not at beginning of line.  The Python module may
+	print incomplete lines, unrelated to the communication protocol.
+
 2001-09-11  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.4.
 
 	* pymacs.py (zombie): New, so to get a clear diagnostic.
 	(zombie_python): Link objects to the above function.
