@@ -128,16 +128,26 @@ equivalents, other structures are converted into Lisp handles."
   ;; Return the text reference of a Python object if possible, else nil.
   (when (functionp object)
     (let* ((definition (indirect-function object))
-	   (size (if (eq (car-safe definition) 'lambda) (length definition) 0))
-	   (expression (cond ((= size 3)
-			      (nth 2 definition))
-			     ((and (= size 4)
-				   (eq (car (nth 2 definition)) 'interactive))
-			      (nth 3 definition)))))
-      (when (and expression
-		 (eq (car expression) 'pymacs-apply)
-		 (eq (car (cadr expression)) 'quote))
-	(setq object (cadr (cadr expression))))))
+	   (body (and (pymacs-proper-list-p definition)
+		      (> (length definition) 2)
+		      (eq (car definition) 'lambda)
+		      (cddr definition))))
+      (when (and body (listp (car body)) (eq (caar body) 'interactive))
+	;; Skip the interactive specification of a function.
+	(setq body (cdr body)))
+      (when (and body
+		 ;; Advised functions start with a string.
+		 (not (stringp (car body)))
+		 ;; Python trampolines hold exactly one expression.
+		 (= (length body) 1))
+	(let ((expression (car body)))
+	  ;; EXPRESSION might now hold something like:
+	  ;;    (pymacs-apply (quote (pymacs-python . N)) ARGUMENT-LIST)
+	  (when (and (pymacs-proper-list-p expression)
+		     (= (length expression) 3)
+		     (eq (car expression) 'pymacs-apply)
+		     (eq (car (cadr expression)) 'quote))
+	    (setq object (cadr (cadr expression))))))))
   (when (eq (car-safe object) 'pymacs-python)
     (format "python[%d]" (cdr object))))
 

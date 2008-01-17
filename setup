@@ -21,8 +21,8 @@ Usage: setup [OPTION]
 
 import os, string, sys
 
-sys.path.insert(0, 'Pymacs')
-from version import package, version
+sys.path.insert(0, '.')
+from Pymacs import package, version
 del sys.path[0]
 
 AUTOCONF = ()                           # neither a string nor None

@@ -1,3 +1,16 @@
+2002-11-23  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.20.
+
+	* Pymacs/__init__.py: Integrate version.py.
+	* Pymacs/version.py: Deleted.
+	* setup.py, Pymacs/pymacs.py: Adjusted.
+
+2002-11-15  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-python-reference): Handle when function is
+	defined as a mere variable, or when a function is being advised.
+
 2002-11-14  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.19.

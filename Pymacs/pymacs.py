@@ -41,7 +41,7 @@ This program is meant to be called from Emacs, using `pymacs.el'.
 
 The program arguments are additional search paths for Python modules.
 """
-    from version import version
+    from Pymacs import version
     arguments = list(arguments)
     arguments.reverse()
     for argument in arguments:

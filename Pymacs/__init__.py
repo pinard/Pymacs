@@ -23,3 +23,8 @@ A few symbols are moved in here so they appear to be defined at this level.
 """
 
 from pymacs import Let, lisp
+
+# Identification of version.
+
+package = 'Pymacs'
+version = '0.20'

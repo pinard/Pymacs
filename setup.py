@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, 'Pymacs')
-from version import package, version
+sys.path.insert(0, '.')
+from Pymacs import package, version
 del sys.path[0]
 
 from distutils.core import setup

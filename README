@@ -361,13 +361,13 @@
 . : `pymacs-call'.
 
     Function `(pymacs-call FUNCTION ARGUMENT...)' will get Python to apply
-    the given FUNCTION over zero or more ARGUMENT.  FUNCTION is either
-    a Python string holding an expression yielding a Python function, or
-    else, a Python handle previously received from Python, and hopefully
-    holding a callable Python object.  Each ARGUMENT gets separately
-    converted to Python before the function is called.  `pymacs-call'
-    returns the resulting value of the function call, converted back to
-    Emacs Lisp.
+    the given FUNCTION over zero or more ARGUMENT.  FUNCTION is either a
+    string holding Python source code for a function (like a mere name, or
+    even an expression), or else, a Python handle previously received from
+    Python, and hopefully holding a callable Python object.  Each ARGUMENT
+    gets separately converted to Python before the function is called.
+    `pymacs-call' returns the resulting value of the function call,
+    converted back to Emacs Lisp.
 
 . : `pymacs-apply'.
 
@@ -401,12 +401,13 @@
     have `pymacs-load' to return `nil' instead of raising an error, if
     the Python module could not be found.
 
-    When later calling one of these functions, all provided arguments are
-    converted to Python and transmitted, and the function return value is
-    later converted back to Emacs Lisp.  It is left to the Python side to
-    check for argument consistency.  However, for an interactive function,
-    the interaction specification drives some checking on the Emacs Lisp
-    side.  There is no provision to collect keyword arguments in Emacs Lisp.
+    When later calling one of these trampoline functions, all provided
+    arguments are converted to Python and transmitted, and the function
+    return value is later converted back to Emacs Lisp.  It is left to
+    the Python side to check for argument consistency.  However, for
+    an interactive function, the interaction specification drives some
+    checking on the Emacs Lisp side.  Currently, there is no provision
+    for collecting keyword arguments in Emacs Lisp.
 
 . : Expected usage.
 
@@ -414,18 +415,18 @@
     will be much used, if ever.  In practice, the Emacs Lisp side
     of a Pymacs application might call `pymacs-load' a few times for
     linking into the Python modules, with the indirect effect of defining
-    trampoline functions for these modules on the Emacs Lisp side, than
-    can be called like usual Emacs Lisp functions.
+    trampoline functions for these modules on the Emacs Lisp side, which
+    can later be called like usual Emacs Lisp functions.
 
-    These imported functions are really those which are of interest for
+    These imported functions are usually those which are of interest for
     the user, and the preferred way to call Python services with Pymacs.
 
 . : Special Emacs Lisp variables.
 
     Users could alter the inner working of Pymacs through a few variables,
-    which are documented here.  Except for `pymacs-load-path', which should
-    be set before calling any Pymacs function, the value of these variables
-    can be changed at any time.
+    these are all documented here.  Except for `pymacs-load-path', which
+    should be set before calling any Pymacs function, the value of these
+    variables can be changed at any time.
 
 .  , pymacs-load-path
 
@@ -513,7 +514,7 @@
     Pymacs requires little or no setup in the Python modules which are
     meant to be used from Emacs, for the simple situations where these
     modules receive nothing but Emacs nil, numbers or strings, or return
-    nothing but Python None, numbers or strings.
+    nothing but Python `None', numbers or strings.
 
     Otherwise, use `from Pymacs import lisp'.  If you need more Pymacs
     features, like the `Let' class, write `from Pymacs import lisp, Let'.
@@ -552,10 +553,10 @@
     either `lisp.SYMBOL.value()' or `lisp.SYMBOL.copy()' to access the
     Emacs Lisp value of a symbol, after conversion to some Python object,
     of course.  However, if `value()' would have given an Emacs Lisp handle,
-    `lisp.SYMBOL.copy()' has the same effect of `lisp.SYMBOL.value().copy()',
+    `lisp.SYMBOL.copy()' has the effect of `lisp.SYMBOL.value().copy()',
     that is, it returns the value of the symbol as opened as possible.
 
-    A symbol may also be as if it was a Python function, in which case
+    A symbol may also be used as if it was a Python function, in which case
     it really names an Emacs Lisp function that should be applied over the
     following function arguments.  The result of the Emacs Lisp function
     becomes the value of the call, with all due conversions of course.
@@ -697,12 +698,12 @@
         hello_world.interaction = ''
 
     Versions of Python released before the integration of PEP 232 do not
-    allow users to add attributes to functions.  But there is a fallback
+    allow users to add attributes to functions, so there is a fallback
     mechanism.  Let's presume that a given function does not have an
     `interaction' attribute as explained above.  If the Python module
     contains an `interactions' global variable which is a dictionary,
     if that dictionary has an entry for the given function with a value
-    other than None, that function is going to be interactive on the
+    other than `None', that function is going to be interactive on the
     Emacs side.  Here is how the preceeding example should be written
     for an older version of Python, or when portability is at premium:
 
@@ -716,12 +717,13 @@
 
     One might wonder why we do not merely use `lisp.interactive(...)' from
     within Python.  There is some magic in the Emacs Lisp interpreter
-    itself which looks for that call _before_ the function is actually
-    entered, this is why "(interactive ...)" has to appear first in an
-    Emacs Lisp `defun'.  Pymacs could try to scan the already compiled form
-    of the Python code, seeking for `lisp.interactive', but the evaluation
-    of `lisp.interactive' arguments could get arbitrarily complex, it would
-    a real challenge un-compiling that evaluation into Emacs Lisp code.
+    itself, looking for that call _before_ the function is actually
+    entered, this explains why "(interactive ...)" has to appear first in
+    an Emacs Lisp `defun'.  Pymacs could try to scan the already compiled
+    form of the Python code, seeking for `lisp.interactive', but as the
+    evaluation of `lisp.interactive' arguments could get arbitrarily
+    complex, it would a real challenge un-compiling that evaluation into
+    Emacs Lisp.
 
 . : Keybindings.
 

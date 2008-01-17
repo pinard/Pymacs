@@ -10,8 +10,7 @@
 
 .. Iterator protocol.
 
-. : Should Lisp objects might support the iterator protocol.  How being
-. : portable?  Python 1.5.2 does not know __future__.
+. : Allow iterating over vectors.
 
 .. Rebox.
 
