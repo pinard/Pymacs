@@ -246,7 +246,7 @@ class Let:
     def push(self, **keywords):
 	saved = []
 	for name, value in keywords.items():
-	    saved.append((name, getattr(lisp, name)))
+	    saved.append((name, getattr(lisp, name).value()))
 	    setattr(lisp, name, value)
 	self.stack.append(('variables', saved))
 
