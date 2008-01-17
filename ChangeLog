@@ -1,4 +1,31 @@
+2001-09-20  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-print-for-apply): Also accept Python objects
+	for a function, instead of requiring strings.
+	(pymacs-defun): Use a Python object, not an explicit string reference.
+	(pymacs-python): Merge pymacs-save-index.
+	(pymacs-save-index): Deleted.
+
+2001-09-18  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-load): Accept a noerror argument.
+
+2001-09-17  François Pinard  <pinard@iro.umontreal.ca>
+
+	* setup: New script.
+	* Makefile: Use it.
+
+	* pymacs.py (Symbol.set): Make things simpler when value is None.
+
+	* pymacs.el (pymacs-print-for-eval): Use Python lists to represent
+	LISP proper lists and Python tuples to represent LISP vectors,
+	instead of the other way around.
+	* pymacs.py (pymacs_load_helper, print_lisp): Similar changes.
+	Reported by John Wiegley.
+
 2001-09-16  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.6.
 
 	* pymacs.el (pymacs-start-services, pymacs-print-for-eval,
 	pymacs-round-trip): Protect match data.

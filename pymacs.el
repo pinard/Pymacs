@@ -27,12 +27,13 @@ When this variable is nil, strings are transmitted as copies, and the
 Python side thus has no way for modifying the original LISP strings.
 This variable is ignored whenever `forget-mutability' is set.")
 
-(defun pymacs-load (module &optional prefix)
+(defun pymacs-load (module &optional prefix noerror)
   "Import the Python module named MODULE into Emacs.
 Each function in the Python module is made available as an Emacs function.
 The LISP name of each function is the concatenation of PREFIX with
 the Python name, in which underlines are replaced by dashes.  If PREFIX is
-not given, it defaults to MODULE followed by a dash."
+not given, it defaults to MODULE followed by a dash.
+If NOERROR is not nil, do not raise error when the module is not found."
   (interactive
    (let* ((module (read-string "Python module? "))
 	  (default (concat module "-"))
@@ -41,11 +42,11 @@ not given, it defaults to MODULE followed by a dash."
      (list module prefix)))
   (message "Pymacs loading %s..." module)
   (let ((lisp-code (pymacs-apply "pymacs_load_helper" (list module prefix))))
-    (unless lisp-code
-      (error "Pymacs loading %s...failed" module))
-    (let ((result (eval lisp-code)))
-      (message "Pymacs loading %s...done" module)
-      result)))
+    (cond (lisp-code (let ((result (eval lisp-code)))
+		       (message "Pymacs loading %s...done" module)
+		       result))
+	  (noerror (message "Pymacs loading %s...failed" module) nil)
+	  (t (error "Pymacs loading %s...failed" module)))))
 
 (defun pymacs-eval (text)
   "Compile TEXT as a Python expression, and return its value."
@@ -191,10 +192,6 @@ The timer is used only if `post-gc-hook' is not available.")
     (when unused-ids
       (pymacs-apply "free_python" unused-ids))))
 
-(defun pymacs-python (index)
-  ;; The result is recognised specially by `print-for-eval'.
-  (pymacs-save index (cons 'pymacs-python index)))
-
 (defun pymacs-defuns (arguments)
   ;; Take one argument, a single list holding an even number of items.
   ;; The first argument is an INDEX, the second is a NAME, and so forth.
@@ -207,16 +204,19 @@ The timer is used only if `post-gc-hook' is not available.")
       (setq arguments (cddr arguments)))))
 
 (defun pymacs-defun (index)
-  ;; Register Python INDEX with an unnamed function on the LISP side.
-  (pymacs-save index
-	       `(lambda (&rest arguments)
-		  (pymacs-apply ,(format "python[%d]" index) arguments))))
+  ;; Register INDEX on the LISP side with a Python object that is a function,
+  ;; and return a lambda form calling that function.
+  `(lambda (&rest arguments)
+     (pymacs-apply '(pymacs-python . ,index) arguments)))
 
-(defun pymacs-save (index object)
-  ;; Register Python INDEX with OBJECT on the LISP side.
-  (puthash index object pymacs-weak-hash)
-  (setq pymacs-used-ids (cons index pymacs-used-ids))
-  object)
+(defun pymacs-python (index)
+  ;; Register on the LISP side a Python object having INDEX, and return it.
+  ;; The result is meant to be recognised specially by `print-for-eval', and
+  ;; in the function position by `print-for-apply'.
+  (let ((object (cons 'pymacs-python index)))
+    (puthash index object pymacs-weak-hash)
+    (setq pymacs-used-ids (cons index pymacs-used-ids))
+    object))
 
 ;;; Generating Python code.
 
@@ -227,7 +227,7 @@ The timer is used only if `post-gc-hook' is not available.")
 (defvar pymacs-lisp nil
   "Vector of handles to hold transmitted expressions.")
 (defvar pymacs-freed-list nil
-  "List of unallocated indices in HANDLE-VECTOR.")
+  "List of unallocated indices in LISP.")
 
 ;; When the Python CG is done with a LISP object, a communication occurs so to
 ;; free the object on the LISP side as well.
@@ -264,16 +264,19 @@ The timer is used only if `post-gc-hook' is not available.")
 (defun pymacs-print-for-apply-expanded (function arguments)
   ;; This function acts like `print-for-apply', but produce arguments which
   ;; are expanded copies whenever possible, instead of handles.  Proper lists
-  ;; are turned into tuples, vectors are turned into lists.
+  ;; are turned into Python lists, vectors are turned into Python tuples.
   (let ((pymacs-forget-mutability t))
     (pymacs-print-for-apply function arguments)))
 
 (defun pymacs-print-for-apply (function arguments)
   ;; This function prints a Python expression calling FUNCTION, which is a
-  ;; string, over all its ARGUMENTS, which are LISP expressions.
+  ;; string naming a Python function, or a Python reference, over all its
+  ;; ARGUMENTS, which are LISP expressions.
   (let ((separator "")
 	argument)
-    (princ function)
+    (if (eq (car-safe function) 'pymacs-python)
+	(princ (format "python[%d]" (cdr function)))
+      (princ function))
     (princ "(")
     (while arguments
       (setq argument (car arguments)
@@ -314,12 +317,14 @@ The timer is used only if `post-gc-hook' is not available.")
 	   (when pymacs-forget-mutability
 	     (let ((limit (length expression))
 		   (counter 0))
-	       (princ "[")
+	       (princ "(")
 	       (while (< counter limit)
 		 (unless (zerop counter)
 		   (princ ", "))
 		 (pymacs-print-for-eval (aref expression counter)))
-	       (princ "]")
+	       (when (= limit 1)
+		 (princ ","))
+	       (princ ")")
 	       (setq done t))))
 	  ((eq (car-safe expression) 'pymacs-python)
 	   (princ "python[")
@@ -327,16 +332,13 @@ The timer is used only if `post-gc-hook' is not available.")
 	   (princ "]"))
 	  ((pymacs-proper-list-p expression)
 	   (when pymacs-forget-mutability
-	     (let ((single (= (length expression) 1)))
-	       (princ "(")
-	       (pymacs-print-for-eval (car expression))
-	       (while (setq expression (cdr expression))
-		 (princ ", ")
-		 (pymacs-print-for-eval (car expression)))
-	       (when single
-		 (princ ","))
-	       (princ ")")
-	       (setq done t)))))
+	     (princ "[")
+	     (pymacs-print-for-eval (car expression))
+	     (while (setq expression (cdr expression))
+	       (princ ", ")
+	       (pymacs-print-for-eval (car expression)))
+	     (princ "]")
+	     (setq done t))))
     (unless done
       (let ((class (cond ((vectorp expression) "Vector")
 			 ((hash-table-p expression) "Table")

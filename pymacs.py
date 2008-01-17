@@ -167,10 +167,10 @@ def pymacs_load_helper(lisp_module, prefix):
 	    arguments.append(allocate_python(value))
 	    arguments.append(lisp[prefix + string.replace(name, '_', '-')])
     if arguments:
-	return (lisp.progn,
-                (lisp.pymacs_defuns, (lisp.quote, tuple(arguments))),
-                object)
-    return (lisp.quote, object)
+	return [lisp.progn,
+                [lisp.pymacs_defuns, [lisp.quote, arguments]],
+                object]
+    return [lisp.quote, object]
 
 def doc_string(object):
     if hasattr(object, '__doc__'):
@@ -236,12 +236,15 @@ class Symbol:
 	return lisp('(pymacs-expand %s)' % self.text)
 
     def set(self, value):
-	fragments = []
-	write = fragments.append
-	write('(progn (setq %s ' % self.text)
-	print_lisp(value, write, quoted=1)
-	write(') nil)')
-	lisp(string.join(fragments, ''))
+        if value is None:
+            lisp('(setq %s nil)' % self.text)
+        else:
+            fragments = []
+            write = fragments.append
+            write('(progn (setq %s ' % self.text)
+            print_lisp(value, write, quoted=1)
+            write(') nil)')
+            lisp(string.join(fragments, ''))
 
     def __call__(self, *arguments):
 	fragments = []
@@ -406,7 +409,7 @@ def print_lisp(value, write, quoted=0):
         # double quotes as delimiters for the whole prefixed string.  Then,
         # we get rid of the representation of the single quote and the NUL.
 	write('"' + repr("'\0" + value)[6:])
-    elif type(value) == types.TupleType:
+    elif type(value) == types.ListType:
 	if quoted:
 	    write("'")
 	if len(value) == 0:
@@ -421,7 +424,7 @@ def print_lisp(value, write, quoted=0):
 		write(' ')
 		print_lisp(sub_value, write)
 	    write(')')
-    elif type(value) == types.ListType:
+    elif type(value) == types.TupleType:
 	write('[')
 	if len(value) > 0:
 	    print_lisp(value[0], write)
