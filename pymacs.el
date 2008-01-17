@@ -80,28 +80,33 @@ equivalents, other structures are converted into LISP handles."
 
 (defadvice documentation (around pymacs-ad-documentation activate)
   ;; Integration of doc-strings.
-  (let ((python-doc (let ((reference (pymacs-python-reference function)))
-		      (when reference
-			(pymacs-eval (format "doc_string(%s)" reference))))))
-    (if python-doc
+  (let* ((reference (pymacs-python-reference function))
+	 (python-doc (when reference
+		       (pymacs-eval (format "doc_string(%s)" reference)))))
+    (if (or reference python-doc)
 	(setq ad-return-value
 	      (concat
 	       "It interfaces to a Python function.\n\n"
-	       (if raw python-doc (substitute-command-keys python-doc))))
+	       (when python-doc
+		 (if raw python-doc (substitute-command-keys python-doc)))))
       ad-do-it)))
 
 (defun pymacs-python-reference (object)
   ;; Return the text reference of a Python object if possible, else nil.
-  (cond ((eq (car-safe object) 'pymacs-python)
-	 (format "python[%d]" (cdr object)))
-	((functionp object)
-	 (let* ((definition (indirect-function object))
-		(body (and (eq (car-safe definition) 'lambda)
-			   (cddr definition))))
-	   (and body
-		(= (length (cddr definition)) 1)
-		(eq (caar body) 'pymacs-apply)
-		(cadr (car body)))))))
+  (when (functionp object)
+    (let* ((definition (indirect-function object))
+	   (size (if (eq (car-safe definition) 'lambda) (length definition) 0))
+	   (expression (cond ((= size 3)
+			      (nth 2 definition))
+			     ((and (= size 4)
+				   (eq (car (nth 2 definition)) 'interactive))
+			      (nth 3 definition)))))
+      (when (and expression
+		 (eq (car expression) 'pymacs-apply)
+		 (eq (car (cadr expression)) 'quote))
+	(setq object (cadr (cadr expression))))))
+  (when (eq (car-safe object) 'pymacs-python)
+    (format "python[%d]" (cdr object))))
 
 ;; The following functions are experimental -- they are not satisfactory yet.
 
@@ -201,21 +206,35 @@ The timer is used only if `post-gc-hook' is not available.")
 	(pymacs-apply "free_python" unused-ids)))))
 
 (defun pymacs-defuns (arguments)
-  ;; Take one argument, a single list holding an even number of items.
-  ;; The first argument is an INDEX, the second is a NAME, and so forth.
-  ;; Register Python INDEX with a function with that NAME on the LISP side.
-  ;; The strange calling convention is to minimise quoting at call time.
-  (while (>= (length arguments) 2)
-    (let ((index (car arguments))
-	  (name (cadr arguments)))
-      (fset name (pymacs-defun index))
-      (setq arguments (cddr arguments)))))
+  ;; Take one argument, a list holding a number of items divisible by 3.  The
+  ;; first argument is an INDEX, the second is a NAME, the third is the
+  ;; INTERACTION specification, and so forth.  Register Python INDEX with a
+  ;; function with that NAME and INTERACTION on the LISP side.  The strange
+  ;; calling convention is to minimise quoting at call time.
+  (while (>= (length arguments) 3)
+    (let ((index (nth 0 arguments))
+	  (name (nth 1 arguments))
+	  (interaction (nth 2 arguments)))
+      (fset name (pymacs-defun index interaction))
+      (setq arguments (nthcdr 3 arguments)))))
 
-(defun pymacs-defun (index)
+(defun pymacs-defun (index interaction)
   ;; Register INDEX on the LISP side with a Python object that is a function,
-  ;; and return a lambda form calling that function.
+  ;; and return a lambda form calling that function.  If the INTERACTION
+  ;; specification is nil, the function is not interactive.  Otherwise, the
+  ;; function is interactive, INTERACTION is then either a string, or the
+  ;; index of an argument-less Python function returning the argument list.
   (let ((object (pymacs-python index)))
-    `(lambda (&rest arguments) (pymacs-apply ',object arguments))))
+    (cond ((null interaction)
+	   `(lambda (&rest arguments)
+	      (pymacs-apply ',object arguments)))
+	  ((stringp interaction)
+	   `(lambda (&rest arguments)
+	      (interactive ,interaction)
+	      (pymacs-apply ',object arguments)))
+	  (t `(lambda (&rest arguments)
+		(interactive (pymacs-apply ',(pymacs-python interaction) nil))
+		(pymacs-apply ',object arguments))))))
 
 (defun pymacs-python (index)
   ;; Register on the LISP side a Python object having INDEX, and return it.

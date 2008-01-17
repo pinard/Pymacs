@@ -133,39 +133,48 @@ def error(message):
     # This function implements the `error' pseudo-function.
     raise Server.ErrorException, "Emacs: %s" % message
 
-def pymacs_load_helper(lisp_module, prefix):
+def pymacs_load_helper(file_without_extension, prefix):
     # This function imports a Python module, then returns a LISP expression
     # which, when later evaluated, will install trampoline definitions in
-    # Emacs for accessing the Python module facilities.  MODULE may be
-    # a full path, yet without the `.py' or `.pyc' extension, in which
-    # case the directory is temporarily added to the Python search path
-    # for the sole duration of that import.  All defined symbols on the
-    # LISP side have have PREFIX prepended, and have Python underlines in
-    # Python turned into dashes.  If PREFIX is None, it then defaults to
-    # the base name of MODULE, followed by a dash.
-    directory, module = os.path.split(lisp_module)
-    python_module = string.replace(module, '-', '_')
+    # Emacs for accessing the Python module facilities.  MODULE may be a
+    # full path, yet without the `.py' or `.pyc' extension, in which case
+    # the directory is temporarily added to the Python search path for
+    # the sole duration of that import.  All defined symbols on the LISP
+    # side have have PREFIX prepended, and have Python underlines in Python
+    # turned into dashes.  If PREFIX is None, it then defaults to the base
+    # name of MODULE with underlines turned to dashes, followed by a dash.
+    directory, module_name = os.path.split(file_without_extension)
     if prefix is None:
-	prefix = module + '-'
+	prefix = string.replace(module_name, '_', '-') + '-'
     try:
-	object = sys.modules.get(python_module)
+	object = sys.modules.get(module_name)
 	if object:
 	    reload(object)
 	else:
 	    try:
 		if directory:
 		    sys.path.insert(0, directory)
-		object = __import__(python_module)
+		object = __import__(module_name)
 	    finally:
 		if directory:
 		    del sys.path[0]
     except ImportError:
 	return None
+    print 'KEYS', object.__dict__.keys()
+    interactions = object.__dict__.get('interactions', {})
+    print 'INTR', interactions, type(interactions)
+    if type(interactions) != types.DictType:
+	interactions = {}
     arguments = []
     for name, value in object.__dict__.items():
 	if callable(value) and value is not lisp:
 	    arguments.append(allocate_python(value))
 	    arguments.append(lisp[prefix + string.replace(name, '_', '-')])
+	    interaction = interactions.get(value)
+	    if callable(interaction):
+		arguments.append(allocate_python(interaction))
+	    else:
+		arguments.append(interaction)
     if arguments:
 	return [lisp.progn,
 		[lisp.pymacs_defuns, [lisp.quote, arguments]],
@@ -244,8 +253,8 @@ class Let:
 		self.pop_window_excursion()
 
     def __nonzero__(self):
-        # So stylistic `if let:' executes faster.
-        return 1
+	# So stylistic `if let:' executes faster.
+	return 1
 
 
     def push(self, **keywords):
@@ -264,16 +273,16 @@ class Let:
 
     def push_excursion(self):
 	self.stack.append(('excursion',
-                           (lisp.current_buffer(),
-                            lisp.point_marker(), lisp.mark_marker())))
+			   (lisp.current_buffer(),
+			    lisp.point_marker(), lisp.mark_marker())))
 
     def pop_excursion(self):
 	type, saved = self.stack[-1]
 	del self.stack[-1]
 	assert type == 'excursion', (type, saved)
 	lisp.set_buffer(saved[0])
-        lisp.goto_char(saved[1])
-        lisp.set_mark(saved[2])
+	lisp.goto_char(saved[1])
+	lisp.set_mark(saved[2])
 
     def push_match_data(self):
 	self.stack.append(('match_data', lisp.match_data()))

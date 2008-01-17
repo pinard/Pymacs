@@ -1,3 +1,24 @@
+2001-10-16  François Pinard  <pinard@iro.umontreal.ca>
+
+	* setup:
+
+	* : Release 0.11.
+
+	* pymacs.el (pymacs-defuns): Accept interaction specifications.
+	(pymacs-defun): Process an interaction specification.
+	(pymacs-python-reference): Adjust for interactive functions.
+	* pymacs.py (pymacs_load_helper): Transmit interaction specifications.
+	Reported by Christian Tanzer and Stefan Reichör.
+
+2001-10-15  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.py (pymacs_load_helper): Accept dashed module names.
+	Reported by Stefan Reichör.
+
+	* pymacs.el (pymacs-python-reference): Rewrite, as it was broken.
+	(documentation): Say it is a Python function, even if no docstring.
+	Reported by Stefan Reichör.
+
 2001-10-12  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.10.
