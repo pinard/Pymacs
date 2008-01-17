@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+# Copyright © 2001 Progiciels Bourbeau-Pinard inc.
+# François Pinard <pinard@iro.umontreal.ca>, 2001.
+
+"""\
+Python functions available within Emacs.
+"""
+
+if __name__ == '__main__':
+    import pymacs, sys
+    apply(pymacs.main, sys.argv[1:])

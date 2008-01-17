@@ -1,0 +1,293 @@
+#!/usr/bin/env python
+# Copyright © 2001 Progiciels Bourbeau-Pinard inc.
+# François Pinard <pinard@iro.umontreal.ca>, 2001.
+
+"""\
+Interface between Emacs LISP and Python - Python part.
+
+Emacs may launch this module as a stand-alone program, in which case it
+acts as a server of Python facilities for that Emacs session, reading
+requests from standard input and writing replies on standard output.
+
+This module may also be usefully imported by those other Python modules.
+See the Pymacs documentation for more information.
+"""
+
+import os, string, sys, types
+
+# Python services for Emacs applications.
+
+def main(*arguments):
+    """\
+Execute Python services for Emacs, and Emacs services for Python.
+This program is meant to be called from Emacs, using `pymacs.el'.
+"""
+    lisp._server.send('(started)')
+    lisp._server.loop()
+
+class Server:
+    ReplyException = 'Reply received from Emacs'
+    ErrorException = 'Error returned from Emacs'
+
+    def loop(self):
+        # The server loop repeatedly receives a request from Emacs and
+        # returns a response, which is either the value of the received
+        # Python expression, or the Python traceback if an error occurs
+        # while evaluating the expression.
+
+        # The server loop may also be executed, as a recursive invocation,
+        # in the context of Emacs serving a Python request.  In which
+        # case, we might also receive a notification from Emacs telling
+        # that the reply has been transmitted, or that an error occurred.
+        # A reply notification from Emacs interrupts the loop: the result
+        # of this function is the value returned from Emacs.
+        while 1:
+            try:
+                text = self.receive()
+                if text[:5] == 'exec ':
+                    exec eval(text[5:], {}, {})
+                    status = 'reply'
+                    argument = None
+                else:
+                    status = 'reply'
+                    argument = eval(text)
+            except Server.ReplyException, value:
+                return value
+            except Server.ErrorException, message:
+                status = 'error'
+                argument = message
+            except:
+                import StringIO, traceback
+                message = StringIO.StringIO()
+                traceback.print_exc(file=message)
+                status = 'error'
+                argument = message.getvalue()
+            # Send an expression to EMACS applying FUNCTION over ARGUMENT,
+            # where FUNCTION is `pymacs-STATUS'.
+            fragments = []
+            write = fragments.append
+            write('(pymacs-%s ' % status)
+            print_lisp(argument, write, quoted=1)
+            write(')')
+            self.send(string.join(fragments, ''))
+
+    def receive(self):
+        # Receive a Python expression Emacs and return its text, unevaluated.
+        text = sys.stdin.read(3)
+        assert text[0] == '>', text
+        while text[-1] != '\t':
+            text = text + sys.stdin.read(1)
+        return sys.stdin.read(int(text[1:-1]))
+
+    def send(self, text):
+        # Send TEXT to Emacs, which is an expression to evaluate.
+        sys.stdout.write('<%d\t%s' % (len(text), text))
+        sys.stdout.flush()
+
+def reply(value):
+    # This function implements the `reply` pseudo-function.
+    raise Server.ReplyException, value
+
+def error(message):
+    # This function implements the `error` pseudo-function.
+    raise Server.ErrorException, "Emacs: %s" % message
+
+def import_to_lisp(module, prefix):
+    # This function imports a Python module, then returns a single
+    # LISP expression, which when later evaluated, installs trampoline
+    # definitions in Emacs for accessing the Python module facilities.
+    # MODULE may be a full path, yet without the `.py' or `.pyc' extension,
+    # in which case the directory is temporarily added to the Python search
+    # path for the sole duration of that import.  All defined symbols on
+    # the LISP side have have PREFIX prepended, and have Python underlines
+    # in Python turned into dashes.  If PREFIX is None, it then defaults
+    # to the base name of MODULE, followed by a dash.
+    directory, module = os.path.split(module)
+    try:
+        if directory:
+            sys.path.insert(0, directory)
+        try:
+            object = __import__(module)
+        except ImportError:
+            return None
+    finally:
+        if directory:
+            del sys.path[0]
+    globals().update({module: object})  # FIXME: use a better way...
+    if prefix is None:
+        prefix = os.path.split(module)[1] + '-'
+    defuns = [lisp.progn]
+    for name, value in object.__dict__.items():
+        if type(value) in (types.BuiltinFunctionType, types.FunctionType):
+            defuns.append(
+                (lisp.defun,
+                 lisp[prefix + string.replace(name, '_', '-')],
+                 (lisp['&rest'], lisp.arguments),
+                 (lisp.python_apply,
+                  "%s.%s" % (module, name), lisp.arguments)))
+    return tuple(defuns)
+
+# Emacs services for Python applications.
+
+class Handle:
+
+    def __init__(self, number):
+        self.number = number
+        self.length = None
+
+    def __del__(self):
+        lisp('(pymacs-free-handle %d)' % self.number)
+
+    def __repr__(self):
+        return 'Handle(%s)' % self.number
+
+    def value(self):
+        return self
+
+    def copy(self):
+        return lisp('(pymacs-expand (aref pymacs-handles %d))' % self.number)
+
+    def __call__(self, *arguments):
+        fragments = []
+        write = fragments.append
+        write('((aref pymacs-handles %d)' % self.number)
+        for argument in arguments:
+            write(' ')
+            print_lisp(argument, write, quoted=1)
+        write(')')
+        return lisp(string.join(fragments, ''))
+
+    def __len__(self):
+        if self.length is None:
+            self.length = lisp('(pymacs-handle-length %d)' % self.number)
+        return self.length
+
+    def __getitem__(self, key):
+        if key < 0 or key >= len(self):
+            raise IndexError, key
+        return lisp('(pymacs-handle-ref %d %d)' % (self.number, key))
+
+    def __setitem__(self, key, value):
+        if key < 0 or key >= len(self):
+            raise IndexError, key
+        fragments = []
+        write = fragments.append
+        write('(pymacs-handle-set %d %d ' % (self.number, key))
+        print_lisp(value, write, quoted=1)
+        write(')')
+        lisp(string.join(fragments, ''))
+
+class Symbol:
+
+    def __init__(self, text):
+        self.text = text
+
+    def __repr__(self):
+        return 'Symbol(%s)' % `self.text`
+
+    def value():
+        return lisp(self.text)
+
+    def copy():
+        return lisp('(pymacs-expand %s)' % self.text)
+
+    def set(self, value):
+        fragments = []
+        write = fragments.append
+        write('(progn (setq %s ' % self.text)
+        print_lisp(value, write, quoted=1)
+        write(') nil)')
+        lisp(string.join(fragments, ''))
+
+    def __call__(self, *arguments):
+        fragments = []
+        write = fragments.append
+        write('(%s' % self.text)
+        for argument in arguments:
+            write(' ')
+            print_lisp(argument, write, quoted=1)
+        write(')')
+        return lisp(string.join(fragments, ''))
+
+class Lisp:
+
+    def __init__(self):
+        self.__dict__['_cache'] = {'nil': None}
+        self.__dict__['_server'] = Server()
+
+    def __call__(self, text):
+        self._server.send(text)
+        return self._server.loop()
+
+    def __getattr__(self, name):
+        if name[0] == '_':
+            raise AttributeError, name
+        return self[string.replace(name, '_', '-')]
+
+    def __setattr__(self, name, value):
+        if name[0] == '_':
+            raise AttributeError, name
+        self[string.replace(name, '_', '-')] = value
+
+    def __getitem__(self, name):
+        try:
+            return self._cache[name]
+        except KeyError:
+            symbol = self._cache[name] = Symbol(name)
+            return symbol
+
+    def __setitem__(self, name, value):
+        try:
+            symbol = self._cache[name]
+        except KeyError:
+            symbol = self._cache[name] = Symbol(name)
+        symbol.set(value)
+
+lisp = Lisp()
+
+def print_lisp(value, write, quoted=0):
+    if value is None:
+        write('nil')
+    elif type(value) == types.IntType:
+        write(repr(value))
+    elif type(value) == types.FloatType:
+        write(repr(value))
+    elif type(value) == types.StringType:
+        write('"' + repr("'\0" + value)[6:])
+    elif type(value) == types.TupleType:
+        if quoted:
+            write("'")
+        write('(')
+        print_lisp(value[0], write)
+        for sub_value in value[1:]:
+            write(' ')
+            print_lisp(sub_value, write)
+        write(')')
+    elif type(value) == types.ListType:
+        write('[')
+        if len(value) > 0:
+            print_lisp(value[0], write)
+            for sub_value in value[1:]:
+                write(' ')
+                print_lisp(sub_value, write)
+        write(']')
+    elif type(value) == types.DictType:
+        if quoted:
+            write("'")
+        write('(')
+        for name, value in value.items():
+            write('(')
+            print_lisp(name, write)
+            write(' . ')
+            print_lisp(value, write)
+            write(')')
+        write(')')
+    elif isinstance(value, Handle):
+        write('(aref pymacs-handles %d)' % value.number)
+    elif isinstance(value, Symbol):
+        write(value.text)
+    else:
+        assert 0, "Un-Emacsish type: `%s'" % value
+
+if __name__ == '__main__':
+    apply(main, sys.argv[1:])
