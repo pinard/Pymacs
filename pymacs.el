@@ -2,6 +2,20 @@
 ;;; Copyright © 2001 Progiciels Bourbeau-Pinard inc.
 ;;; François Pinard <pinard@iro.umontreal.ca>, 2001.
 
+;;; This program is free software; you can redistribute it and/or modify
+;;; it under the terms of the GNU General Public License as published by
+;;; the Free Software Foundation; either version 2, or (at your option)
+;;; any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU General Public License
+;;; along with this program; if not, write to the Free Software Foundation,
+;;; Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
+
 ;;; See the Pymacs documentation for more information.
 
 ;;; Published functions.
@@ -26,6 +40,18 @@ This variable is meant to be temporarily rebound to force copies.")
 When this variable is nil, strings are transmitted as copies, and the
 Python side thus has no way for modifying the original LISP strings.
 This variable is ignored whenever `forget-mutability' is set.")
+
+(defvar pymacs-timeout-at-start 30
+  "Maximum reasonable time, in seconds, for starting `pymacs-services'.
+A machine should be pretty loaded before one needs to increment this.")
+
+(defvar pymacs-timeout-at-reply 5
+  "Expected maximum time, in seconds, to get the first line of a reply.
+The status of `pymacs-services' is checked at every such timeout.")
+
+(defvar pymacs-timeout-at-line 2
+  "Expected maximum time, in seconds, to get another line of a reply.
+The status of `pymacs-services' is checked at every such timeout.")
 
 (defun pymacs-load (module &optional prefix noerror)
   "Import the Python module named MODULE into Emacs.
@@ -422,13 +448,13 @@ The timer is used only if `post-gc-hook' is not available.")
 	  (while (progn
 		   (goto-char (point-min))
 		   (not (re-search-forward "<\\([0-9]+\\)\t" nil t)))
-	    (unless (accept-process-output process 5)
+	    (unless (accept-process-output process pymacs-timeout-at-start)
 	      (error "Pymacs helper did not start within 5 seconds.")))
 	  (let ((marker (process-mark process))
 		(limit-position (+ (match-end 0)
 				   (string-to-number (match-string 1)))))
 	    (while (< (marker-position marker) limit-position)
-	      (unless (accept-process-output process 5)
+	      (unless (accept-process-output process pymacs-timeout-at-start)
 		(error "Pymacs helper probably was interrupted at start.")))))
 	;; Check that synchronisation occurred.
 	(goto-char (match-end 0))
@@ -558,14 +584,14 @@ Killing the helper might create zombie objects.  Kill? "))
 		      (progn
 			(goto-char reply-position)
 			(not (re-search-forward "<\\([0-9]+\\)\t" nil t))))
-	    (unless (accept-process-output process 4)
+	    (unless (accept-process-output process pymacs-timeout-at-reply)
 	      (setq status (process-status process))))
 	  (when (eq status 'run)
 	    (let ((limit-position (+ (match-end 0)
 				     (string-to-number (match-string 1)))))
 	      (while (and (eq status 'run)
 			  (< (marker-position marker) limit-position))
-		(unless (accept-process-output process 2)
+		(unless (accept-process-output process pymacs-timeout-at-line)
 		  (setq status (process-status process))))))
 	  ;; Decode reply.
 	  (if (not (eq status 'run))

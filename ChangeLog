@@ -1,6 +1,20 @@
-2001-10-16  François Pinard  <pinard@iro.umontreal.ca>
+2001-11-29  François Pinard  <pinard@iro.umontreal.ca>
 
-	* setup:
+	* : Release 0.12.
+
+	* pymacs.el (pymacs-timeout-at-start, pymacs-timeout-at-reply,
+	pymacs-timeout-at-line): New variables.  Use them.
+
+2001-10-17  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.py (pymacs_load_helper): Check the function attribute
+	before the interactions dictionary, for people having Python 2.x.
+	Reported by Carel Fellinger.
+
+	* pymacs.el, pymacs.py, pymacs-services: Add the usual GPL notices.
+	Reported by Richard Stallman.
+
+2001-10-16  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.11.
 

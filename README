@@ -5,18 +5,18 @@
 . : What is Pymacs?
 
     Pymacs is a powerful tool which, once started from Emacs, allows both-way
-    communication between Emacs LISP and Python.  Pymacs aims at using
-    Python as an extension language for Emacs.  One may load and use Python
-    modules from within Emacs LISP code.  Python functions may themselves
+    communication between Emacs LISP and Python.  Yet, Pymacs aims Python as
+    an extension language for Emacs rather than the other way around; this
+    assymetry is reflected in some design choices.  Within Emacs LISP code,
+    one may load and use Python modules.  Python functions may themselves
     use Emacs services, and handle LISP objects kept in LISP space.
 
     The goals are to write "naturally" in both languages, debug with ease,
     fall back gracefully on errors, and allow full cross-recursivity.
 
-    It is not expected that Pymacs users have a deep knowledge of both Emacs
-    LISP and Python, yet knowledge always helps!  As Python scripting is the
-    main goal for Pymacs, you'll find at the end of this documentation a few
-    examples meant for Python users having a limited experience with Emacs.
+    It is expected that average Pymacs users have a deeper knowledge of
+    Python than Emacs LISP, so there are a few examples at the end of this
+    file meant for Python users having a limited experience with Emacs.
 
     It is very easy to install Pymacs, as neither Emacs nor Python need to
     be compiled nor relinked.  Emacs merely starts Python as a subprocess,
@@ -75,9 +75,9 @@
     The ".emacs" file is not given in the distribution, you likely have
     one already in your home directory.  You need to add these lines:
 
-       (autoload 'pymacs-load "pymacs" nil t)
-       (autoload 'pymacs-eval "pymacs" nil t)
-       (autoload 'pymacs-apply "pymacs")
+      (autoload 'pymacs-load "pymacs" nil t)
+      (autoload 'pymacs-eval "pymacs" nil t)
+      (autoload 'pymacs-apply "pymacs")
 
     If the file "$HOME/.emacs" does not exist, merely create it with the
     above lines.  You are now all set to use Pymacs.
@@ -112,17 +112,12 @@
     the arguments are Python objects that should be received as LISP
     structures.  We need some conventions for doing such conversions.
 
-    Python is meant to be an extension language for LISP, rather than
-    the other way around.  So by default, conversions generally transmit
-    mutable LISP structures as mutable objects on the Python side, in
-    such a way that transforming the object in Python will effectively
-    transform the structure on the LISP side.  This implies that there are
-    more frequent communications between Emacs and Python, with less data
-    in each communication.  But this is not true the other way around,
-    Python objects transmitted to LISP will often loose their mutability,
-    transforming the LISP structure will not be reflected on the Python side.
-    This implies that there are fewer communications between Emacs and
-    Python, yet these might sometimes be a bit more bulky.
+    Conversions generally transmit mutable LISP structures as mutable objects
+    on the Python side, in such a way that transforming the object in Python
+    will effectively transform the structure on the LISP side (strings are
+    handled a bit specially however, see below).  The other way around,
+    Python objects transmitted to LISP often loose their mutability,
+    so transforming the LISP structure is not reflected on the Python side.
 
 . : Simple objects.
 
@@ -158,16 +153,16 @@
     Proper LISP lists, those for which the `cdr' of last cell is `nil', are
     normally transmitted opaquely to Python.  If `pymacs-forget-mutability'
     is set, or if Python later asks for these to be expanded, proper LISP
-    lists get converted into Python lists.  In the other direction, Python
-    lists are always converted into proper LISP lists, if we except the
-    empty list, which is always converted as Python `None'.
+    lists get converted into Python lists, if we except the empty list,
+    which is always converted as Python `None'.  In the other direction,
+    Python lists are always converted into proper LISP lists.
 
     LISP vectors are normally transmitted opaquely to Python.  However, if
     `pymacs-forget-mutability' is set, or if Python later asks for these
     to be expanded, LISP vectors get converted into Python tuples.  In the
     other direction, Python tuples are always converted into LISP vectors.
 
-    Remember the rule: round parentheses correspond to square brackets!
+    Remember the rule: "Round parentheses correspond to square brackets!".
     It works for lists, vectors, tuples, seen from either LISP or Python.
 
     The above choices were debatable.  Since LISP proper lists and Python
@@ -177,11 +172,11 @@
     usual idiom for growing lists is appending to their end, the most usual
     idiom in LISP to grow a list is by cons'ing new items at its beginning:
 
-       (setq accumulator (cons 'new-item accumulator))
+      (setq accumulator (cons 'new-item accumulator))
 
     or more simply:
 
-       (push accumulator 'new-item)
+      (push accumulator 'new-item)
 
     So, in case speed is especially important and many modifications happen
     in a row on the same side, while order of elements ought to be preserved,
@@ -189,9 +184,9 @@
     side might be needed.  Surely, proper lists in LISP and lists in Python
     are the normal structure for which length is easily modified.
 
-    We cannot so easily change the size of a vector, the same as it requires
-    a bit more stunts to "modify" a tuple.  The shape of these objects is
-    fixed.  Mapping vectors to tuples, which is admittedly strange, will
+    We cannot so easily change the size of a vector, the same as it is a
+    bit more of a stunt to "modify" a tuple.  The shape of these objects
+    is fixed.  Mapping vectors to tuples, which is admittedly strange, will
     only be done if the Python side requests an expanded copy, otherwise
     an opaque LISP object is seen in Python.  In the other direction,
     whenever a LISP vector is needed, one has to write `tuple(python_list)'
@@ -202,15 +197,15 @@
     The infrequent casting to `tuple' for getting a LISP vector seems to
     suggest that we did a reasonable compromise.
 
-    In Python, both tuples and lists have O(1) access, so there is no real
-    speed consideration there.  LISP is different: vectors have O(1) access
-    while lists have O(N) access.  The rigidity of LISP vectors is such that
-    people do not resort to vectors unless there is a speed issue, so in
-    real LISP practice, vectors are used parsimoniously.  So parsimoniously,
-    in fact, that LISP vectors are overloaded for what they are not meant:
-    for example, very small vectors are used to represent X events in
-    key-maps, programmers only want to test for the vector type, and users
-    like bracketed syntax, in which case speed of access is hardly an issue.
+    In Python, both tuples and lists have O(1) access, so there is no
+    real speed consideration there.  LISP is different: vectors have O(1)
+    access while lists have O(N) access.  The rigidity of LISP vectors
+    is such that people do not resort to vectors unless there is a speed
+    issue, so in real LISP practice, vectors are used rather parsimoniously.
+    So much, in fact, that LISP vectors are overloaded for what they are not
+    meant: for example, very small vectors are used to represent X events in
+    key-maps, programmers only want to test vectors for their type, or users
+    just like bracketed syntax.  The speed of access is hardly an issue then.
 
 . : Opaque objects.
 
@@ -268,13 +263,13 @@
      The objects represented by these Python handles may be inspected or
      modified using the basic library of Python functions.  For example, in:
 
-        (setq matcher (pymacs-eval "re.compile('PATTERN').match"))
-        (pymacs-apply matcher (list ARGUMENT))
+       (setq matcher (pymacs-eval "re.compile('PATTERN').match"))
+       (pymacs-apply matcher (list ARGUMENT))
 
      the initial `setq' above could be decomposed into:
 
-        (setq compiled (pymacs-eval "re.compile('PATTERN')")
-              matcher (pymacs-apply "getattr" (list compiled "match")))
+       (setq compiled (pymacs-eval "re.compile('PATTERN')")
+             matcher (pymacs-apply "getattr" (list compiled "match")))
 
      This example shows that one may use `pymacs-apply' with "getattr"
      as the function, to get a wanted attribute for a Python object.
@@ -389,6 +384,30 @@
      variable is not `nil', LISP strings are rather passed as LISP handles.
      This variable is ignored whenever `pymacs-forget-mutability' is set.
 
+.  , pymacs-timeout-at-start
+.  , pymacs-timeout-at-reply
+.  , pymacs-timeout-at-line
+
+     Emacs needs to protect itself a bit, in case the Pymacs service program,
+     which handles the Python side of request, would not start correctly,
+     or maybe later die unexpectedly.  So, whenever Emacs reads data coming
+     from that program, it sets a time limit, and take some action whenever
+     that time limit expires.  All times are expressed in seconds.
+
+     The timeout at start defaults to 30 seconds, this time should only
+     be increased if a given machine is so heavily loaded that the Pymacs
+     service program has not enough of 30 seconds to start, in which case
+     Pymacs refuses to start, with an appropriate message in the minibuffer.
+
+     The two other variables almost never need to be changed in practice.
+     When Emacs is expecting a reply from Python, it might repeatedly
+     check the status of the Pymacs service program if that reply is not
+     received fast enough, just to make sure that this program did not die.
+     The timeout at reply, which defaults to 5, says how many seconds
+     to wait without checking, while expecting the first line of a reply.
+     The timeout at line, which defaults to 2, says how many seconds to wait
+     without checking, while expecting a line of the reply after the first.
+
 .. Usage on the Python side.
 
 . : Python setup.
@@ -462,12 +481,12 @@
     but for the sake of illustration, let's ignore that, and temporarily
     deactivate transient mark mode instead.  This could be done this way:
 
-    try:
-        let = pymacs.Let()
-        let.push(transient_mark_mode=None)
-        ... USER CODE ...
-    finally:
-        let.pop()
+        try:
+            let = pymacs.Let()
+            let.push(transient_mark_mode=None)
+            ... USER CODE ...
+        finally:
+            let.pop()
 
     `let.push()' accepts any number of keywords arguments.  Each keyword name
     is interpreted as a LISP symbol written the Pymacs way, with underlines.
@@ -491,8 +510,8 @@
     may be omitted as well.  In practice, this sums up and the above code
     could be reduced to a mere:
 
-    let = pymacs.Let(transient_mark_mode=None)
-    ... USER CODE ...
+        let = pymacs.Let(transient_mark_mode=None)
+        ... USER CODE ...
 
     Be careful at assigning the result of the constructor to some Python
     variable.  Otherwise, the instance would disappear immediately after
@@ -521,11 +540,11 @@
 
     For example, one may write:
 
-    let = pymacs.Let()
-    if 1:
-        let.push_excursion()
-        ... USER CODE ...
-    del let
+        let = pymacs.Let()
+        if 1:
+            let.push_excursion()
+            ... USER CODE ...
+        del let
 
     The `if 1:' (some people might prefer writting `if let:'), has the only
     goal of indenting USER CODE, so the scope of the `let' variable is made
@@ -538,11 +557,11 @@
     Pymacs offers a device for evaluating a raw LISP expression expressed
     as a string.  One merely uses `lisp' as a function, like this:
 
-    lisp("""
-    ...
-    POSSIBLY-LONG-LISP-EXPRESSION
-    ...
-    """)
+        lisp("""
+        ...
+        POSSIBLY-LONG-LISP-EXPRESSION
+        ...
+        """)
 
     The LISP value of the expression becomes the value of the `lisp' call,
     after conversion back to Python.
@@ -570,19 +589,26 @@
     a short reminder about how this string is interpreted on the Emacs side.
     For an interactive function having no arguments, use the empty string:
 
-
         import pymacs
         interactions = {}
 
         def hello_world():
-            "Hello world from python"
-            pymacs.lisp.insert("Hello from python")
+            "`Hello world' from Python."
+            pymacs.lisp.insert("Hello from Python!")
         interactions[hello_world] = ''
-
 
     If the interaction specification is not a string, but another Python
     function, that function is called without arguments and should return
     a list of the actual arguments to be used for the original function.
+
+    Python 2.x users may install an `interaction' attribute to a given
+    function, in which case it will be used instead of the `interactions'
+    dictionary.  So the last line in the above example could be written as:
+
+        hello_world.interaction = ''
+
+    However, such writings are not portable to any Python released before
+    PEP 232 was integrated, and should probably be discouraged for a while.
 
     One might wonder why we did not use `lisp.interactive(...)' from Python.
     The requirement that "(interactive ...)" be first in an Emacs LISP
@@ -593,11 +619,6 @@
     Pymacs could try to scan the generated code, but given the computation of
     `lisp.interactive' arguments could get arbitrarily complex, it would
     be rather difficult to un-compile that evaluation into LISP code.
-
-    The ideal might have been to use `interactive' as a function attribute,
-    following the ideas found within PEP 232.  We might come naturally
-    to that one of these days, if this PEP ever gets implemented.  In the
-    meantime, it is plain better to use more widespread methods.
 
 . : Keybindings.
 
@@ -709,8 +730,8 @@
     grow big, so it has more chance to fully contain the Python backtrace,
     the last lines of which are often especially useful.  Here, I use:
 
-    (setq resize-mini-windows t
-          max-mini-window-height .85)
+      (setq resize-mini-windows t
+            max-mini-window-height .85)
 
     in my `.emacs' file, so the mini-buffer may use 85% of the screen,
     and quickly shrinks when fewer lines are needed.  The mini-buffer
@@ -727,13 +748,13 @@
     they get saved from Emacs.  Here is how I do it.  The code below assumes
     that Python files meant for Pymacs are kept in `~/share/emacs/python'.
 
-    (defun fp-maybe-pymacs-reload ()
-      (let ((pymacsdir (expand-file-name "~/share/emacs/python/")))
-        (when (and (string-equal (file-name-directory buffer-file-name)
-                                 pymacsdir)
-                   (string-match "\\.py\\'" buffer-file-name))
-          (pymacs-load (substring buffer-file-name 0 -3)))))
-    (add-hook 'after-save-hook 'fp-maybe-pymacs-reload)
+      (defun fp-maybe-pymacs-reload ()
+        (let ((pymacsdir (expand-file-name "~/share/emacs/python/")))
+          (when (and (string-equal (file-name-directory buffer-file-name)
+                                   pymacsdir)
+                     (string-match "\\.py\\'" buffer-file-name))
+            (pymacs-load (substring buffer-file-name 0 -3)))))
+      (add-hook 'after-save-hook 'fp-maybe-pymacs-reload)
 
 .. Exemples.
 
@@ -744,11 +765,9 @@
      Let's say I have a a module, let's call it manglers.py, containing
      this simple python function:
 
-
-     def break_on_whitespace(some_string):
-         words = some_string.split()
-         return '\n'.join(words)
-
+         def break_on_whitespace(some_string):
+             words = some_string.split()
+             return '\n'.join(words)
 
      The goal is telling Emacs about this function so that I can call it on
      a region of text and replace the region with the result of the call.
@@ -763,38 +782,34 @@
 
      Here is a first draft for the Python side of the problem:
 
+         from pymacs import lisp
 
-     from pymacs import lisp
+         def break_on_whitespace():
+             start = lisp.point()
+             end = lisp.mark(lisp.t)
+             if start > end:
+                 start, end = end, start
+             text = lisp.buffer_substring(start, end)
+             words = text.split()
+             replacement = '\n'.join(words)
+             lisp.delete_region(start, end)
+             lisp.insert(replacement)
 
-     def break_on_whitespace():
-         start = lisp.point()
-         end = lisp.mark(lisp.t)
-         if start > end:
-             start, end = end, start
-         text = lisp.buffer_substring(start, end)
-         words = text.split()
-         replacement = '\n'.join(words)
-         lisp.delete_region(start, end)
-         lisp.insert(replacement)
-
-     interactions = {break_on_whitespace: ''}
-
+         interactions = {break_on_whitespace: ''}
 
      For various stylistic reasons, this could be rewritten into:
 
+         import pymacs, string
+         lisp = pymacs.lisp
+         interactions = {}
 
-     import pymacs, string
-     lisp = pymacs.lisp
-     interactions = {}
+         def break_on_whitespace():
+             start, end = lisp.point(), lisp.mark(lisp.t)
+             words = lisp.buffer_substring(start, end).split()
+             lisp.delete_region(start, end)
+             lisp.insert(string.join(words, '\n'))
 
-     def break_on_whitespace():
-         start, end = lisp.point(), lisp.mark(lisp.t)
-         words = lisp.buffer_substring(start, end).split()
-         lisp.delete_region(start, end)
-         lisp.insert(string.join(words, '\n'))
-
-     interactions[break_on_whitespace] = ''
-
+         interactions[break_on_whitespace] = ''
 
      The above relies, in particular, on the fact that for those LISP
      functions used here, `start' and `end' may be given in any order.
@@ -803,6 +818,5 @@
 
      On the Emacs side, one would do:
 
-
-     (pymacs-load "manglers")
-     (global-set-key [f7] 'manglers-break-on-whitespace)
+       (pymacs-load "manglers")
+       (global-set-key [f7] 'manglers-break-on-whitespace)
