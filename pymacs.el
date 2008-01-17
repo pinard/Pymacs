@@ -76,32 +76,33 @@ equivalents, other structures are converted into LISP handles."
 
 ;; Python functions and modules should ideally look like LISP functions and
 ;; modules.  This page tries to increase the integration seamlessness.
-;; These functions are very experimental -- none are satisfactory yet.
 
-(defun pymacs-documentation (object)
+(defadvice documentation (around pymacs-ad-documentation activate)
   ;; Integration of doc-strings.
-  (let ((reference (cond ((and (consp object)
-			       (eq (car object) 'pymacs-python))
-			  (format "python[%d]" (cdr object)))
-			 ((functionp object)
-			  (let* ((definition (if (symbolp object)
-						 (symbol-function object)
-					       object))
-				 (body (and (consp definition)
-					    (eq (car definition) 'lambda)
-					    (cddr definition))))
-			    (when (and body
-				       (= (length (cddr definition)) 1)
-				       (eq (caar body) 'pymacs-apply))
-			      (cadr (car body))))))))
-    (when reference
-      (pymacs-eval (format "doc_string(%s)" reference)))))
+  (let ((python-doc (let ((reference (pymacs-python-reference function)))
+		      (when reference
+			(pymacs-eval (format "doc_string(%s)" reference))))))
+    (if python-doc
+	(setq ad-return-value
+	      (concat
+	       "It interfaces to a Python function.\n\n"
+	       (if raw python-doc (substitute-command-keys python-doc))))
+      ad-do-it)))
 
-;(defadvice documentation (around pymacs-documentation activate)
-;  (let ((raw-doc-string (pymacs-documentation function)))
-;    (if raw-doc-string
-;	(if raw raw-doc-string (substitute-command-keys raw-doc-string))
-;      ad-do-it)))
+(defun pymacs-python-reference (object)
+  ;; Return the text reference of a Python object if possible, else nil.
+  (cond ((eq (car-safe object) 'pymacs-python)
+	 (format "python[%d]" (cdr object)))
+	((functionp object)
+	 (let* ((definition (indirect-function object))
+		(body (and (eq (car-safe definition) 'lambda)
+			   (cddr definition))))
+	   (and body
+		(= (length (cddr definition)) 1)
+		(eq (caar body) 'pymacs-apply)
+		(cadr (car body)))))))
+
+;; The following functions are very experimental --they are satisfactory yet.
 
 (defun pymacs-file-handler (operation &rest arguments)
   ;; Integration of load-file, autoload, etc.
@@ -110,7 +111,7 @@ equivalents, other structures are converted into LISP handles."
   ;; The goal is to generate a virtual contents for this `MODULE.el' file, as
   ;; a set of LISP trampoline functions to the Python module functions.
   ;; Python modules can then be loaded or autoloaded as if they were LISP.
-  (message "** %S %S" operation arguments)
+  ;(message "** %S %S" operation arguments)
   (cond ((and (eq operation 'file-readable-p)
 	      (let ((module (substring (car arguments) 0 -3)))
 		(or (pymacs-file-force operation arguments)
@@ -228,18 +229,8 @@ The timer is used only if `post-gc-hook' is not available.")
 (defvar pymacs-freed-list nil
   "List of unallocated indices in HANDLE-VECTOR.")
 
-;; When the Python CG is done with a LISP object, a special communication
-;; occurs so to free the object on the LISP side as well.  I did not find a
-;; way to do it the other way around, however.  So I'm not transmitting
-;; Python objects to LISP.  Since these do not really miss me in LISP, this is
-;; not a problem in practice.  Yet, it would be nicer (for the elegance of
-;; symmetry) if LISP was offering me a mean to know when a dead object is
-;; about to be garbage-collected.  On the LISP flavours I know, there is
-;; Gambit which has the concept of associating a "will" to an object, the GC
-;; executes that will before reclaiming the object.  But even if EMACS had
-;; wills, it would require great care to use them, as I use synchronous
-;; message round-trips for the communication protocol, while the Emacs GC is
-;; rather asynchronous. :-)
+;; When the Python CG is done with a LISP object, a communication occurs so to
+;; free the object on the LISP side as well.
 
 (defun pymacs-allocate-lisp (expression)
   ;; This function allocates some handle for an EXPRESSION, and return its
@@ -310,12 +301,14 @@ The timer is used only if `post-gc-hook' is not available.")
 	   (let ((name (symbol-name expression)))
 	     ;; The symbol can only be transmitted when in the main oblist.
 	     (when (eq expression (intern-soft name))
-	       (cond ((string-match "^[A-Za-z][-A-Za-z0-9]*$"  name)
-		      (princ "lisp.")
-		      (princ (replace-regexp-in-string "-" "_" name t t)))
-		     (t (princ "lisp[")
-			(prin1 (symbol-name expression))
-			(princ "]")))
+	       (cond
+		((save-match-data
+		   (string-match "^[A-Za-z][-A-Za-z0-9]*$" name))
+		 (princ "lisp.")
+		 (princ (mapconcat 'identity (split-string name "-") "_")))
+		(t (princ "lisp[")
+		   (prin1 name)
+		   (princ "]")))
 	       (setq done t))))
 	  ((vectorp expression)
 	   (when pymacs-forget-mutability
@@ -328,7 +321,7 @@ The timer is used only if `post-gc-hook' is not available.")
 		 (pymacs-print-for-eval (aref expression counter)))
 	       (princ "]")
 	       (setq done t))))
-	  ((and (consp expression) (eq (car expression) 'pymacs-python))
+	  ((eq (car-safe expression) 'pymacs-python)
 	   (princ "python[")
 	   (princ (cdr expression))
 	   (princ "]"))
@@ -380,46 +373,49 @@ The timer is used only if `post-gc-hook' is not available.")
 
 (defun pymacs-start-services ()
   ;; This function gets called automatically, as needed.
-  (with-current-buffer (setq pymacs-transit-buffer
-			     (get-buffer-create "*Pymacs*"))
-    ;; Launch the Python helper.
-    (let ((process (apply 'start-process
-			  "pymacs" pymacs-transit-buffer "pymacs-services"
-			  (mapcar 'expand-file-name pymacs-load-path))))
-      (process-kill-without-query process)
-      ;; Receive the synchronising reply.
-      (while (progn
-	       (goto-char (point-min))
-	       (not (re-search-forward "<\\([0-9]+\\)\t" nil t)))
-	(unless (accept-process-output process 5)
-	  (error "Pymacs helper did not start within 5 seconds.")))
-      (let ((marker (process-mark process))
-	    (limit-position (+ (match-end 0)
-			       (string-to-number (match-string 1)))))
-	(while (< (marker-position marker) limit-position)
-	  (unless (accept-process-output process 5)
-	    (error "Pymacs sub-proces start was apparently interrupted.")))))
-    ;; Check that synchronisation occurred.
-    (goto-char (match-end 0))
-    (let ((reply (read (current-buffer))))
-      (if (and (pymacs-proper-list-p reply)
-	       (= (length reply) 2)
-	       (eq (car reply) 'pymacs-version))
-	  (unless (string-equal (cadr reply) "@VERSION@")
-	    (error "Pymacs LISP version is @VERSION@, Python is %s."
-		   (cadr reply)))
-	(error "Pymacs got an invalid initial reply."))))
-  ;; If a previous Pymacs session occurred in *this* Emacs session, some IDs
-  ;; may hang around which do not correspond to anything on the Python side.
-  ;; Tell Python to just not recycle such IDs for new objects.
-  (if pymacs-weak-hash
-      (when pymacs-used-ids
-	(let ((pymacs-forget-mutability t))
-	  (pymacs-apply "zombie_python" pymacs-used-ids)))
-    (setq pymacs-weak-hash (make-hash-table :weakness 'value)))
-  (if (boundp 'post-gc-hook)
-      (add-hook 'post-gc-hook 'pymacs-schedule-gc)
-    (setq pymacs-gc-timer (run-at-time 20 20 'pymacs-schedule-gc))))
+  (let ((buffer (get-buffer-create "*Pymacs*")))
+    (with-current-buffer buffer
+      (save-match-data
+	;; Launch the Python helper.
+	(let ((process (apply 'start-process "pymacs" buffer "pymacs-services"
+			      (mapcar 'expand-file-name pymacs-load-path))))
+	  (process-kill-without-query process)
+	  ;; Receive the synchronising reply.
+	  (while (progn
+		   (goto-char (point-min))
+		   (not (re-search-forward "<\\([0-9]+\\)\t" nil t)))
+	    (unless (accept-process-output process 5)
+	      (error "Pymacs helper did not start within 5 seconds.")))
+	  (let ((marker (process-mark process))
+		(limit-position (+ (match-end 0)
+				   (string-to-number (match-string 1)))))
+	    (while (< (marker-position marker) limit-position)
+	      (unless (accept-process-output process 5)
+		(error "Pymacs helper probably was interrupted at start.")))))
+	;; Check that synchronisation occurred.
+	(goto-char (match-end 0))
+	(let ((reply (read (current-buffer))))
+	  (if (and (pymacs-proper-list-p reply)
+		   (= (length reply) 2)
+		   (eq (car reply) 'pymacs-version))
+	      (unless (string-equal (cadr reply) "@VERSION@")
+		(error "Pymacs LISP version is @VERSION@, Python is %s."
+		       (cadr reply)))
+	    (error "Pymacs got an invalid initial reply.")))))
+    ;; If a previous Pymacs session occurred in *this* Emacs session, some IDs
+    ;; may hang around which do not correspond to anything on the Python side.
+    ;; Tell Python to just not recycle such IDs for new objects.
+    (if pymacs-weak-hash
+	(when pymacs-used-ids
+	  (let ((pymacs-transit-buffer buffer)
+		(pymacs-forget-mutability t))
+	    (pymacs-apply "zombie_python" pymacs-used-ids)))
+      (setq pymacs-weak-hash (make-hash-table :weakness 'value)))
+    (if (boundp 'post-gc-hook)
+	(add-hook 'post-gc-hook 'pymacs-schedule-gc)
+      (setq pymacs-gc-timer (run-at-time 20 20 'pymacs-schedule-gc)))
+    ;; If nothing failed, only then declare the Pymacs has started!
+    (setq pymacs-transit-buffer buffer)))
 
 (defun pymacs-terminate-services ()
   ;; This function is mainly provided for documentation purposes.
@@ -429,9 +425,10 @@ The timer is used only if `post-gc-hook' is not available.")
   (when (or (not pymacs-used-ids)
 	    (yes-or-no-p "\
 Killing the helper might create zombie objects.  Kill? "))
-    (cond ((boundp 'post-gc-hook) (remove-hook 'post-gc-hook
-					       'pymacs-schedule-gc))
-	  ((timerp pymacs-gc-timer) (cancel-timer pymacs-gc-timer)))
+    (cond ((boundp 'post-gc-hook)
+	   (remove-hook 'post-gc-hook 'pymacs-schedule-gc))
+	  ((timerp pymacs-gc-timer)
+	   (cancel-timer pymacs-gc-timer)))
     (when pymacs-transit-buffer
       (kill-buffer pymacs-transit-buffer))
     (setq pymacs-gc-running nil
@@ -501,37 +498,38 @@ Killing the helper might create zombie objects.  Kill? "))
 	   (moving (= (point) marker))
 	   send-position reply-position reply)
       (save-excursion
-	;; Encode request.
-	(setq send-position (marker-position marker))
-	(let ((standard-output marker))
-	  (eval inserter))
-	(goto-char marker)
-	(unless (= (preceding-char) ?\n)
-	  (princ "\n" marker))
-	;; Send request text.
-	(goto-char send-position)
-	(insert (format ">%d\t" (- marker send-position)))
-	(setq reply-position (marker-position marker))
-	(process-send-region process send-position marker)
-	;; Receive reply text.
-	(while (and (eq status 'run)
-		    (progn
-		      (goto-char reply-position)
-		      (not (re-search-forward "<\\([0-9]+\\)\t" nil t))))
-	  (unless (accept-process-output process 4)
-	    (setq status (process-status process))))
-	(when (eq status 'run)
-	  (let ((limit-position (+ (match-end 0)
-				   (string-to-number (match-string 1)))))
-	    (while (and (eq status 'run)
-			(< (marker-position marker) limit-position))
-	      (unless (accept-process-output process 2)
-		(setq status (process-status process))))))
-	;; Decode reply.
-	(if (not (eq status 'run))
-	    (error "Pymacs helper status is `%S'." status)
-	  (goto-char (match-end 0))
-	  (setq reply (read (current-buffer)))))
+	(save-match-data
+	  ;; Encode request.
+	  (setq send-position (marker-position marker))
+	  (let ((standard-output marker))
+	    (eval inserter))
+	  (goto-char marker)
+	  (unless (= (preceding-char) ?\n)
+	    (princ "\n" marker))
+	  ;; Send request text.
+	  (goto-char send-position)
+	  (insert (format ">%d\t" (- marker send-position)))
+	  (setq reply-position (marker-position marker))
+	  (process-send-region process send-position marker)
+	  ;; Receive reply text.
+	  (while (and (eq status 'run)
+		      (progn
+			(goto-char reply-position)
+			(not (re-search-forward "<\\([0-9]+\\)\t" nil t))))
+	    (unless (accept-process-output process 4)
+	      (setq status (process-status process))))
+	  (when (eq status 'run)
+	    (let ((limit-position (+ (match-end 0)
+				     (string-to-number (match-string 1)))))
+	      (while (and (eq status 'run)
+			  (< (marker-position marker) limit-position))
+		(unless (accept-process-output process 2)
+		  (setq status (process-status process))))))
+	  ;; Decode reply.
+	  (if (not (eq status 'run))
+	      (error "Pymacs helper status is `%S'." status)
+	    (goto-char (match-end 0))
+	    (setq reply (read (current-buffer))))))
       (when (and moving (not pymacs-trace-transit))
 	(goto-char marker))
       reply)))

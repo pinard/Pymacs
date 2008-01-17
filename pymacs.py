@@ -398,6 +398,13 @@ def print_lisp(value, write, quoted=0):
     elif type(value) == types.FloatType:
 	write(repr(value))
     elif type(value) == types.StringType:
+        # Python delimits a string it by single quotes preferably, unless
+        # single quotes appear within the string while double quotes do
+        # not, in which case it uses double quotes for string delimiters.
+        # Checking the string contents, the C code stops at the first NUL.
+        # We prefix the string with a single quote and a NUL, this forces
+        # double quotes as delimiters for the whole prefixed string.  Then,
+        # we get rid of the representation of the single quote and the NUL.
 	write('"' + repr("'\0" + value)[6:])
     elif type(value) == types.TupleType:
 	if quoted:

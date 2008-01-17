@@ -485,12 +485,8 @@
         (when (and (string-equal (file-name-directory buffer-file-name)
                                  pymacsdir)
                    (string-match "\\.py\\'" buffer-file-name))
-          (save-restriction
-            (widen)
-            (write-region (point-min) (point-max) buffer-file-name))
-          (pymacs-load (substring buffer-file-name 0 -3))
-          nil)))
-    (add-hook 'write-file-hooks 'fp-maybe-pymacs-reload 'append)
+          (pymacs-load (substring buffer-file-name 0 -3)))))
+    (add-hook 'after-save-hook 'fp-maybe-pymacs-reload 'append)
 
 .. Exemples.
 

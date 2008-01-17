@@ -1,3 +1,26 @@
+2001-09-16  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-start-services, pymacs-print-for-eval,
+	pymacs-round-trip): Protect match data.
+
+2001-09-15  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (documentation): Completed.  Now into service.
+	(pymacs-documentation): Deleted.
+	(pymacs-python-reference): New.
+
+	* pymacs.el (pymacs-print-for-eval): Use car-safe.
+
+2001-09-14  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-print-for-eval): replace-regexp-in-string does
+	not exist in older Emacs versions, so use paraphrases.
+	Reported by Carey Evans.
+
+	* pymacs.el (pymacs-start-services): Set pymacs-transit-buffer
+	permanently only at end of the function, in case anything fails.
+	Reported by Carey Evans.
+
 2001-09-13  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.5.
