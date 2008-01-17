@@ -4,6 +4,9 @@
 
 """\
 Python functions available within Emacs.
+
+One of the goals of this small bootstrap is so `pymacs.py' can be kept
+in compiled form.
 """
 
 if __name__ == '__main__':

@@ -21,7 +21,14 @@ def main(*arguments):
     """\
 Execute Python services for Emacs, and Emacs services for Python.
 This program is meant to be called from Emacs, using `pymacs.el'.
+
+The program arguments are additional search paths for Python modules.
 """
+    arguments = list(arguments)
+    arguments.reverse()
+    for argument in arguments:
+        if os.path.isdir(argument):
+            sys.path.insert(0, argument)
     lisp._server.send('(started)')
     lisp._server.loop()
 
@@ -85,14 +92,14 @@ class Server:
         sys.stdout.flush()
 
 def reply(value):
-    # This function implements the `reply` pseudo-function.
+    # This function implements the `reply' pseudo-function.
     raise Server.ReplyException, value
 
 def error(message):
-    # This function implements the `error` pseudo-function.
+    # This function implements the `error' pseudo-function.
     raise Server.ErrorException, "Emacs: %s" % message
 
-def import_to_lisp(module, prefix):
+def pymacs_load_helper(lisp_module, lisp_prefix):
     # This function imports a Python module, then returns a single
     # LISP expression, which when later evaluated, installs trampoline
     # definitions in Emacs for accessing the Python module facilities.
@@ -102,55 +109,81 @@ def import_to_lisp(module, prefix):
     # the LISP side have have PREFIX prepended, and have Python underlines
     # in Python turned into dashes.  If PREFIX is None, it then defaults
     # to the base name of MODULE, followed by a dash.
-    directory, module = os.path.split(module)
+    directory, module = os.path.split(lisp_module)
+    python_module = string.replace(module, '-', '_')
+    if lisp_prefix is None:
+        lisp_prefix = module + '-'
     try:
         if directory:
             sys.path.insert(0, directory)
         try:
-            object = __import__(module)
+            object = __import__(python_module)
         except ImportError:
             return None
     finally:
         if directory:
             del sys.path[0]
-    globals().update({module: object})  # FIXME: use a better way...
-    if prefix is None:
-        prefix = os.path.split(module)[1] + '-'
+    globals().update({python_module: object})  # FIXME: use a better way...
     defuns = [lisp.progn]
     for name, value in object.__dict__.items():
         if type(value) in (types.BuiltinFunctionType, types.FunctionType):
             defuns.append(
                 (lisp.defun,
-                 lisp[prefix + string.replace(name, '_', '-')],
+                 lisp[lisp_prefix + string.replace(name, '_', '-')],
                  (lisp['&rest'], lisp.arguments),
-                 (lisp.python_apply,
-                  "%s.%s" % (module, name), lisp.arguments)))
+                 (lisp.pymacs_apply,
+                  "%s.%s" % (python_module, name), lisp.arguments)))
     return tuple(defuns)
+
+# Many Python types do not have direct LISP equivalents, and may not be
+# directly returned to LISP for this reason.  They are rather allocated in
+# a list of handles, below, and a handle index is used for communication
+# instead of the Python value.  Whenever such a handle is freed from the
+# LISP side, its index is added of a freed list for later reuse.
+
+handles = []
+freed_list = []
+
+def allocate_handle(value):
+    # Allocate some handle to hold VALUE, return its index.
+    if freed_list:
+        index = freed_list[-1]
+        del freed_list[-1]
+        handles[index] = value
+    else:
+        index = len(handles)
+        handles.append(value)
+    return index
+
+def free_handles(indices):
+    for index in indices:
+        handles[index] = None
+        freed_list.append(index)
 
 # Emacs services for Python applications.
 
 class Handle:
 
-    def __init__(self, number):
-        self.number = number
+    def __init__(self, index):
+        self.index = index
         self.length = None
 
     def __del__(self):
-        lisp('(pymacs-free-handle %d)' % self.number)
+        lisp('(pymacs-free-handle %d)' % self.index)
 
     def __repr__(self):
-        return 'Handle(%s)' % self.number
+        return 'Handle(%s)' % self.index
 
     def value(self):
         return self
 
     def copy(self):
-        return lisp('(pymacs-expand (aref pymacs-handles %d))' % self.number)
+        return lisp('(pymacs-expand (aref pymacs-handles %d))' % self.index)
 
     def __call__(self, *arguments):
         fragments = []
         write = fragments.append
-        write('((aref pymacs-handles %d)' % self.number)
+        write('((aref pymacs-handles %d)' % self.index)
         for argument in arguments:
             write(' ')
             print_lisp(argument, write, quoted=1)
@@ -159,20 +192,20 @@ class Handle:
 
     def __len__(self):
         if self.length is None:
-            self.length = lisp('(pymacs-handle-length %d)' % self.number)
+            self.length = lisp('(pymacs-handle-length %d)' % self.index)
         return self.length
 
     def __getitem__(self, key):
         if key < 0 or key >= len(self):
             raise IndexError, key
-        return lisp('(pymacs-handle-ref %d %d)' % (self.number, key))
+        return lisp('(pymacs-handle-ref %d %d)' % (self.index, key))
 
     def __setitem__(self, key, value):
         if key < 0 or key >= len(self):
             raise IndexError, key
         fragments = []
         write = fragments.append
-        write('(pymacs-handle-set %d %d ' % (self.number, key))
+        write('(pymacs-handle-set %d %d ' % (self.index, key))
         print_lisp(value, write, quoted=1)
         write(')')
         lisp(string.join(fragments, ''))
@@ -271,23 +304,23 @@ def print_lisp(value, write, quoted=0):
                 write(' ')
                 print_lisp(sub_value, write)
         write(']')
-    elif type(value) == types.DictType:
-        if quoted:
-            write("'")
-        write('(')
-        for name, value in value.items():
-            write('(')
-            print_lisp(name, write)
-            write(' . ')
-            print_lisp(value, write)
-            write(')')
-        write(')')
+    #elif type(value) == types.DictType:
+    #    if quoted:
+    #        write("'")
+    #    write('(')
+    #    for name, value in value.items():
+    #        write('(')
+    #        print_lisp(name, write)
+    #        write(' . ')
+    #        print_lisp(value, write)
+    #        write(')')
+    #    write(')')
     elif isinstance(value, Handle):
-        write('(aref pymacs-handles %d)' % value.number)
+        write('(aref pymacs-handles %d)' % value.index)
     elif isinstance(value, Symbol):
         write(value.text)
     else:
-        assert 0, "Un-Emacsish type: `%s'" % value
+        write('(pymacs-id %d)' % allocate_handle(value))
 
 if __name__ == '__main__':
     apply(main, sys.argv[1:])

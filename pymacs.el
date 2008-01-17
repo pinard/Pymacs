@@ -6,23 +6,33 @@
 
 ;;; Published functions.
 
+(defvar pymacs-load-path nil
+  "List of additional directories to search for Python modules.
+The directories listed will be searched first, in the order given.")
+
 (defvar pymacs-trace-transit nil
   "Keep the communication buffer growing, for debugging.
 When this variable is nil, the `*Pymacs*' communication buffer gets erased
 before each communication round-trip.  Setting it to `t' guarantees that
 the full communication is saved, which is useful for debugging.")
 
-(defvar pymacs-mutable-strings nil
-  "Transmitting LISP strings to Python as opaque handles.
-When this variable is nil, strings are transmitted as copies, and the
-Python side thus has no way for modifying the original LISP strings.")
+(defvar pymacs-forget-mutability nil
+  "Transmit copies to Python instead of LISP handles, as much as possible.
+When this variable is nil, most mutable objects are transmitted as handles.
+This variable is meant to be temporarily rebound to force copies.")
 
-(defun python-import (module &optional prefix)
+(defvar pymacs-mutable-strings nil
+  "Prefer transmitting LISP strings to Python as handles.
+When this variable is nil, strings are transmitted as copies, and the
+Python side thus has no way for modifying the original LISP strings.
+This variable is ignored whenever `forget-mutability' is set.")
+
+(defun pymacs-load (module &optional prefix)
   "Import the Python module named MODULE into Emacs.
 Each function in the Python module is made available as an Emacs function.
 The LISP name of each function is the concatenation of PREFIX with
 the Python name, in which underlines are replaced by dashes.  If PREFIX is
-not given, it default to MODULE followed by a dash."
+not given, it defaults to MODULE followed by a dash."
   (interactive
    (let* ((module (read-string "Python module? "))
 	  (default (concat module "-"))
@@ -32,21 +42,22 @@ not given, it default to MODULE followed by a dash."
   (unless prefix
     (setq prefix (concat module "-")))
   (message "Importing %s..." module)
-  (let ((value (python-apply "import_to_lisp" (list module prefix))))
+  (let ((value (pymacs-apply
+		"pymacs_load_helper" (list module prefix))))
     (unless value
       (error "Importing %s...failed" module))
     (eval value)
     (message "Importing %s...done" module)))
 
-(defun python-eval (text)
+(defun pymacs-eval (text)
   "Compile TEXT as a Python expression, and return its value."
   (interactive "sPython expression? ")
-  (let ((value (python-apply "eval" (list text))))
+  (let ((value (pymacs-apply "eval" (list text))))
     (when (interactive-p)
       (message "%S" value))
     value))
 
-(defun python-exec (text)
+(defun pymacs-exec (text)
   "Compile and execute TEXT as a sequence of Python statements.
 This functionality is experimental, and does not appear to be useful."
   (interactive "sPython statements? ")
@@ -56,7 +67,7 @@ This functionality is experimental, and does not appear to be useful."
       (message "%S" value))
     value))
 
-(defun python-apply (function arguments)
+(defun pymacs-apply (function arguments)
   "Return the result of calling a Python function FUNCTION over ARGUMENTS.
 FUNCTION is a string denoting the Python function, ARGUMENTS is a list of
 LISP expressions.  Immutable LISP constants are converted to Python
@@ -83,8 +94,8 @@ equivalents, other structures are converted into LISP handles."
 	      (not (pymacs-file-force
 		    'file-readable-p (list (car arguments))))
 	      (file-readable-p (car arguments)))
-	 (let ((lisp-code (python-apply
-			   "import_to_lisp"
+	 (let ((lisp-code (pymacs-apply
+			   "pymacs_load_helper"
 			   (list (substring (car arguments) 0 -3) nil))))
 	   (unless lisp-code
 	     (error "Python import error"))
@@ -93,8 +104,8 @@ equivalents, other structures are converted into LISP handles."
 	      (not (pymacs-file-force
 		    'file-readable-p (list (car arguments))))
 	      (file-readable-p (car arguments)))
-	 (let ((lisp-code (python-apply
-			   "import_to_lisp"
+	 (let ((lisp-code (pymacs-apply
+			   "pymacs_load_helper"
 			   (list (substring (car arguments) 0 -3) nil))))
 	   (unless lisp-code
 	     (error "Python import error"))
@@ -111,6 +122,54 @@ equivalents, other structures are converted into LISP handles."
     (apply operation arguments)))
 
 ;(add-to-list 'file-name-handler-alist '("\\.el\\'" . pymacs-file-handler))
+
+;;; Gargabe collection of Python IDs.
+
+;; Python objects which have no LISP representation are allocated on the
+;; Python side as `handles[INDEX]', and `(pymacs-id INDEX)' is returned
+;; instead.  Whenever LISP does not need a Python object anymore, it should be
+;; freed on the Python side.  The following variables and functions are meant
+;; to fill this duty.
+
+(defvar pymacs-used-ids nil
+  "List of received IDs, currently allocated on the Python side.")
+(defvar pymacs-weak-hash nil
+  "Weak hash table, meant to find out which IDs are still needed.")
+(defvar pymacs-gc-wanted nil
+  "Flag if it is time to clean up unused IDs on the Python side.")
+(defvar pymacs-gc-running nil
+  "Flag telling that a Pymacs garbage collection is in progress.")
+(defvar pymacs-gc-timer nil
+  "Timer to trigger Pymacs garbage collection at regular time intervals.")
+
+(defun pymacs-schedule-gc ()
+  (unless pymacs-gc-running
+    (setq pymacs-gc-wanted t)))
+
+(defun pymacs-garbage-collect ()
+  ;; Clean up unused IDs on the Python side.
+  (let ((pymacs-gc-running t)
+	(pymacs-forget-mutability t)
+	(ids pymacs-used-ids)
+	used-ids unused-ids)
+    (while ids
+      (let ((id (car ids)))
+	(setq ids (cdr ids))
+	(if (gethash id pymacs-weak-hash)
+	    (setq used-ids (cons id used-ids))
+	  (setq unused-ids (cons id unused-ids)))))
+    (setq pymacs-used-ids used-ids
+	  pymacs-gc-wanted nil)
+    (when unused-ids
+      (pymacs-apply "free_handles" (list unused-ids)))))
+
+(defun pymacs-id (index)
+  ;; Register INDEX on the LISP side, then return `(pymacs-id INDEX)'.
+  ;; This form is recognised specially by `print-for-eval'.
+  (let ((object (list 'pymacs-id index)))
+    (puthash index object pymacs-weak-hash)
+    (setq pymacs-used-ids (cons index pymacs-used-ids))
+    object))
 
 ;;; Communication protocol.
 
@@ -129,11 +188,11 @@ equivalents, other structures are converted into LISP handles."
 ;; The protocol itself is rather simple, and contains human readable text
 ;; only.  A message starts at the beginning of a line in the communication
 ;; buffer, either with `>' for the LISP to Python direction, or `<' for the
-;; Python to LISP direction.  This is followed by a decimal number given the
+;; Python to LISP direction.  This is followed by a decimal number giving the
 ;; length of the message text, a TAB character, and the message text itself.
 ;; Message direction alternates systematically between messages, it never
 ;; occurs that two successive messages are sent in the same direction.  The
-;; very first message is received from the Python side, and reads `(started)`.
+;; very first message is received from the Python side, and reads `(started)'.
 
 (defun pymacs-start-services ()
   ;; This function gets called automatically, as needed.  However, it is
@@ -145,22 +204,30 @@ equivalents, other structures are converted into LISP handles."
       (kill-buffer name))
     (setq pymacs-transit-buffer (get-buffer-create name)))
   (with-current-buffer pymacs-transit-buffer
-    (let ((process (start-process "pymacs" pymacs-transit-buffer
-				  "pymacs-services")))
+    (let ((process (apply 'start-process
+			  "pymacs" pymacs-transit-buffer "pymacs-services"
+			  (mapcar 'expand-file-name pymacs-load-path))))
       (process-kill-without-query process)
       (while (save-excursion
 	       (goto-char (point-min))
 	       (not (search-forward "<9\t(started)" nil t)))
 	(accept-process-output process))))
-  (when pymacs-trace-transit
-    (pop-to-buffer pymacs-transit-buffer)
-    (sit-for 0)))
+  (setq pymacs-weak-hash (make-hash-table :weakness 'value)
+	pymacs-gc-timer (run-at-time t 20 'pymacs-schedule-gc)))
 
 (defun pymacs-terminate-services ()
   ;; This function is provided for completeness.  It is not really needed.
+  (when (timerp pymacs-gc-timer)
+    (cancel-timer pymacs-gc-timer))
   (when pymacs-transit-buffer
-    (kill-buffer pymacs-transit-buffer)
-    (setq pymacs-transit-buffer nil)))
+    (kill-buffer pymacs-transit-buffer))
+  (setq pymacs-used-ids nil
+	pymacs-weak-hash nil
+	pymacs-gc-running nil
+	pymacs-gc-timer nil
+	pymacs-transit-buffer nil
+	pymacs-handles nil
+	pymacs-freed-list nil))
 
 (defun pymacs-serve-until-reply (inserter)
   ;; This function evals INSERTER to print a Python request.  It sends it to
@@ -170,22 +237,28 @@ equivalents, other structures are converted into LISP handles."
 	       (buffer-name pymacs-transit-buffer)
 	       (get-buffer-process pymacs-transit-buffer))
     (pymacs-start-services))
+  (when pymacs-gc-wanted
+    (pymacs-garbage-collect))
   (let (done value)
     (while (not done)
       (let ((reply (condition-case info
 		       (eval (pymacs-round-trip inserter))
 		     (error (cons 'pymacs-oops (prin1-to-string info))))))
-	(cond ((eq (car reply) 'pymacs-reply)
-	       (setq done t
-		     value (cdr reply)))
+	(cond ((not (consp reply))
+	       (setq inserter
+		     `(pymacs-print-for-apply 'reply '(,reply))))
+	      ((eq (car reply) 'pymacs-reply)
+	       (setq done t value (cdr reply)))
 	      ((eq (car reply) 'pymacs-error)
 	       (error "Python: %s" (cdr reply)))
 	      ((eq (car reply) 'pymacs-oops)
-	       (setq inserter `(pymacs-print-for-apply 'error ',(cdr reply))))
+	       (setq inserter
+		     `(pymacs-print-for-apply 'error ',(cdr reply))))
 	      ((eq (car reply) 'pymacs-expand)
-	       (setq inserter `(pymacs-print-for-apply-expanded
-				'reply ,(cdr reply))))
-	      (t (setq inserter `(pymacs-print-for-apply 'reply ',reply))))))
+	       (setq inserter
+		     `(pymacs-print-for-apply-expanded 'reply ,(cdr reply))))
+	      (t (setq inserter
+		       `(pymacs-print-for-apply 'reply '(,reply)))))))
     value))
 
 (defun pymacs-reply (expression)
@@ -245,7 +318,7 @@ equivalents, other structures are converted into LISP handles."
 
 ;; Many LISP expressions cannot fully be represented in Python, at least
 ;; because the object is mutable on the LISP side.  Such objects are allocated
-;; somewhere into a vector of handles, and the handle ordinal is used for
+;; somewhere into a vector of handles, and the handle index is used for
 ;; communication instead of the expression itself.
 (defvar pymacs-handles nil
   "Vector of handles to hold transmitted expressions.")
@@ -254,7 +327,7 @@ equivalents, other structures are converted into LISP handles."
 
 ;; When the Python CG is done with a LISP object, a special communication
 ;; occurs so to free the object on the LISP side as well.  I did not find a
-;; way to do it the other way around, however.  So I'm not transmitting opaque
+;; way to do it the other way around, however.  So I'm not transmitting
 ;; Python objects to LISP.  Since these do not really miss me in LISP, this is
 ;; not a problem in practice.  Yet, it would be nicer (for the elegance of
 ;; symmetry) if LISP was offering me a mean to know when a dead object is
@@ -267,7 +340,7 @@ equivalents, other structures are converted into LISP handles."
 
 (defun pymacs-allocate-handle (expression)
   ;; This function allocates some handle for an EXPRESSION, and return its
-  ;; ordinal.
+  ;; index.
   (unless pymacs-freed-list
     (let* ((previous pymacs-handles)
 	   (old-size (length previous))
@@ -279,42 +352,49 @@ equivalents, other structures are converted into LISP handles."
 	    (aset pymacs-handles counter (aref previous counter))
 	  (setq pymacs-freed-list (cons counter pymacs-freed-list)))
 	(setq counter (1+ counter)))))
-  (let ((number (car pymacs-freed-list)))
+  (let ((index (car pymacs-freed-list)))
     (setq pymacs-freed-list (cdr pymacs-freed-list))
-    (aset pymacs-handles number expression)
-    number))
+    (aset pymacs-handles index expression)
+    index))
 
-(defun pymacs-free-handle (number)
+(defun pymacs-free-handle (index)
   ;; This function is triggered from Python side whenever a LISP handle looses
   ;; its last reference.  The reference should be cut on the LISP side as
   ;; well, or else, the object will never be garbage-collected.
-  (aset pymacs-handles number nil)
-  (setq pymacs-freed-list (cons number pymacs-freed-list))
+  (aset pymacs-handles index nil)
+  (setq pymacs-freed-list (cons index pymacs-freed-list))
   ;; Avoid transmitting back useless information.
   nil)
 
-(defun pymacs-handle-length (number)
+(defun pymacs-handle-length (index)
   ;; This function supports Python `len(HANDLE)'.
-  (let ((handle (aref pymacs-handles number)))
+  (let ((handle (aref pymacs-handles index)))
     (cond ((arrayp handle) (length handle))
 	  ((listp handle) (length handle))
 	  (t 0))))
 
-(defun pymacs-handle-ref (number key)
+(defun pymacs-handle-ref (index key)
   ;; This function supports Python `HANDLE[KEY]'.
-  (let ((handle (aref pymacs-handles number)))
+  (let ((handle (aref pymacs-handles index)))
     (cond ((arrayp handle) (aref handle key))
 	  ((listp handle) (nth key handle)))))
 
-(defun pymacs-handle-set (number key value)
+(defun pymacs-handle-set (index key value)
   ;; This function supports Python `HANDLE[KEY] = VALUE'.
-  (let ((handle (aref pymacs-handles number)))
+  (let ((handle (aref pymacs-handles index)))
     (cond ((arrayp handle) (aset handle key value))
 	  ((listp handle) (setcar (nthcdr key handle) value)))))
 
+(defun pymacs-print-for-apply-expanded (function arguments)
+  ;; This function acts like `print-for-apply', but produce arguments which
+  ;; are expanded copies whenever possible, instead of handles.  Proper lists
+  ;; are turned into tuples, vectors are turned into lists.
+  (let ((pymacs-forget-mutability t))
+    (pymacs-print-for-apply function arguments)))
+
 (defun pymacs-print-for-apply (function arguments)
-  ;; This function prints a Python expression calling FUNCTION, which is
-  ;; a string, over all its ARGUMENTS, which are LISP expressions.
+  ;; This function prints a Python expression calling FUNCTION, which is a
+  ;; string, over all its ARGUMENTS, which are LISP expressions.
   (let ((separator "")
 	argument)
     (princ function)
@@ -327,26 +407,13 @@ equivalents, other structures are converted into LISP handles."
       (pymacs-print-for-eval argument))
     (princ ")")))
 
-(defun pymacs-print-for-apply-expanded (function arguments)
-  ;; This function acts like `print-for-apply', except that it uses
-  ;; `print-for-eval-expanded' (which sees) insteaad of `print-for-eval'.
-  (let ((separator "")
-	argument)
-    (princ function)
-    (princ "(")
-    (while arguments
-      (setq argument (car arguments)
-	    arguments (cdr arguments))
-      (princ separator)
-      (setq separator ", ")
-      (pymacs-print-for-eval-expanded argument))
-    (princ ")")))
-
 (defun pymacs-print-for-eval (expression)
   ;; This function prints a Python expression out of a LISP EXPRESSION.
   (cond ((not expression) (princ "None"))
 	((numberp expression) (princ expression))
-	((and (not pymacs-mutable-strings) (stringp expression))
+	((and (stringp expression)
+	      (or pymacs-forget-mutability
+		  (not pymacs-mutable-strings)))
 	 (prin1 expression))
 	((symbolp expression)
 	 (let ((name (symbol-name expression)))
@@ -356,61 +423,31 @@ equivalents, other structures are converted into LISP handles."
 		 (t (princ "sym[")
 		    (prin1 (prin1-to-string (symbol-name expression)))
 		    (princ "]")))))
-	(t (princ "Handle(")
-	   (princ (pymacs-allocate-handle expression))
-	   (princ ")"))))
-
-(defun pymacs-print-for-eval-expanded (expression)
-  ;; This function prepares a Python expression that will reproduce a copy
-  ;; of EXPRESSION, as much as possible, instead of producing an handle.
-  ;; Proper lists are turned into tuples, vectors are turned into lists.
-  (cond ((not expression) (princ "None"))
-	((stringp expression) (prin1 expression))
-	((vectorp expression)
+	((and (vectorp expression) pymacs-forget-mutability)
 	 (let ((limit (length expression))
 	       (counter 0))
 	   (princ "[")
 	   (while (< counter limit)
 	     (unless (zerop counter)
 	       (princ ", "))
-	     (pymacs-print-expanded (aref expression counter)))
+	     (pymacs-print-for-eval (aref expression counter)))
 	   (princ "]")))
-	((listp expression)
+	((and (consp expression) (eq (car expression) 'pymacs-id))
+	 (princ "handles[")
+	 (princ (cadr expression))
+	 (princ "]"))
+	((and (listp expression) pymacs-forget-mutability)
 	 (let ((single (= (length expression) 1)))
 	   (princ "(")
-	   (pymacs-print-expanded (car expression))
+	   (pymacs-print-for-eval (car expression))
 	   (while (setq expression (cdr expression))
 	     (princ ", ")
-	     (pymacs-print-expanded (car expression)))
+	     (pymacs-print-for-eval (car expression)))
 	   (when single
 	     (princ ", "))
 	   (princ ")")))
-	((consp expression)
-	 (princ "Dotted(")
-	 (pymacs-print-expanded (car expression))
-	 (while (consp (cdr expression))
-	   (princ ", ")
-	   (setq expression (cdr expression))
-	   (pymacs-print-expanded (car expression)))
-	 (princ ", ")
-	 (pymacs-print-expanded (cdr expression))
-	 (princ ")"))
-	(t (pymacs-print-for-eval expression))))
-
-;(autoload 'essai-test "essai")
-
-(defun test-pymacs ()
-  ;; Test function to play with! :-)
-  (interactive)
-  (setq pymacs-handles nil
-	pymacs-freed-list nil)
-  (let ((pymacs-trace-transit t)
-	bonjour)
-    (pymacs-terminate-services)
-    (python-import "essai")
-    (setq bonjour '(allo))
-    (message "%S" (essai-test bonjour))
-    (end-of-buffer)
-    (recenter -1)))
+	(t (princ "Handle(")
+	   (princ (pymacs-allocate-handle expression))
+	   (princ ")"))))
 
 (provide 'pymacs)

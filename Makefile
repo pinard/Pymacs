@@ -1,12 +1,15 @@
 PACKAGE = pymacs
-VERSION = 0.0
+VERSION = 0.1
 
-FILES = README Makefile essai.py pymacs.el pymacs.py pymacs-services
+FILES = README TODO Makefile pymacs.el pymacs.py pymacs-services \
+pymacs-test.el pymacs_test.py
 
 install:
+	install -m 644 pymacs.el $(HOME)/share/emacs/lisp
+	install -m 644 pymacs.py $(HOME)/share/python
 	install -m 755 pymacs-services $(HOME)/bin
-	install -m 644 pymacs.el essai.py $(HOME)/share/emacs/lisp
-	install -m 644 pymacs.py essai.py $(HOME)/share/python
+	install -m 644 pymacs-test.el $(HOME)/share/emacs/lisp
+	install -m 644 pymacs_test.py $(HOME)/share/emacs/python
 
 dist:
 	mkdir $(PACKAGE)-$(VERSION)

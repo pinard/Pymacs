@@ -14,21 +14,33 @@
     The goals are to write "naturally" in both languages, debug with ease,
     fall back gracefully on errors, and allow full cross-recursivity.
 
-. : Influences.
+    It is not expected that Pymacs users have a deep knowledge of both Emacs
+    LISP and Python, yet knowledge always helps!  As Python scripting is the
+    main goal for Pymacs, you'll find at the end of this documentation a few
+    examples meant for Python users having a limited experience with Emacs.
 
-    Pymacs results from revisiting Cedric Adjih's works about running Python
-    as a separate process.  See `http://www.crepuscule.com/pyemacs/', or
-    write Cedric at `adjih-pam@crepuscule.com'.  Cedric presented `pyemacs'
-    to me as a proof of concept, this was the trigger.  I spiced Emacs
+. : Warnings to Pymacs users.
+
+    This is alpha status software.  Specifications are not frozen, and
+    there is a lot of elementary testing yet to be done.  So, be prepared
+    to later adapt your code to specification changes, and to report the
+    problems you see to François Pinard at `pinard@iro.umontreal.ca'.
+
+. : History and references.
+
+    Pymacs revisits previous Cedric Adjih's works about running Python as a
+    process separate from Emacs.  See `http://www.crepuscule.com/pyemacs/',
+    or write Cedric at `adjih-pam@crepuscule.com'.  Cedric presented
+    `pyemacs' to me as a proof of concept.  I spiced the `pyemacs' concept
     with a few simplification ideas on my own, and decided to drop the `e'
-    from `pyemacs' to witness that simplification :-).  Cedric also told me
-    that there exist some older patches for linking Python right into XEmacs.
+    from `pyemacs' to witness that simplification :-).  Cedric told me that
+    there also exist some older patches for linking Python right into XEmacs.
 
-    Brian McErlean contacted me while I was completing Pymacs, as he also
-    independently wrote a very similar project, and amusing coincidence,
-    even chose `pemacs' as a name.  He paid good attention to complex
-    details that escaped my courage, and his help and collaboration have
-    been beneficial.  You may reach Brian at `brianmce@crosswinds.net'.
+    Brian McErlean contacted me, as he independently and simultaneously
+    wrote a very similar project.  Amusing coincidence, he even chose
+    `pymacs' as a name.  As he paid good attention to complex details that
+    escaped my courage, his help and collaboration have been beneficial.
+    You may reach Brian at `brianmce@crosswinds.net'.
 
     One other reference of interest is Doug Bagley shoot out project,
     which compares the relative speed of many popular languages.  See
@@ -76,18 +88,18 @@
     This ".emacs" file is not given in the distribution, you likely have
     one already in your home directory.  You need to add these two lines:
 
-    (autoload 'python-eval "pymacs" nil t)
-    (autoload 'python-import "pymacs" nil t)
+    (autoload 'pymacs-eval "pymacs" nil t)
+    (autoload 'pymacs-load "pymacs" nil t)
 
     If the file "$HOME/.emacs" does not exist, merely create it with the
     two above lines.  You are now all set to use Pymacs, so let's try it!
 
-    Start a fresh Emacs session, and within it, type `M-x python-eval'.
+    Start a fresh Emacs session, and within it, type `M-x pymacs-eval'.
     Emacs should prompt you for a Python expression.  Try "`2L**111`" (type
     the backquotes, but not the external double-quotes).  The minibuffer
     should display `2596148429267413814265248164610048L'.
 
-    Here is another test.  Within an Emacs session, type `M-x python-import'.
+    Here is another test.  Within an Emacs session, type `M-x pymacs-load'.
     Emacs will then prompt you for a Python module name.  Reply `os'.
     After Emacs prompts you for a prefix, merely hit Enter to accept the
     default prefix.  This should have the effect of importing the Python "os"
@@ -96,23 +108,23 @@
 
 .. Usage on the LISP side.
 
-. : `python-eval'.
+. : `pymacs-eval'.
 
-    Function `(python-eval TEXT)' gets TEXT evaluated as a Python expression,
+    Function `(pymacs-eval TEXT)' gets TEXT evaluated as a Python expression,
     and returns the value of that expression.
 
     Python `None', as well as the empty tuple `()', are returned as `nil'
     in LISP.  Python numbers, either integer or floating, and strings, have
     a natural expression in LISP which is then used.  However, long Python
     integers, complex numbers, and Unicode strings may not be returned.
-    The special `lisp.SYMBOL' or `lisp[STRING]' writings on the Python side
-    (see later in this document) can be used to return LISP symbols.  Python
-    tuples are returned as proper LISP lists, Python lists as LISP vectors,
-    dictionaries as alists.  Other Python objects may not be returned.
+    The special `lisp.SYMBOL' or `lisp[STRING]' writings on the Python
+    side (see later in this document) can be used to return LISP symbols.
+    Python tuples are returned as proper LISP lists, Python lists as
+    LISP vectors.  Other Python objects are returned opaquely.
 
-. : `python-import',
+. : `pymacs-load',
 
-    Function `(python-import MODULE PREFIX)' imports the Python MODULE into
+    Function `(pymacs-load MODULE PREFIX)' imports the Python MODULE into
     LISP space.  Each top-level function in the module produces a trampoline
     function in LISP having the same name, except that underlines in Python
     names are turned into dashes in LISP, and that PREFIX is uniformly added
@@ -128,17 +140,30 @@
     as this is the most common usage, but this can be overridden (see later
     in this document).  LISP symbols are transmitted using the special
     `lisp.SYMBOL' or `lisp[STRING]' notation in Python, and all other LISP
-    types are transmitted as opaque handles (see later in this document).
+    types are transmitted as LISP handles (see later in this document).
+
+    Since arguments have been evaluated the Python way on the Python side,
+    it would be conceptual overkill evaluating them again the LISP way
+    on the LISP side, so Pymacs manage to quotes arguments to defeat
+    LISP evaluation.  The same logic applies the other way around.
 
     The return value of these functions is converted back to LISP, as
-    explained with `python-eval' above.  Also, returning any opaque handle
+    explained with `pymacs-eval' above.  Also, returning any LISP handle
     does in fact return the original LISP object behind that handle.
+
+    Note that none of the imported Python function is marked interactive on
+    the LISP side, so in particular, these cannot directly bound to keys.
+    Emacs functions have the concept of user interaction for completing the
+    specification of their arguments while being called.  It would be very
+    unnatural to Python, trying to retrofit that facility on the Python side.
+    You need to define your own trampoline functions in LISP if you want
+    them interactive.  See the examples provided elsewhere in this document.
 
 . : Expected usage.
 
-    We do not expect that `python-eval' will be much used, if ever.
+    We do not expect that `pymacs-eval' will be much used, if ever.
     In practice, the LISP side of a Pymacs application might call
-    `python-import' a few times for linking into the Python modules,
+    `pymacs-load' a few times for linking into the Python modules,
     with the indirect effect of defining trampoline functions for these
     modules on the LISP side, than can be called like usual LISP functions.
 
@@ -151,6 +176,13 @@
     which are documented here.  The value of these variables can be changed
     at any time.
 
+.  , pymacs-load-path
+
+     Users might want to use special directories for holding their Python
+     modules, when these modules are meant to be used from Emacs.  Best is
+     to preset `pymacs-load-path, initially `nil', to a list of these
+     directory names.  (Tilde expansions and such occur automatically.)
+
 .  , pymacs-trace-transit
 
      The `*Pymacs*' buffer, within Emacs, holds a trace of transactions
@@ -161,6 +193,17 @@
      debugging, but the drawback is that this buffer could grow big over
      time, to the point of diminishing Emacs performance.
 
+.  , pymacs-forget-mutability
+
+     The default behaviour of Pymacs is to transmit LISP objects
+     to Python in such a way thay they are fully modifiable from the
+     Python side, would it mean triggering LISP functions to act on them.
+     When `pymacs-forget-mutability' is not `nil', the behaviour is changed,
+     and the flexibility is lost.  Pymacs then tries to expand proper lists
+     and vectors as full copies when transmitting them on the Python side.
+     This variable, seen as a user setting, is best left to `nil'.  It may
+     be temporarily overriden within some functions, when deemed useful.
+
 .  , pymacs-mutable-strings
 
      Strictly speaking, Emacs LISP strings are mutable. Yet, it does not
@@ -168,7 +211,8 @@
      as Python strings are never mutable.  When `pymacs-mutable-strings' is
      `nil', and this is the default setting, LISP strings are transmitted
      to Python as Python strings, and so, loose their mutability.  If that
-     variable is not `nil', LISP strings are rather passed as opaque handles.
+     variable is not `nil', LISP strings are rather passed as LISP handles.
+     This variable is ignored whenever `pymacs-forget-mutability' is set.
 
 .. Usage on the Python side.
 
@@ -188,28 +232,66 @@
     the Pymacs module.  Things might change however, as that `lisp' object
     conveys a lot of magic already, there is not much room for adding more!
 
-. : Opaque handles.
+    This is one advantage of:
+
+        import pymacs
+        lisp = pymacs.lisp
+
+    The `lisp' object attributes are exclusively representing LISP symbols,
+    so no shadowing occurs.  I could use `pymacs.FACILITY' for the rest,
+    yet these are still not much needed.  Other objects, like LISP handles,
+    are passed around in arguments, so they do not need prefixing to
+    be interpreted.  It seems to work well so far.  In practice:
+
+        from pymacs import lisp
+
+    has been sufficient until now.
+
+    `lisp' is not a module, it is a special object having some Python magic
+    built in it.  I may explain how it works if you are curious, but one
+    should be able to use it a bit blindly, or at least, I hope so. :-)
+
+    `lisp' is an instance of the `pymacs.Lisp' class.  Whenever you write
+    `lisp.SYMBOL', you are calling the `__getattr__' method of that class.
+    That metho checks if the wanted symbol has already been created, in which
+    case it returns it, otherwise, it creates a new one and returns it.
+    A symbol is an instance of the `pymacs.Symbol' class (which also has
+    its own magic!).  Whenever such a symbol gets transmitted to the Emacs
+    side, the communication protocol takes care that it produces the proper
+    corresponding LISP symbol.
+
+. : Response mode.
+
+    In the context of Pymacs, whenever Python receives control from Emacs,
+    Emacs is listening to serve Python requests.  Emacs is not listening
+    otherwise.  Emacs is the real driver of the communication, Python
+    only responds.  Consequently, one should not attempt calling for Emacs
+    services by other means.  In particular, other Python threads should
+    never be calling Emacs, unless careful synchronisation is used.
+
+. : LISP handles.
 
     When a Python function is called from LISP, the function arguments
     have already been converted to Python types from LISP types (see the
-    description of `python-import' above) and the function result is going to
-    be converted back to LISP (see the description of `python-eval' above).
+    description of `pymacs-load' above) and the function result is going to
+    be converted back to LISP (see the description of `pymacs-eval' above).
 
     Several LISP objects do not have Python equivalents, like for Emacs
     windows, buffers, markers, overlays, etc.  It is nevertheless useful to
     pass them to Python functions, hoping that these Python functions will
     "operate" on these LISP objects.  Of course, the Python side may not
     itself modify such objects, it has to call for Emacs services to do so.
-    Opaque handles are a mean to ease this communication.
+    LISP handles are a mean to ease this communication.
 
-    Whenever a LISP object may not be converted to a Python object, an opaque
-    handle is created and used instead.  Whenever that handle is returned
-    into LISP from a function, or is used as an argument to a LISP function,
-    the original LISP object behind the handle is automatically retrieved.
+    Whenever a LISP object may not be converted to a Python object, an
+    LISP handle is created and used instead.  Whenever that LISP handle is
+    returned into LISP from a Python function, or is used as an argument
+    to a LISP function from Python, the original LISP object behind the
+    LISP handle is automatically retrieved.
 
-    Opaque handles are genuine instances of the `pymacs.Handle' class.
-    If `object' is an opaque handle, and if the underlying LISP object
-    is a LISP sequence, then `object[index]', `object[index] = value' and
+    LISP handles are genuine instances of the `pymacs.Handle' class.
+    If `object' is an LISP handle, and if the underlying LISP object is
+    a LISP sequence, then `object[index]', `object[index] = value' and
     `len(object)' are meaningful, these may be used to fetch or alter an
     element of the sequence directly in LISP space.  Also, if `object'
     corresponds to a LISP function, `object(ARGUMENTS)' may be used to
@@ -256,8 +338,8 @@
 
     The `pymacs.Symbol' class has `value()' and `copy()' methods.  One can
     use either `lisp.SYMBOL.value()' or `lisp.SYMBOL.copy()' to access
-    the LISP value of a symbol, after conversion to some Python object,
-    of course.  However, where `value()' would have given an opaque handle,
+    the LISP value of a symbol, after conversion to some Python object, of
+    course.  However, where `value()' would have given a LISP handle,
     `lisp.SYMBOL.copy()' has the same effect of `lisp.SYMBOL.value().copy()',
     that is, it returns the value of the symbol as opened as possible.
 
@@ -286,7 +368,7 @@
     so it is shortly explained here.  Consider:
 
     ---------------------------------------------------------------------->
-    (python-eval "lisp('(python-eval \"`2L**111`\")')")
+    (pymacs-eval "lisp('(pymacs-eval \"`2L**111`\")')")
     "2596148429267413814265248164610048L"
     ----------------------------------------------------------------------<
 
@@ -303,8 +385,8 @@
 
     ---------------------------------------------------------------------->
     <9    (started)
-    >49   eval("lisp('(python-eval \"`2L**111`\")')")
-    <25   (python-eval "`2L**111`")
+    >49   eval("lisp('(pymacs-eval \"`2L**111`\")')")
+    <25   (pymacs-eval "`2L**111`")
     >18   eval("`2L**111`")
     <47   (pymacs-reply "2596148429267413814265248164610048L")
     >45   reply("2596148429267413814265248164610048L")
@@ -320,21 +402,185 @@
     `pymacs.reply' and `pymacs-reply' are special functions meant to indicate
     that an expected result is finally transmitted.  `pymacs.error' and
     `pymacs-error' are special functions that introduce a string which
-    explains an exception which recently occurred.  `pymacs-expand' is a
-    special function implementing the `copy()' methods of opaque handles
-    or lisp symbols.  In all other cases, the expression is a request for
-    the other side, which stacks until a corresponding reply is received.
+    explains an exception which recently occurred.  `pymacs-expand' is
+    a special function implementing the `copy()' methods of LISP handles
+    or symbols.  In all other cases, the expression is a request for the
+    other side, which stacks until a corresponding reply is received.
 
-.. Varia
+. : Emacs usual debugging.
 
-. : History
-.  , Why
+    Currently, the Python backtrace gets displayed in the mini-buffer (which
+    is resized for the circumstance) *and* the LISP backtrace is shown in
+    the `*Backtrace*' window.  I made no kind of effort to transmit the
+    LISP backtrace on the Python side, as I do not see a purpose for it:
+    all debugging is done within Emacs windows anyway.
 
-. : References
-.  , 3 years
-.  , yesterday
+    If cross-calls between LISP and Python nest deeply, an error will raise
+    successive exceptions alternatively on both size as things unstack,
+    and the diagnostic gets transmitted back and forth, slightly growing
+    as we go.  I hope my logic is correct: these things are a bit complex
+    to sort out and I did not overly tested it yet.
 
-. : Warnings
-.  , Alpha
-.  , Merging
-.  , Dotted
+.. Keybindings.
+
+   > lisp.global_set_key([lisp.f7], lisp.manglers_break_on_whitespace)
+
+   > So you want to put all the possible keys in the lisp namespace?
+   > Seems messy.
+
+   My knowledge of English fails on me, here.  I do not understand your
+   comment.  Would you be kind enough to explain?
+
+   Maybe you are worried with `[lisp.f7]' ?  There is nothing special with
+   it.  [item] is a Python list, which yields a LISP vector.  `lisp.f7'
+   merely translates to the LISP symbol `f7'.  So, Python `[lisp.f7]'
+   is LISP `[f7]'.
+
+   > And what about key combinations?  How would you say something like
+   > 'C-x w'?  I would suggest simply writing them as strings, and the
+   > programmer will have to know the elisp way of naming them.  Example:
+
+   > lisp.global_set_key(['C-x w'], lisp.manglers_break_on_whitespace)
+
+   In LISP, this would be written:
+
+      (global-set-key "\C-xw" manglers-break-on-whitespace)
+
+   Triggering this from Python requires that you write the string the
+   Python way, and Python does not recognise the "\C-" escape.  Knowing that
+   `C-x' is chr(0x18), one could write:
+
+      lisp.global_set_key('\x18w', lisp.manglers_break_on_whitespace)
+
+   Maybe it could be useful to have a service function to help writing more
+   LISP-looking strings in Python?  `pymacs' does not have any service
+   library yet, but if the need arise, we can progressively build one.
+   Maybe there would not be much things in it, if any.  Hard to know
+   in advance.  I'd rather keep the API as bare as possible, if this
+   is reasonable.
+
+   > So to take a real example from my .emacs file:
+   >    (global-set-key [M-f2] 'redo)
+   > ... might become something like, on the python side,
+   >    lisp.global_set_key(['M-f2'], lisp.redo)
+
+   I'm not utterly familiar with how `[SYMBOL]' works on the Emacs side to
+   represent key-bindings, but I would guess Emacs developers made a few
+   stunts for it to look good.  For what I guess these stunts are, I would
+   write on the Python side:
+
+       lisp.global_set_key([lisp['M-f2']], lisp.redo)
+
+   or even more tricky:
+
+       lisp.global_set_key([lisp.M_f2], lisp.redo)
+
+   > >   (global-set-key "\C-xw" manglers-break-on-whitespace)
+   > > [to become]
+   > >   lisp.global_set_key('\x18w', lisp.manglers_break_on_whitespace)
+
+   > IMHO this is a heavy burden to place on the person trying to write
+   > python functions.
+
+   Really?  We'll have to do something about it, then.
+
+   > I have no idea how I would find out that C-x is equivalent to chr(0x18).
+
+   Oh!  `C-x' stands for Control-X.  In an ASCII table, there are control
+   characters from 0x00 to 0x20 (excluded).  0x01 is Control-A, 0x02 is
+   Control-B, etc.  Knowing this, Control-X is: chr(ord('X') - ord('A') + 1).
+   Give the above to an interactive Python session, you will get: '\x18'.
+
+   > Furthermore, there must be many combinations of control, meta, and
+   > other keys that have no single-character equivalent [...]
+
+   Control is the equivalent of subtracting 0x40 from the upper case letter.
+   Meta is the equivalent of adding 0x80 to the rest.  However, so people can
+   use non-ASCII charsets, Meta is given another representation in key maps,
+   and this is to prefix the character to "meta" in the string with `ESC',
+   which is 0x1b.  That's all, I think, for when users specify strings.
+   For the rest, Emacs uses the vector notation, with no strings.
+
+   > >Maybe it could be useful to have a service function to help writing more
+   > >LISP-looking strings in Python?
+
+   > Yes, that's exactly what I'm suggesting.
+
+   Then this routine -- let's tentatively call it `pymacs.key()' -- and the
+   convention for writing its argument, should be precisely documented.
+
+.. Exemples.
+
+. : Keybinding from Python.
+
+. : Paul Winkler<s
+
+.  , The problem
+
+     Let's say I have a a module, let's call it manglers.py,
+     containing this simple python function:
+
+     def break_on_whitespace(some_string):
+         words = some_string.split()
+         return '\n'.join(words)
+
+     The goal is telling Emacs about this function so that I can call it on
+     a region of text and replace the region with the result of the call.
+     And bind this action to a key, of course, let's say `[f7]'.
+
+     This is an interesting exercise.  Before diving into it, it is clear
+     that the Emacs buffer should be handled in some way.  If this is not on
+     the lisp side, it has to be on the Python side, but we cannot escape
+     handling the buffer.  So, there is an equilibrium in the work to do
+     for the user, that could be displaced towards LISP or towards Python.
+
+     Let's seek a solution which requires less LISP code, at the expense of
+     more Python code.  This might be the easiest for one who is a Python
+     user before a LISP writer.  For one, I would probably manage so the
+     LISP side transmit the region as passed as arguments to the Python
+     function, but let's not even do that, and rather discover the region
+     from Python code.
+
+.  , Python side
+
+     Here is a first draft for the Python side of the problem:
+
+     from pymacs import lisp
+
+     def break_on_whitespace():
+         start = lisp.point()
+         end = lisp.mark()
+         if start > end:
+             start, end = end, start
+         text = lisp.buffer_substring(start, end)
+         words = text.split()
+         replacement = '\n'.join(words)
+         lisp.delete_region(start, end)
+         lisp.insert(replacement)
+
+     Note that if I was writing this for myself, for various stylistic reasons,
+     I might rather do:
+
+     from pymacs import lisp
+     from string import join
+
+     def break_on_whitespace():
+         start, end = lisp.point(), lisp.mark()
+         words = lisp.buffer_substring(start, end).split()
+         lisp.delete_region(start, end)
+         lisp.insert(join(words, '\n'))
+
+     relying on the fact that for the used LISP functions, `start' and `end'
+     may be given in any order.
+
+.  , Emacs side
+
+     On the Emacs side, one would do:
+
+     (pymacs-load "manglers")
+
+     (defun break-on-whitespace ()
+       (interactive)
+       (manglers-break-on-whitespace))
+
+     (global-set-key [f7] 'break-on-whitespace)
