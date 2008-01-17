@@ -1,0 +1,72 @@
+To produce the Pymacs manual, given you have TeX installed on your system,
+try `make pdf' or `make ps' once this directory is current.  For other
+devices, you may use `make dvi' and process the DVI file by adequate tools.
+
+The real source for Pymacs documentation is an Allout file, which gets
+turned into a Texinfo file using a small package I wrote to do so.  For the
+Pymacs distribution to stay reasonably self-contained and for providing my
+real sources, a copy of the Allout processor is included as `Pymacs.Allout'.
+
+To edit `.all' files, I use an `.emacs' setup which I roughly trimmed down
+below to the highlighting related code.  These tricks are likely to interest
+other Emacs users who would like to modify such Allout files.
+
+---------------------------------------------------------------------->
+;;;; `Allout' mode (and `outline' mode as well).
+
+(autoload 'outline-mode "allout" nil t)
+(add-to-list 'auto-mode-alist '("TODO\\'" . outline-mode))
+(add-to-list 'auto-mode-alist '("NOTES\\'" . outline-mode))
+(add-to-list 'auto-mode-alist '("\\.all\\(out\\)?\\'" . outline-mode))
+
+;; Fontification changes concealed text, so the simplest is to give
+;; this protection away if we want fontification.
+(defvar outline-inhibit-protection)
+(eval-after-load "allout"
+  (setq outline-inhibit-protection t))
+
+(defun fp-outline-mode-hook ()
+  (set (make-local-variable 'font-lock-defaults) '(fp-allout-lock-keywords t))
+  (setq show-trailing-whitespace t
+	indicate-empty-lines t))
+(add-hook 'outline-mode-hook 'fp-outline-mode-hook)
+
+(defun fp-preset-allout-face (allout-face font-lock-face)
+  (copy-face 'bold allout-face)
+  (set-face-foreground allout-face (face-foreground font-lock-face)))
+(fp-preset-allout-face 'fp-allout-face-1 'font-lock-type-face)
+(fp-preset-allout-face 'fp-allout-face-2 'font-lock-variable-name-face)
+(fp-preset-allout-face 'fp-allout-face-3 'font-lock-builtin-face)
+(fp-preset-allout-face 'fp-allout-face-4 'font-lock-constant-face)
+(fp-preset-allout-face 'fp-allout-face-5 'font-lock-function-name-face)
+(fp-preset-allout-face 'fp-allout-face-6 'font-lock-keyword-face)
+
+(copy-face 'bold 'fp-allout-face-index)
+
+(defconst fp-allout-lock-keywords
+  '(("^\\(\\*\\|\\. *\\([-*+@:.;,]\\)\\)[ \t]*\\([^\n\r]*\\)"
+     (1 font-lock-string-face)
+     (3 (if (string-equal (match-string 2) "@")
+	    font-lock-comment-face
+	  (cdr (assq (% (- (match-end 1) (match-beginning 1)) 6)
+		     '((1 . fp-allout-face-1)
+		       (2 . fp-allout-face-2)
+		       (3 . fp-allout-face-3)
+		       (4 . fp-allout-face-4)
+		       (5 . fp-allout-face-5)
+		       (0 . fp-allout-face-6)))))
+	nil t))
+    ("@c\\b.*" 0 'font-lock-comment-face)
+    ("\\(@[a-z0-9]+\\){\\([^}]*\\)}"
+     (1 'font-lock-keyword-face)
+     (2 'font-lock-constant-face))
+    ("@[a-z0-9]+" 0 'font-lock-keyword-face)
+    ("@[@{}]" 0 'font-lock-builtin-face t)
+    ("\\(@<\\)\\([^>]*\\)\\(>\\)"
+     (1 'font-lock-keyword-face t)
+     (2 'fp-allout-face-index t)
+     (3 'font-lock-keyword-face t))
+    ("\\<\\(FIXME\\|REVOIR\\)[!:]" 1 font-lock-warning-face t)
+    ;;("\240" 0 'fp-unbreakable-space-face t)
+    ))
+----------------------------------------------------------------------<

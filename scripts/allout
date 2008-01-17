@@ -1,0 +1,12 @@
+#!/usr/bin/python
+# -*- coding: Latin-1 -*-
+# Copyright (C) 2003 PROGICIELS Bourbeau-Pinard, inc. Montreal.
+# François Pinard <pinard@progiciels-bpi.ca>, 2003-03.
+
+"""\
+Handle an Allout file in various ways.
+"""
+
+import sys
+from Allout.main import main
+main(*sys.argv[1:])

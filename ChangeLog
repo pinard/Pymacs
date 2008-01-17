@@ -1,3 +1,55 @@
+2003-06-30  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.22.
+
+	* setup: Simplified a bit, substitutions now made by other means.
+	* Makefile: Simplified, distribution now made by other means.
+
+2003-06-29  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-round-trip): Handle pymacs-trace-transit being
+	a cons cell.
+
+2003-05-19  François Pinard  <pinard@iro.umontreal.ca>
+
+	* setup.py: Install Pymacs.Nn.
+	Reported by Carel Fellinger.
+
+2003-05-18  François Pinard  <pinard@iro.umontreal.ca>
+
+	* setup (main): Correctly process -n option.
+	Reported by Carel Fellinger.
+
+	* scripts: New directory for receiving scripts, so Allout and
+	allout do not conflict on some operating systems ignoring case.
+	* doc/Makefile: Adjusted.
+	Reported by Carel Fellinger.
+
+2003-05-17  François Pinard  <pinard@iro.umontreal.ca>
+
+	* doc: New directory to hold the manual, extracted from README.
+	* README: Simplified.
+	* Allout: New sub-package to help processing documentation.
+	* allout: New script.
+
+	* Pymacs/Rebox: New sub-package to hold only rebox.py.
+	* rebox: Adjusted.
+
+	* Pymacs/Nn: New sub-package for receiving another example.
+
+	* MANIFEST, setup.py: Adjusted.
+
+2003-05-16  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-call): Call pymacs-server-until-reply directly,
+	instead of going through pymacs-apply.  Merely cosmetic, no bug.
+
+2002-12-24  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-print-for-eval): Increase counter while
+	printing vectors.
+	Reported by Marco Gidde.
+
 2002-12-14  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.21.

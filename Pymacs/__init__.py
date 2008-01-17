@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright © 2002 Progiciels Bourbeau-Pinard inc.
+# Copyright © 2002, 2003 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2002.
 
 # This program is free software; you can redistribute it and/or modify
@@ -27,4 +27,4 @@ from pymacs import Let, lisp
 # Identification of version.
 
 __package__ = 'Pymacs'
-__version__ = '0.21'
+__version__ = '0.22'

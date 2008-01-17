@@ -1,5 +1,5 @@
-;;; Interface between Emacs Lisp and Python - Lisp part.
-;;; Copyright © 2001, 2002 Progiciels Bourbeau-Pinard inc.
+;;; Interface between Emacs Lisp and Python - Lisp part.    -*- emacs-lisp -*-
+;;; Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
 ;;; François Pinard <pinard@iro.umontreal.ca>, 2001.
 
 ;;; This program is free software; you can redistribute it and/or modify
@@ -24,11 +24,13 @@
   "List of additional directories to search for Python modules.
 The directories listed will be searched first, in the order given.")
 
-(defvar pymacs-trace-transit nil
+(defvar pymacs-trace-transit '(5000 . 30000)
   "Keep the communication buffer growing, for debugging.
 When this variable is nil, the `*Pymacs*' communication buffer gets erased
 before each communication round-trip.  Setting it to `t' guarantees that
-the full communication is saved, which is useful for debugging.")
+the full communication is saved, which is useful for debugging.
+It could also be given as (KEEP . LIMIT): whenever the buffer exceeds LIMIT
+bytes, it is reduced to approximately KEEP bytes.")
 
 (defvar pymacs-forget-mutability nil
   "Transmit copies to Python instead of Lisp handles, as much as possible.
@@ -97,7 +99,7 @@ This functionality is experimental, and does not appear to be useful."
 FUNCTION is a string denoting the Python function, ARGUMENTS are separate
 Lisp expressions, one per argument.  Immutable Lisp constants are converted
 to Python equivalents, other structures are converted into Lisp handles."
-  (pymacs-apply function arguments))
+  (pymacs-serve-until-reply `(pymacs-print-for-apply ',function ',arguments)))
 
 (defun pymacs-apply (function arguments)
   "Return the result of calling a Python function FUNCTION over ARGUMENTS.
@@ -400,7 +402,8 @@ The timer is used only if `post-gc-hook' is not available.")
 	       (while (< counter limit)
 		 (unless (zerop counter)
 		   (princ ", "))
-		 (pymacs-print-for-eval (aref expression counter)))
+		 (pymacs-print-for-eval (aref expression counter))
+		 (setq counter (1+ counter)))
 	       (when (= limit 1)
 		 (princ ","))
 	       (princ ")")
@@ -484,8 +487,8 @@ The timer is used only if `post-gc-hook' is not available.")
 	  (if (and (pymacs-proper-list-p reply)
 		   (= (length reply) 2)
 		   (eq (car reply) 'pymacs-version))
-	      (unless (string-equal (cadr reply) "@VERSION@")
-		(error "Pymacs Lisp version is @VERSION@, Python is %s."
+	      (unless (string-equal (cadr reply) "0.22")
+		(error "Pymacs Lisp version is 0.22, Python is %s."
 		       (cadr reply)))
 	    (error "Pymacs got an invalid initial reply.")))))
     (setq pymacs-use-hash-tables (and (fboundp 'make-hash-table)
@@ -504,7 +507,7 @@ The timer is used only if `post-gc-hook' is not available.")
       (if (boundp 'post-gc-hook)
 	  (add-hook 'post-gc-hook 'pymacs-schedule-gc)
 	(setq pymacs-gc-timer (run-at-time 20 20 'pymacs-schedule-gc))))
-    ;; If nothing failed, only then declare the Pymacs has started!
+    ;; If nothing failed, only then declare that Pymacs has started!
     (setq pymacs-transit-buffer buffer)))
 
 (defun pymacs-terminate-services ()
@@ -527,6 +530,24 @@ Killing the helper might create zombie objects.  Kill? "))
 	  pymacs-lisp nil
 	  pymacs-freed-list nil)))
 
+(defun pymacs-reply (expression)
+  ;; This pseudo-function returns `(pymacs-reply . EXPRESSION)'.
+  ;; It is only used from within the `loop' function on the Python side.
+  ;; `serve-until-reply' later recognises this form.
+  (cons 'pymacs-reply expression))
+
+(defun pymacs-error (expression)
+  ;; This pseudo-function returns `(pymacs-error . EXPRESSION)'.
+  ;; It is only used from within the `loop' function on the Python side.
+  ;; `serve-until-reply' later recognises this form.
+  (cons 'pymacs-error expression))
+
+(defun pymacs-expand (expression)
+  ;; This pseudo-function returns `(pymacs-expand . EXPRESSION)'.  It is
+  ;; only called from the `loop' function within `Pymacs/pymacs.py'.
+  ;; `serve-until-reply' later recognises this form.
+  (cons 'pymacs-expand expression))
+
 (defun pymacs-serve-until-reply (inserter)
   ;; This function evals INSERTER to print a Python request.  It sends it to
   ;; the Python helper, and serves all sub-requests coming from the
@@ -544,44 +565,37 @@ Killing the helper might create zombie objects.  Kill? "))
 			(eval text)
 		      (error (cons 'pymacs-oops (prin1-to-string info))))))
 	(cond ((not (consp reply))
-	       (setq inserter
-		     `(pymacs-print-for-apply 'reply '(,reply))))
+	       (setq inserter `(pymacs-print-for-apply 'reply '(,reply))))
 	      ((eq 'pymacs-reply (car reply))
 	       (setq done t value (cdr reply)))
 	      ((eq 'pymacs-error (car reply))
 	       (error "Python: %s" (cdr reply)))
-	      ((eq 'pymacs-oops (car reply))
-	       (setq inserter
-		     `(pymacs-print-for-apply 'error '(,(cdr reply)))))
 	      ((eq 'pymacs-expand (car reply))
-	       (setq inserter
-		     `(pymacs-print-for-apply-expanded 'reply
-						       '(,(cdr reply)))))
-	      (t (setq inserter
-		       `(pymacs-print-for-apply 'reply '(,reply)))))))
+	       (setq inserter `(pymacs-print-for-apply-expanded
+				'reply '(,(cdr reply)))))
+	      ((eq 'pymacs-oops (car reply))
+	       (setq inserter `(pymacs-print-for-apply
+				'error '(,(cdr reply)))))
+	      (t (setq inserter `(pymacs-print-for-apply 'reply '(,reply)))))))
     value))
-
-(defun pymacs-reply (expression)
-  ;; This pseudo-function returns `(pymacs-reply . EXPRESSION)'.
-  ;; `serve-until-reply' later recognises this form.
-  (cons 'pymacs-reply expression))
-
-(defun pymacs-error (expression)
-  ;; This pseudo-function returns `(pymacs-error . EXPRESSION)'.
-  ;; `serve-until-reply' later recognises this form.
-  (cons 'pymacs-error expression))
-
-(defun pymacs-expand (expression)
-  ;; This pseudo-function returns `(pymacs-expand . EXPRESSION)'.
-  ;; `serve-until-reply' later recognises this form.
-  (cons 'pymacs-expand expression))
 
 (defun pymacs-round-trip (inserter)
   ;; This function evals INSERTER to print a Python request.  It sends it to
   ;; the Python helper, awaits for any kind of reply, and returns it.
   (with-current-buffer pymacs-transit-buffer
-    (unless pymacs-trace-transit
-      (erase-buffer))
+    ;; Possibly trim the beginning of the transit buffer.
+    (cond ((not pymacs-trace-transit)
+	   (erase-buffer))
+	  ((consp pymacs-trace-transit)
+	   (when (> (buffer-size) (cdr pymacs-trace-transit))
+	     (let ((cut (- (buffer-size) (car pymacs-trace-transit))))
+	       (when (> cut 0)
+		 (save-excursion
+		   (goto-char cut)
+		   (unless (memq (preceding-char) '(0 ?\n))
+		     (forward-line 1))
+		   (delete-region (point-min) (point))))))))
+    ;; Send the request, wait for a reply, and process it.
     (let* ((process (get-buffer-process pymacs-transit-buffer))
 	   (status (process-status process))
 	   (marker (process-mark process))
@@ -625,7 +639,7 @@ Killing the helper might create zombie objects.  Kill? "))
       reply)))
 
 (defun pymacs-proper-list-p (expression)
-  ;; Tell if a list is proper, id est, that it is `nil, or ends with `nil'.
+  ;; Tell if a list is proper, id est, that it is `nil' or ends with `nil'.
   (cond ((not expression))
 	((consp expression) (not (cdr (last expression))))))
 

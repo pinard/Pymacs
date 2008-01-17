@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-# Copyright © 2001, 2002 Progiciels Bourbeau-Pinard inc.
+# -*- coding: Latin-1 -*-
+# Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
 """\
@@ -58,11 +59,13 @@ def main(*arguments):
                 run.lispdir = None
             else:
                 run.lispdir = [value]
+        elif option == '-n':
+            run.dry = 1
     auto_configure()
     if run.interactive:
         check_with_user()
     check_choices()
-    if not run.dry:
+    if not run.dry and run.lispdir:
         complete_install()
 
 def auto_configure():
@@ -72,8 +75,8 @@ def auto_configure():
         script = tempfile.mktemp()
         if sys.platform == 'win32':
             # Win32 names starting with tilde and Emacs are unhappy together.
-            path, file = os.path.split(script)
-            script = os.path.join(path, 'a' + file)
+            directory, file = os.path.split(script)
+            script = os.path.join(directory, 'a' + file)
         try:
             open(script, 'w').write('(message "%S" load-path)')
             load_config = ''
@@ -81,12 +84,11 @@ def auto_configure():
                 config = os.path.join(os.environ['HOME'], '.emacs')
                 for name in config, config + '.el', config + '.elc':
                     if os.path.isfile(name):
-                        # Quote!  Spaces are common in Win32 file names.
                         load_config = ' -l "%s"' % name
                     break
-            # Quote!  Spaces are common in Win32 file names.
-            text = os.popen('%s -batch%s -l "%s" 2>&1'
-                            % (run.emacs, load_config, script)).read()
+            text = (os.popen('%s -batch%s -l "%s" 2>&1'
+                             % (run.emacs, load_config, script))
+                    .read())
         finally:
             os.remove(script)
         position = string.find(text, '("')
@@ -98,7 +100,7 @@ def auto_configure():
         for path in string.split(text[1:-1]):
             assert path[0] == '"' and path[-1] == '"', path
             path = path[1:-1]
-            if os.access(path, 7):
+            if all_access_bits(path):
                 run.lispdir.append(path)
 
 def check_with_user():
@@ -126,7 +128,7 @@ Enter a value for `%s', or merely type `Enter' if you do not want any.
             text = string.strip(readline())
             if not text:
                 return None
-            if os.access(os.path.expanduser(text), 7):
+            if all_access_bits(os.path.expanduser(text)):
                 return [text]
             write("""\
 
@@ -174,7 +176,7 @@ def check_choices():
     write = sys.stderr.write
     error = 0
     if run.lispdir is not None:
-        if run.lispdir and os.access(os.path.expanduser(run.lispdir[0]), 7):
+        if run.lispdir and all_access_bits(os.path.expanduser(run.lispdir[0])):
             run.lispdir = run.lispdir[0]
         else:
             write("\
@@ -192,40 +194,25 @@ Use `-l LISPDIR' to select where `pymacs.el' should go.\n")
         % run.__dict__)
 
 def complete_install():
-    run.substitute = {'PACKAGE': __package__, 'VERSION': __version__}
-    if run.lispdir:
-        goal = os.path.join(run.lispdir, 'pymacs.el')
-        install('pymacs.el', goal, 0644)
-        compile_lisp(goal)
+    # Copy Lisp file.
+    goal = os.path.join(run.lispdir, 'pymacs.el')
+    sys.stderr.write('Installing %s\n' % goal)
+    write = open(goal, 'w').write(open('pymacs.el').read())
+    set_attributes(goal, 0644)
+    # Compile it.
+    sys.stderr.write('Compiling %s\n' % goal)
+    os.system('%s -batch -f batch-byte-compile %s' % (run.emacs, goal))
+    set_attributes(goal + 'c', 0644)
 
-def install(source, destination, permissions):
-    sys.stderr.write('Installing %s\n' % destination)
-    write = open(destination, 'w').write
-    produce_at = 0
-    #print '*', run.substitute
-    for fragment in string.split(open(source).read(), '@'):
-        #print '**', produce_at, `fragment`
-        if produce_at:
-            replacement = run.substitute.get(fragment)
-            #print '***', replacement
-            if replacement is None:
-                write('@')
-                write(fragment)
-            else:
-                write(replacement)
-                produce_at = 0
-        else:
-            write(fragment)
-            produce_at = 1
-    write = None
-    set_attributes(destination, permissions)
-
-def compile_lisp(name):
-    sys.stderr.write('Compiling %s\n' % name)
-    os.system('%s -batch -f batch-byte-compile %s' % (run.emacs, name))
-    set_attributes(name + 'c', 0644)
+def all_access_bits(directory):
+    try:
+        bits = os.R_OK | os.W_OK | os.X_OK
+    except AttributeError:
+        bits = 7
+    return os.access(directory, bits)
 
 def set_attributes(name, permissions):
+    permissions = 0644
     if run.group:
         os.chown(name, run.group)
         permissions = permissions | 0020
