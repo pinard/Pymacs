@@ -33,9 +33,9 @@ The program arguments are additional search paths for Python modules.
     lisp._server.loop()
 
 class Server:
-    ProtocolError = 'Serious error, should stop'
-    ReplyException = 'Reply received from Emacs'
-    ErrorException = 'Error returned from Emacs'
+    ProtocolError = "Serious error, should stop"
+    ReplyException = "Reply received from Emacs"
+    ErrorException = "Error returned from Emacs"
 
     def loop(self):
         # The server loop repeatedly receives a request from Emacs and
@@ -67,6 +67,8 @@ class Server:
             except Server.ProtocolError, message:
                 sys.stderr.write("Protocol error: %s\n" % message)
                 sys.exit(1)
+            except KeyboardInterrupt:
+                raise
             except:
                 import StringIO, traceback
                 message = StringIO.StringIO()
@@ -135,7 +137,7 @@ def pymacs_load_helper(lisp_module, prefix):
     arguments = []
     for name, value in object.__dict__.items():
         if callable(value) and value is not lisp:
-            arguments.append(allocate_handle(value))
+            arguments.append(allocate_python(value))
             arguments.append(lisp[prefix + string.replace(name, '_', '-')])
     return (lisp.pymacs_defuns, (lisp.quote, tuple(arguments)))
 
@@ -145,85 +147,41 @@ def pymacs_load_helper(lisp_module, prefix):
 # instead of the Python value.  Whenever such a handle is freed from the
 # LISP side, its index is added of a freed list for later reuse.
 
-handles = []
+python = []
 freed_list = []
 
-def allocate_handle(value):
+def allocate_python(value):
     # Allocate some handle to hold VALUE, return its index.
     if freed_list:
         index = freed_list[-1]
         del freed_list[-1]
-        handles[index] = value
+        python[index] = value
     else:
-        index = len(handles)
-        handles.append(value)
+        index = len(python)
+        python.append(value)
     return index
 
-def free_handles(indices):
+def free_python(indices):
     # Return many handles to the pool.
     for index in indices:
-        handles[index] = None
+        python[index] = None
         freed_list.append(index)
 
-def zombie_handles(indices):
+def zombie_python(indices):
     # Ensure that some handles are _not_ in the pool.
     for index in indices:
-        while index >= len(handles):
-            freed_list.append(len(handles))
-            handles.append(None)
+        while index >= len(python):
+            freed_list.append(len(python))
+            python.append(None)
+        python[index] = zombie
         freed_list.remove(index)
     # Merely to make `*Pymacs*' a bit more readable.
     freed_list.sort()
+
+def zombie(*arguments):
+    error("Object vanished when previous helper was killed.")
 
 # Emacs services for Python applications.
-
-class Handle:
-
-    def __init__(self, index):
-        self.index = index
-        self.length = None
-
-    def __del__(self):
-        lisp('(pymacs-free-handle %d)' % self.index)
-
-    def __repr__(self):
-        return 'Handle(%s)' % self.index
-
-    def value(self):
-        return self
-
-    def copy(self):
-        return lisp('(pymacs-expand (aref pymacs-handles %d))' % self.index)
-
-    def __call__(self, *arguments):
-        fragments = []
-        write = fragments.append
-        write('((aref pymacs-handles %d)' % self.index)
-        for argument in arguments:
-            write(' ')
-            print_lisp(argument, write, quoted=1)
-        write(')')
-        return lisp(string.join(fragments, ''))
-
-    def __len__(self):
-        if self.length is None:
-            self.length = lisp('(pymacs-handle-length %d)' % self.index)
-        return self.length
-
-    def __getitem__(self, key):
-        if key < 0 or key >= len(self):
-            raise IndexError, key
-        return lisp('(pymacs-handle-ref %d %d)' % (self.index, key))
-
-    def __setitem__(self, key, value):
-        if key < 0 or key >= len(self):
-            raise IndexError, key
-        fragments = []
-        write = fragments.append
-        write('(pymacs-handle-set %d %d ' % (self.index, key))
-        print_lisp(value, write, quoted=1)
-        write(')')
-        lisp(string.join(fragments, ''))
 
 class Symbol:
 
@@ -259,6 +217,107 @@ class Symbol:
 
 class Lisp:
 
+    def __init__(self, index):
+        self.index = index
+
+    def __del__(self):
+        lisp('(pymacs-free-lisp %d)' % self.index)
+
+    def __repr__(self):
+        return 'Lisp(%s)' % self.index
+
+    def value(self):
+        return self
+
+    def copy(self):
+        return lisp('(pymacs-expand (aref pymacs-lisp %d))' % self.index)
+
+class Buffer(Lisp):
+
+    def __repr__(self):
+        return 'Buffer(%s)' % self.index
+
+#    def write(text):
+#        # So you could do things like
+#        # print >>lisp.current_buffer(), "Hello World"
+#        lisp.insert(text, self)
+#
+#    def point(self):
+#        return lisp.point(self)
+
+class List(Lisp):
+
+    def __repr__(self):
+        return 'List(%s)' % self.index
+
+    def __call__(self, *arguments):
+        fragments = []
+        write = fragments.append
+        write('((aref pymacs-lisp %d)' % self.index)
+        for argument in arguments:
+            write(' ')
+            print_lisp(argument, write, quoted=1)
+        write(')')
+        return lisp(string.join(fragments, ''))
+
+    def __len__(self):
+        return lisp('(length (aref pymacs-lisp %d))' % self.index)
+
+    def __getitem__(self, key):
+        return lisp('(nth %d (aref pymacs-lisp %d))' % (key, self.index))
+
+    def __setitem__(self, key, value):
+        fragments = []
+        write = fragments.append
+        write('(setcar (nthcdr %d (aref pymacs-lisp %d)) ' % (key, self.index))
+        print_lisp(value, write, quoted=1)
+        write(')')
+        lisp(string.join(fragments, ''))
+
+class Table(Lisp):
+
+    def __repr__(self):
+        return 'Table(%s)' % self.index
+
+    def __getitem__(self, key):
+        fragments = []
+        write = fragments.append
+        write('(gethash ')
+        print_lisp(key, write, quoted=1)
+        write(' (aref pymacs-lisp %d))' % self.index)
+        return lisp(string.join(fragments, ''))
+
+    def __setitem__(self, key, value):
+        fragments = []
+        write = fragments.append
+        write('(puthash ')
+        print_lisp(key, write, quoted=1)
+        write(' ')
+        print_lisp(value, write, quoted=1)
+        write(' (aref pymacs-lisp %d))' % self.index)
+        lisp(string.join(fragments, ''))
+
+class Vector(Lisp):
+
+    def __repr__(self):
+        return 'Vector(%s)' % self.index
+
+    def __len__(self):
+        return lisp('(length (aref pymacs-lisp %d))' % self.index)
+
+    def __getitem__(self, key):
+        return lisp('(aref (aref pymacs-lisp %d) %d)' % (self.index, key))
+
+    def __setitem__(self, key, value):
+        fragments = []
+        write = fragments.append
+        write('(aset (aref pymacs-lisp %d) %d ' % (self.index, key))
+        print_lisp(value, write, quoted=1)
+        write(')')
+        lisp(string.join(fragments, ''))
+
+class Lisp_Interface:
+
     def __init__(self):
         self.__dict__['_cache'] = {'nil': None}
         self.__dict__['_server'] = Server()
@@ -291,7 +350,7 @@ class Lisp:
             symbol = self._cache[name] = Symbol(name)
         symbol.set(value)
 
-lisp = Lisp()
+lisp = Lisp_Interface()
 
 def print_lisp(value, write, quoted=0):
     if value is None:
@@ -325,19 +384,19 @@ def print_lisp(value, write, quoted=0):
                 write(' ')
                 print_lisp(sub_value, write)
         write(']')
-    elif isinstance(value, Handle):
-        write('(aref pymacs-handles %d)' % value.index)
+    elif isinstance(value, Lisp):
+        write('(aref pymacs-lisp %d)' % value.index)
     elif isinstance(value, Symbol):
         if quoted:
             write("'")
         write(value.text)
     elif callable(value):
-        id = allocate_handle(value)
+        number = allocate_python(value)
         write('(pymacs-register %d (lambda (&rest arguments)'
-              ' (pymacs-apply "handles[%d]" arguments)))' % (id, id))
+              ' (pymacs-apply "python[%d]" arguments)))' % (number, number))
     else:
-        id = allocate_handle(value)
-        write("(pymacs-register %d '(pymacs-id %d))" % (id, id))
+        number = allocate_python(value)
+        write("(pymacs-register %d '(pymacs-python . %d))" % (number, number))
 
 if __name__ == '__main__':
     apply(main, sys.argv[1:])

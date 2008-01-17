@@ -125,7 +125,7 @@ equivalents, other structures are converted into LISP handles."
 ;;; Gargabe collection of Python IDs.
 
 ;; Python objects which have no LISP representation are allocated on the
-;; Python side as `handles[INDEX]', and INDEX is transmitted to Emacs, with
+;; Python side as `python[INDEX]', and INDEX is transmitted to Emacs, with
 ;; the value to use on the LISP side for it.  Whenever LISP does not need a
 ;; Python object anymore, it should be freed on the Python side.  The
 ;; following variables and functions are meant to fill this duty.
@@ -161,7 +161,7 @@ The timer is used only if `post-gc-hook' is not available.")
     (setq pymacs-used-ids used-ids
 	  pymacs-gc-wanted nil)
     (when unused-ids
-      (pymacs-apply "free_handles" (list unused-ids)))))
+      (pymacs-apply "free_python" (list unused-ids)))))
 
 (defun pymacs-defuns (arguments)
   (while (>= (length arguments) 2)
@@ -170,12 +170,12 @@ The timer is used only if `post-gc-hook' is not available.")
       (fset name (pymacs-register
 		  index
 		  `(lambda (&rest arguments)
-		     (pymacs-apply ,(format "handles[%d]" index) arguments))))
+		     (pymacs-apply ,(format "python[%d]" index) arguments))))
       (setq arguments (cddr arguments)))))
 
 (defun pymacs-register (index object)
   ;; Register INDEX with OBJECT on the LISP side.  An OBJECT of the form
-  ;; `(pymacs-id INDEX)' is recognised specially by `print-for-eval'.
+  ;; `(pymacs-python . INDEX)' is recognised specially by `print-for-eval'.
   (puthash index object pymacs-weak-hash)
   (setq pymacs-used-ids (cons index pymacs-used-ids))
   object)
@@ -186,7 +186,7 @@ The timer is used only if `post-gc-hook' is not available.")
 ;; because the object is mutable on the LISP side.  Such objects are allocated
 ;; somewhere into a vector of handles, and the handle index is used for
 ;; communication instead of the expression itself.
-(defvar pymacs-handles nil
+(defvar pymacs-lisp nil
   "Vector of handles to hold transmitted expressions.")
 (defvar pymacs-freed-list nil
   "List of unallocated indices in HANDLE-VECTOR.")
@@ -204,52 +204,33 @@ The timer is used only if `post-gc-hook' is not available.")
 ;; message round-trips for the communication protocol, while the Emacs GC is
 ;; rather asynchronous. :-)
 
-(defun pymacs-allocate-handle (expression)
+(defun pymacs-allocate-lisp (expression)
   ;; This function allocates some handle for an EXPRESSION, and return its
   ;; index.
   (unless pymacs-freed-list
-    (let* ((previous pymacs-handles)
+    (let* ((previous pymacs-lisp)
 	   (old-size (length previous))
 	   (new-size (if (zerop old-size) 100 (+ old-size (/ old-size 2))))
 	   (counter new-size))
-      (setq pymacs-handles (make-vector new-size nil))
+      (setq pymacs-lisp (make-vector new-size nil))
       (while (> counter 0)
 	(setq counter (1- counter))
 	(if (< counter old-size)
-	    (aset pymacs-handles counter (aref previous counter))
+	    (aset pymacs-lisp counter (aref previous counter))
 	  (setq pymacs-freed-list (cons counter pymacs-freed-list))))))
   (let ((index (car pymacs-freed-list)))
     (setq pymacs-freed-list (cdr pymacs-freed-list))
-    (aset pymacs-handles index expression)
+    (aset pymacs-lisp index expression)
     index))
 
-(defun pymacs-free-handle (index)
+(defun pymacs-free-lisp (index)
   ;; This function is triggered from Python side whenever a LISP handle looses
   ;; its last reference.  The reference should be cut on the LISP side as
   ;; well, or else, the object will never be garbage-collected.
-  (aset pymacs-handles index nil)
+  (aset pymacs-lisp index nil)
   (setq pymacs-freed-list (cons index pymacs-freed-list))
   ;; Avoid transmitting back useless information.
   nil)
-
-(defun pymacs-handle-length (index)
-  ;; This function supports Python `len(HANDLE)'.
-  (let ((handle (aref pymacs-handles index)))
-    (cond ((arrayp handle) (length handle))
-	  ((listp handle) (length handle))
-	  (t 0))))
-
-(defun pymacs-handle-ref (index key)
-  ;; This function supports Python `HANDLE[KEY]'.
-  (let ((handle (aref pymacs-handles index)))
-    (cond ((arrayp handle) (aref handle key))
-	  ((listp handle) (nth key handle)))))
-
-(defun pymacs-handle-set (index key value)
-  ;; This function supports Python `HANDLE[KEY] = VALUE'.
-  (let ((handle (aref pymacs-handles index)))
-    (cond ((arrayp handle) (aset handle key value))
-	  ((listp handle) (setcar (nthcdr key handle) value)))))
 
 (defun pymacs-print-for-apply-expanded (function arguments)
   ;; This function acts like `print-for-apply', but produce arguments which
@@ -275,46 +256,66 @@ The timer is used only if `post-gc-hook' is not available.")
 
 (defun pymacs-print-for-eval (expression)
   ;; This function prints a Python expression out of a LISP EXPRESSION.
-  (cond ((not expression) (princ "None"))
-	((numberp expression) (princ expression))
-	((and (stringp expression)
-	      (or pymacs-forget-mutability
-		  (not pymacs-mutable-strings)))
-	 (prin1 expression))
-	((symbolp expression)
-	 (let ((name (symbol-name expression)))
-	   (cond ((string-match "^[A-Za-z][-A-Za-z0-9]*$"  name)
-		  (princ "lisp.")
-		  (princ (replace-regexp-in-string "-" "_" name t t)))
-		 (t (princ "sym[")
-		    (prin1 (prin1-to-string (symbol-name expression)))
-		    (princ "]")))))
-	((and (vectorp expression) pymacs-forget-mutability)
-	 (let ((limit (length expression))
-	       (counter 0))
-	   (princ "[")
-	   (while (< counter limit)
-	     (unless (zerop counter)
-	       (princ ", "))
-	     (pymacs-print-for-eval (aref expression counter)))
-	   (princ "]")))
-	((and (consp expression) (eq (car expression) 'pymacs-id))
-	 (princ "handles[")
-	 (princ (cadr expression))
-	 (princ "]"))
-	((and (listp expression) pymacs-forget-mutability)
-	 (let ((single (= (length expression) 1)))
-	   (princ "(")
-	   (pymacs-print-for-eval (car expression))
-	   (while (setq expression (cdr expression))
-	     (princ ", ")
-	     (pymacs-print-for-eval (car expression)))
-	   (when single
-	     (princ ", "))
-	   (princ ")")))
-	(t (princ "Handle(")
-	   (princ (pymacs-allocate-handle expression))
-	   (princ ")"))))
+  (let (done)
+    (cond ((not expression)
+	   (princ "None")
+	   (setq done t))
+	  ((numberp expression)
+	   (princ expression)
+	   (setq done t))
+	  ((stringp expression)
+	   (when (or pymacs-forget-mutability
+		     (not pymacs-mutable-strings))
+	     (prin1 expression)
+	     (setq done t)))
+	  ((symbolp expression)
+	   (let ((name (symbol-name expression)))
+	     ;; The symbol can only be transmitted when in the main oblist.
+	     (when (eq expression (intern-soft name))
+	       (cond ((string-match "^[A-Za-z][-A-Za-z0-9]*$"  name)
+		      (princ "lisp.")
+		      (princ (replace-regexp-in-string "-" "_" name t t)))
+		     (t (princ "lisp[")
+			(prin1 (symbol-name expression))
+			(princ "]")))
+	       (setq done t))))
+	  ((vectorp expression)
+	   (when pymacs-forget-mutability
+	     (let ((limit (length expression))
+		   (counter 0))
+	       (princ "[")
+	       (while (< counter limit)
+		 (unless (zerop counter)
+		   (princ ", "))
+		 (pymacs-print-for-eval (aref expression counter)))
+	       (princ "]")
+	       (setq done t))))
+	  ((and (consp expression) (eq (car expression) 'pymacs-python))
+	   (princ "python[")
+	   (princ (cdr expression))
+	   (princ "]"))
+	  ((pymacs-proper-list-p expression)
+	   (when pymacs-forget-mutability
+	     (let ((single (= (length expression) 1)))
+	       (princ "(")
+	       (pymacs-print-for-eval (car expression))
+	       (while (setq expression (cdr expression))
+		 (princ ", ")
+		 (pymacs-print-for-eval (car expression)))
+	       (when single
+		 (princ ","))
+	       (princ ")")
+	       (setq done t)))))
+    (unless done
+      (let ((class (cond ((vectorp expression) "Vector")
+			 ((hash-table-p expression) "Table")
+			 ((bufferp expression) "Buffer")
+			 ((pymacs-proper-list-p expression) "List")
+			 (t "Lisp"))))
+	(princ class)
+	(princ "(")
+	(princ (pymacs-allocate-lisp expression))
+	(princ ")")))))
 
 ;;; Communication protocol.
 
@@ -370,7 +371,7 @@ The timer is used only if `post-gc-hook' is not available.")
     ;; Check that synchronisation occurred.
     (goto-char (match-end 0))
     (let ((reply (read (current-buffer))))
-      (if (and (listp reply)
+      (if (and (pymacs-proper-list-p reply)
 	       (= (length reply) 2)
 	       (eq (car reply) 'pymacs-version))
 	  (unless (string-equal (cadr reply) "@VERSION@")
@@ -383,24 +384,29 @@ The timer is used only if `post-gc-hook' is not available.")
   (if pymacs-weak-hash
       (when pymacs-used-ids
 	(let ((pymacs-forget-mutability t))
-	  (pymacs-apply "zombie_handles" (list pymacs-used-ids))))
+	  (pymacs-apply "zombie_python" (list pymacs-used-ids))))
     (setq pymacs-weak-hash (make-hash-table :weakness 'value)))
   (if (boundp 'post-gc-hook)
       (add-hook 'post-gc-hook 'pymacs-schedule-gc)
     (setq pymacs-gc-timer (run-at-time 20 20 'pymacs-schedule-gc))))
 
 (defun pymacs-terminate-services ()
-  ;; This function is provided for completeness.  It is not really needed.
-  (cond ((boundp 'post-gc-hook) (remove-hook 'post-gc-hook
-					     'pymacs-schedule-gc))
-	((timerp pymacs-gc-timer) (cancel-timer pymacs-gc-timer)))
-  (when pymacs-transit-buffer
-    (kill-buffer pymacs-transit-buffer))
-  (setq pymacs-gc-running nil
-	pymacs-gc-timer nil
-	pymacs-transit-buffer nil
-	pymacs-handles nil
-	pymacs-freed-list nil))
+  ;; This function is mainly provided for documentation purposes.
+  (garbage-collect)
+  (pymacs-garbage-collect)
+  (when (or (not pymacs-used-ids)
+	    (yes-or-no-p "\
+Killing the helper might create zombie objects.  Kill? "))
+    (cond ((boundp 'post-gc-hook) (remove-hook 'post-gc-hook
+					       'pymacs-schedule-gc))
+	  ((timerp pymacs-gc-timer) (cancel-timer pymacs-gc-timer)))
+    (when pymacs-transit-buffer
+      (kill-buffer pymacs-transit-buffer))
+    (setq pymacs-gc-running nil
+	  pymacs-gc-timer nil
+	  pymacs-transit-buffer nil
+	  pymacs-lisp nil
+	  pymacs-freed-list nil)))
 
 (defun pymacs-serve-until-reply (inserter)
   ;; This function evals INSERTER to print a Python request.  It sends it to
@@ -427,10 +433,11 @@ The timer is used only if `post-gc-hook' is not available.")
 	       (error "Python: %s" (cdr reply)))
 	      ((eq 'pymacs-oops (car reply))
 	       (setq inserter
-		     `(pymacs-print-for-apply 'error ',(cdr reply))))
+		     `(pymacs-print-for-apply 'error '(,(cdr reply)))))
 	      ((eq 'pymacs-expand (car reply))
 	       (setq inserter
-		     `(pymacs-print-for-apply-expanded 'reply ,(cdr reply))))
+		     `(pymacs-print-for-apply-expanded 'reply
+						       '(,(cdr reply)))))
 	      (t (setq inserter
 		       `(pymacs-print-for-apply 'reply '(,reply)))))))
     value))
@@ -496,5 +503,9 @@ The timer is used only if `post-gc-hook' is not available.")
       (when (and moving (not pymacs-trace-transit))
 	(goto-char marker))
       reply)))
+
+(defun pymacs-proper-list-p (expression)
+  (cond ((not expression))
+	((consp expression) (not (cdr (last expression))))))
 
 (provide 'pymacs)

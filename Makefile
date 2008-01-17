@@ -21,7 +21,7 @@ pymacsdir = $(HOME)/share/emacs/python
 ### End of customisation.
 
 PACKAGE = pymacs
-VERSION = 0.3
+VERSION = 0.4
 
 FILES = ChangeLog Makefile README TODO elc pyc pymacs.el pymacs.py \
 pymacs-services pymacs-test.el pymacs_test.py

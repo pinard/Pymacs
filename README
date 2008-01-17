@@ -4,12 +4,11 @@
 
 . : What is Pymacs?
 
-    Pymacs is a small, yet powerful tool that allows both-way communication
-    between Emacs LISP and Python.  The whole thing ought to get started
-    from Emacs, not Python.  The project aims to import and use Python
-    modules from within Emacs LISP code, and then use Python as an extension
-    language for Emacs.  Python functions may themselves use Emacs services,
-    and handle LISP objects kept in LISP space.
+    Pymacs is a powerful tool which, once started from Emacs, allows both-way
+    communication between Emacs LISP and Python.  Pymacs aims at using Python
+    as an extension language for Emacs.  One may may import and use Python
+    modules from within Emacs LISP code.  Python functions may themselves
+    use Emacs services, and handle LISP objects kept in LISP space.
 
     The goals are to write "naturally" in both languages, debug with ease,
     fall back gracefully on errors, and allow full cross-recursivity.
@@ -21,16 +20,9 @@
 
 . : Warnings to Pymacs users.
 
-    This is alpha status software.  Specifications are not frozen, and
-    there is a lot of elementary testing yet to be done.  So, be prepared
-    to later adapt your code to specification changes, and to report the
+    This is alpha status software: specifications are not frozen, so be
+    prepared to later adapt your code to specification changes.  Report the
     problems you see to François Pinard at `pinard@iro.umontreal.ca'.
-
-    One thing I did not address yet is portability.  Things work with my
-    setup which, currently, is Emacs 21.0.105 and Python 1.5.2.  But I
-    also have Emacs 20.6 and Python 2.2a2, and I should try the other
-    combinations.  Brian McErlean is using XEmacs, so if we really join
-    our efforts, I guess he would take care of XEmacs portability.
 
 . : History and references.
 
@@ -482,8 +474,6 @@
     to sort out and I did not overly tested it yet.
 
 .. Exemples.
-
-. : Keybinding from Python.
 
 . : Paul Winkler<s
 

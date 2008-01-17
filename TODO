@@ -1,14 +1,22 @@
 * TODO for `Pymacs'				allout -*- outline -*-
 
-.. Type conversions.
+.. Debugging facilities
 
-. : Boost those pymacs-handle-* functions to handle more LISP types.
-. : Convert LISP hash tables into Python dicts and vice-versa.
+. : *Pymacs*
+.  , Indent.
+.  , Interpret numbers.
+.  , Highlight.
+
+. : Test suite.  (Brian has one.)
+
+. : Auto-reloading on save.
+
+. : Python shell link to helper.
 
 .. Internal cleanup.
 
 . : `(pymacs-eval "dir()"' shows too many things.
 
-.. Packaging
+.. Type conversions.
 
-. : Include a testing suite.  (Brian has one.)
+. : Convert LISP hash tables into Python dicts and vice-versa.

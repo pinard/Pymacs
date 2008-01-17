@@ -1,3 +1,58 @@
+2001-09-11  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.py (zombie): New, so to get a clear diagnostic.
+	(zombie_python): Link objects to the above function.
+	* pymacs.el (pymacs-terminate-services): Ask for confirmation if
+	any object in LISP space is still in use on the Python side.
+	* pymacs-test.el (try-lisp): Do not terminate the helper.
+
+	* pymacs.py (Buffer): New class, yet empty for now.
+	* pymacs.el (pymacs-print-for-eval): Use it.
+	Reported by Brian McErlean.
+
+	* pymacs.py (Table): New class.
+	* pymacs.el (pymacs-print-for-eval): Use it.
+	Reported by Brian McErlean.
+
+	* pymacs.py (List, Vector): New classes, split out of Lisp class.
+	* pymacs.el (pymacs-print-for-eval): Use them.
+	(pymacs-lisp-length, pymacs-lisp-ref, pymacs-list-set):	Deleted.
+	Reported by Brian McErlean.
+
+	* pymacs.py (Server.loop): Allow keyboard interrupts through.
+
+	* pymacs.el: Use Lisp instead of Handle.  Rename
+	pymacs-handle-length to pymacs-lisp-length, pymacs-handle-ref to
+	pymacs-lisp-ref, pymacs-handle-set o pymacs-lisp-set,
+	pymacs-allocate-handle to pymacs-allocate-lisp and
+	pymacs-free-handle to pymacs-free-lisp.
+
+	* pymacs.py: Rename Lisp to Lisp_Interface, and Handle to Lisp.
+	Adjust for other renamings above.
+
+	* pymacs.el: Rename pymacs-id to pymacs-python.  Ajust for below.
+	* pymacs.py: Rename handles to python, free_handles to
+	free_python, zombie_handles to zombie_python and allocate_handle
+	to allocate_python.
+
+	* pymacs.el (pymacs-proper-list-p): New function.  Use it
+	everywhere instead of listp, which is not what I thought it was!
+
+	* pymacs.el (pymacs-serve-until-reply): In case of LISP error,
+	transmit a list of one argument, instead of the argument itself,
+	to print-for-apply.  This was preventing proper diagnostic.
+	Correct a similar error for when expansion is requested.
+
+	* pymacs.el (pymacs-print-for-eval):  Do not transmit a symbol
+	by its name, when it comes from another oblist than the main one.
+
+	* pymacs.py (print_lisp): Transmit pymacs-id as a dotted pair.
+	* pymacs.el (pymacs-print-for-eval):  Adjusted.
+
+	* pymacs.el (pymacs-print-for-eval): Use lisp[], not sym[].
+	Avoid double escaping of the transmitted string in this case.
+	Reported by Brian McErlean.
+
 2001-09-10  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.3.
@@ -49,5 +104,7 @@
 
 	* Makefile: A bit more parameterization.
 
-	* : Release 0.2.
+	* : Release 0.2, including ideas and suggestions from others.
+	Reported by Brian McErlean, Carel Fellinger, Cedric Adjih,
+	Marcin Qrczak Kowalczyk, Paul Winkler and Steffen Ries.
 
