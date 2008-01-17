@@ -1,4 +1,21 @@
+2001-09-25  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.py (Let): New class.
+
+	* pymacs.el: New variable pymacs-use-hash-tables, set to t when
+	hash tables are available, or nil otherwise.  Use it.  This is so
+	older Emacs would work.
+	Reported by Dirk Vleugels.
+
+2001-09-21  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-defun): Ensure the function is registered
+	at definition, not at call time.  Otherwise, it would never be
+	garbage-collected if it is never called.
+
 2001-09-20  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.7.
 
 	* pymacs.el (pymacs-print-for-apply): Also accept Python objects
 	for a function, instead of requiring strings.

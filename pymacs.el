@@ -159,14 +159,21 @@ equivalents, other structures are converted into LISP handles."
 ;; Python object anymore, it should be freed on the Python side.  The
 ;; following variables and functions are meant to fill this duty.
 
+(defvar pymacs-use-hash-tables nil
+  "Automatically set to t if hash tables are available.")
+
 (defvar pymacs-used-ids nil
   "List of received IDs, currently allocated on the Python side.")
+
 (defvar pymacs-weak-hash nil
   "Weak hash table, meant to find out which IDs are still needed.")
+
 (defvar pymacs-gc-wanted nil
   "Flag if it is time to clean up unused IDs on the Python side.")
+
 (defvar pymacs-gc-running nil
   "Flag telling that a Pymacs garbage collection is in progress.")
+
 (defvar pymacs-gc-timer nil
   "Timer to trigger Pymacs garbage collection at regular time intervals.
 The timer is used only if `post-gc-hook' is not available.")
@@ -177,20 +184,21 @@ The timer is used only if `post-gc-hook' is not available.")
 
 (defun pymacs-garbage-collect ()
   ;; Clean up unused IDs on the Python side.
-  (let ((pymacs-gc-running t)
-	(pymacs-forget-mutability t)
-	(ids pymacs-used-ids)
-	used-ids unused-ids)
-    (while ids
-      (let ((id (car ids)))
-	(setq ids (cdr ids))
-	(if (gethash id pymacs-weak-hash)
-	    (setq used-ids (cons id used-ids))
-	  (setq unused-ids (cons id unused-ids)))))
-    (setq pymacs-used-ids used-ids
-	  pymacs-gc-wanted nil)
-    (when unused-ids
-      (pymacs-apply "free_python" unused-ids))))
+  (when pymacs-use-hash-tables
+    (let ((pymacs-gc-running t)
+	  (pymacs-forget-mutability t)
+	  (ids pymacs-used-ids)
+	  used-ids unused-ids)
+      (while ids
+	(let ((id (car ids)))
+	  (setq ids (cdr ids))
+	  (if (gethash id pymacs-weak-hash)
+	      (setq used-ids (cons id used-ids))
+	    (setq unused-ids (cons id unused-ids)))))
+      (setq pymacs-used-ids used-ids
+	    pymacs-gc-wanted nil)
+      (when unused-ids
+	(pymacs-apply "free_python" unused-ids)))))
 
 (defun pymacs-defuns (arguments)
   ;; Take one argument, a single list holding an even number of items.
@@ -206,16 +214,17 @@ The timer is used only if `post-gc-hook' is not available.")
 (defun pymacs-defun (index)
   ;; Register INDEX on the LISP side with a Python object that is a function,
   ;; and return a lambda form calling that function.
-  `(lambda (&rest arguments)
-     (pymacs-apply '(pymacs-python . ,index) arguments)))
+  (let ((object (pymacs-python index)))
+    `(lambda (&rest arguments) (pymacs-apply ',object arguments))))
 
 (defun pymacs-python (index)
   ;; Register on the LISP side a Python object having INDEX, and return it.
   ;; The result is meant to be recognised specially by `print-for-eval', and
   ;; in the function position by `print-for-apply'.
   (let ((object (cons 'pymacs-python index)))
-    (puthash index object pymacs-weak-hash)
-    (setq pymacs-used-ids (cons index pymacs-used-ids))
+    (when pymacs-use-hash-tables
+      (puthash index object pymacs-weak-hash)
+      (setq pymacs-used-ids (cons index pymacs-used-ids)))
     object))
 
 ;;; Generating Python code.
@@ -224,8 +233,10 @@ The timer is used only if `post-gc-hook' is not available.")
 ;; because the object is mutable on the LISP side.  Such objects are allocated
 ;; somewhere into a vector of handles, and the handle index is used for
 ;; communication instead of the expression itself.
+
 (defvar pymacs-lisp nil
   "Vector of handles to hold transmitted expressions.")
+
 (defvar pymacs-freed-list nil
   "List of unallocated indices in LISP.")
 
@@ -341,7 +352,9 @@ The timer is used only if `post-gc-hook' is not available.")
 	     (setq done t))))
     (unless done
       (let ((class (cond ((vectorp expression) "Vector")
-			 ((hash-table-p expression) "Table")
+			 ((and pymacs-use-hash-tables
+			       (hash-table-p expression))
+			  "Table")
 			 ((bufferp expression) "Buffer")
 			 ((pymacs-proper-list-p expression) "List")
 			 (t "Lisp"))))
@@ -404,18 +417,22 @@ The timer is used only if `post-gc-hook' is not available.")
 		(error "Pymacs LISP version is @VERSION@, Python is %s."
 		       (cadr reply)))
 	    (error "Pymacs got an invalid initial reply.")))))
-    ;; If a previous Pymacs session occurred in *this* Emacs session, some IDs
-    ;; may hang around which do not correspond to anything on the Python side.
-    ;; Tell Python to just not recycle such IDs for new objects.
-    (if pymacs-weak-hash
-	(when pymacs-used-ids
-	  (let ((pymacs-transit-buffer buffer)
-		(pymacs-forget-mutability t))
-	    (pymacs-apply "zombie_python" pymacs-used-ids)))
-      (setq pymacs-weak-hash (make-hash-table :weakness 'value)))
-    (if (boundp 'post-gc-hook)
-	(add-hook 'post-gc-hook 'pymacs-schedule-gc)
-      (setq pymacs-gc-timer (run-at-time 20 20 'pymacs-schedule-gc)))
+    (setq pymacs-use-hash-tables (and (fboundp 'make-hash-table)
+				      (fboundp 'gethash)
+				      (fboundp 'puthash)))
+    (when pymacs-use-hash-tables
+      (if pymacs-weak-hash
+	  ;; A previous Pymacs session occurred in *this* Emacs session.  Some
+	  ;; IDs may hang around, which do not correspond to anything on the
+	  ;; Python side.  Python should not recycle such IDs for new objects.
+	  (when pymacs-used-ids
+	    (let ((pymacs-transit-buffer buffer)
+		  (pymacs-forget-mutability t))
+	      (pymacs-apply "zombie_python" pymacs-used-ids)))
+	(setq pymacs-weak-hash (make-hash-table :weakness 'value)))
+      (if (boundp 'post-gc-hook)
+	  (add-hook 'post-gc-hook 'pymacs-schedule-gc)
+	(setq pymacs-gc-timer (run-at-time 20 20 'pymacs-schedule-gc))))
     ;; If nothing failed, only then declare the Pymacs has started!
     (setq pymacs-transit-buffer buffer)))
 

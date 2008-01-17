@@ -168,8 +168,8 @@ def pymacs_load_helper(lisp_module, prefix):
 	    arguments.append(lisp[prefix + string.replace(name, '_', '-')])
     if arguments:
 	return [lisp.progn,
-                [lisp.pymacs_defuns, [lisp.quote, arguments]],
-                object]
+		[lisp.pymacs_defuns, [lisp.quote, arguments]],
+		object]
     return [lisp.quote, object]
 
 def doc_string(object):
@@ -221,6 +221,93 @@ def zombie(*arguments):
 
 # Emacs services for Python applications.
 
+class Let:
+
+    def __init__(self, **keywords):
+	self.stack = []
+	apply(self.push, (), keywords)
+
+    def __del__(self):
+	while self.stack:
+	    type = self.stack[-1][0]
+	    if type == 'variables':
+		self.pop()
+	    elif type == 'excursion':
+		self.pop_excursion()
+	    elif type == 'match_data':
+		self.pop_match_data()
+	    elif type == 'restriction':
+		self.pop_restriction()
+	    elif type == 'selected_window':
+		self.pop_selected_window()
+	    elif type == 'window_excursion':
+		self.pop_window_excursion()
+
+    def push(self, **keywords):
+	saved = []
+	for name, value in keywords.items():
+	    saved.append((name, getattr(lisp, name)))
+	    setattr(lisp, name, value)
+	self.stack.append(('variables', saved))
+
+    def pop(self):
+	type, saved = self.stack[-1]
+	del self.stack[-1]
+	assert type == 'variables', (type, saved)
+	for name, value in saved:
+	    setattr(lisp, name, value)
+
+    def push_excursion(self):
+	self.stack.append(('excursion',
+                           (lisp.current_buffer(),
+                            lisp.point_marker(), lisp.mark_marker())))
+
+    def pop_excursion(self):
+	type, saved = self.stack[-1]
+	del self.stack[-1]
+	assert type == 'excursion', (type, saved)
+	lisp.set_buffer(saved[0])
+        lisp.goto_char(saved[1])
+        lisp.set_mark(saved[2])
+
+    def push_match_data(self):
+	self.stack.append(('match_data', lisp.match_data()))
+
+    def pop_match_data(self):
+	type, saved = self.stack[-1]
+	del self.stack[-1]
+	assert type == 'match_data', (type, saved)
+	lisp.set_match_data(saved)
+
+    def push_restriction(self):
+	self.stack.append(('restriction',
+			   (lisp.point_min_marker(), lisp.point_max_marker())))
+
+    def pop_restriction(self):
+	type, saved = self.stack[-1]
+	del self.stack[-1]
+	assert type == 'restriction', (type, saved)
+	lisp.narrow_to_region(saved[0], saved[1])
+
+    def push_selected_window(self):
+	self.stack.append(('selected_window', lisp.selected_window()))
+
+    def pop_selected_window(self):
+	type, saved = self.stack[-1]
+	del self.stack[-1]
+	assert type == 'selected_window', (type, saved)
+	lisp.select_window(saved)
+
+    def push_window_excursion(self):
+	self.stack.append(('window_excursion',
+			   lisp.current_window_configuration()))
+
+    def pop_window_excursion(self):
+	type, saved = self.stack[-1]
+	del self.stack[-1]
+	assert type == 'window_excursion', (type, saved)
+	lisp.set_window_configuration(saved)
+
 class Symbol:
 
     def __init__(self, text):
@@ -236,15 +323,15 @@ class Symbol:
 	return lisp('(pymacs-expand %s)' % self.text)
 
     def set(self, value):
-        if value is None:
-            lisp('(setq %s nil)' % self.text)
-        else:
-            fragments = []
-            write = fragments.append
-            write('(progn (setq %s ' % self.text)
-            print_lisp(value, write, quoted=1)
-            write(') nil)')
-            lisp(string.join(fragments, ''))
+	if value is None:
+	    lisp('(setq %s nil)' % self.text)
+	else:
+	    fragments = []
+	    write = fragments.append
+	    write('(progn (setq %s ' % self.text)
+	    print_lisp(value, write, quoted=1)
+	    write(') nil)')
+	    lisp(string.join(fragments, ''))
 
     def __call__(self, *arguments):
 	fragments = []
@@ -401,13 +488,13 @@ def print_lisp(value, write, quoted=0):
     elif type(value) == types.FloatType:
 	write(repr(value))
     elif type(value) == types.StringType:
-        # Python delimits a string it by single quotes preferably, unless
-        # single quotes appear within the string while double quotes do
-        # not, in which case it uses double quotes for string delimiters.
-        # Checking the string contents, the C code stops at the first NUL.
-        # We prefix the string with a single quote and a NUL, this forces
-        # double quotes as delimiters for the whole prefixed string.  Then,
-        # we get rid of the representation of the single quote and the NUL.
+	# Python delimits a string it by single quotes preferably, unless
+	# single quotes appear within the string while double quotes do
+	# not, in which case it uses double quotes for string delimiters.
+	# Checking the string contents, the C code stops at the first NUL.
+	# We prefix the string with a single quote and a NUL, this forces
+	# double quotes as delimiters for the whole prefixed string.  Then,
+	# we get rid of the representation of the single quote and the NUL.
 	write('"' + repr("'\0" + value)[6:])
     elif type(value) == types.ListType:
 	if quoted:

@@ -71,8 +71,9 @@
     The ".emacs" file is not given in the distribution, you likely have
     one already in your home directory.  You need to add these two lines:
 
-       (autoload 'pymacs-eval "pymacs" nil t)
        (autoload 'pymacs-load "pymacs" nil t)
+       (autoload 'pymacs-eval "pymacs" nil t)
+       (autoload 'pymacs-apply "pymacs")
 
     If the file "$HOME/.emacs" does not exist, merely create it with the
     two above lines.  You are now all set to use Pymacs.
@@ -89,12 +90,13 @@
 
 . : Caveats.
 
-    I noticed that Emacs 20 has it silently ignores the request for creating
-    weak hash tables, it creates an ordinary table instead.  Pymacs does
-    not crash, but the table does not fill its role.  The consequence
-    is that, with older Emacses, memory will silently leak on both Emacs
-    and Python sides.  This is not too serious, if users refrain from too
-    often transmitting transient complex Pythons objects to Emacs.
+    Some later versions of Emacs 20 silently ignore the request for
+    creating weak hash tables, they create an ordinary table instead.
+    Older Emacses just do not have hash tables.  Pymacs should run on
+    all, yet for these, memory will leak on the Python side whenever
+    complex objects get transmitted to Emacs, as these objects will not
+    be reclaimed on the Python side once Emacs is finished with them.
+    It should not be a practical problem in most simple cases.
 
 .. LISP structures and Python objects.
 
@@ -300,6 +302,11 @@
     before the LISP name (as a way to avoid name clashes).  PREFIX may be
     omitted, in which case it defaults to MODULE followed by a dash.
 
+    The return value of a successful `pymacs-load' is the module object.
+    An optional third argument, NOERROR, when given and not `nil', will
+    have `pymacs-load' to return `nil' instead of raising an error, if
+    the Python module could not be found.
+
     When later calling one of these functions, all provided arguments are
     converted to Python and transmitted, it is left to the Python side to
     check for argument consistency.  Keyword arguments are not supported.
@@ -394,15 +401,11 @@
 
     Pymacs requires little or no setup in the Python modules which are
     meant to be used from Emacs, for the simple situations where these
-    modules receive nothing but numbers or strings, or return nothing but
-    numbers or strings.  LISP `nil' corresponds to Python `None'.
+    modules receive nothing but Emacs nil, numbers or strings, or return
+    nothing but Python None, numbers or strings.
 
-    For other cases, Python modules should have `from pymacs import lisp'
-    near their beginning.  Some users might `import pymacs', and then always
-    refer to `pymacs.lisp', I find this cumbersome.  `from pymacs import *'
-    would uselessly pollute the namespace of the module.  As things stand,
-    the Python programmer does not need much beyond the `lisp' object from
-    the Pymacs module.  For full flexibility however, one may also write:
+    For other cases, Python modules might use `from pymacs import lisp'
+    near their beginning or rather, for better flexibility:
 
         import pymacs
         lisp = pymacs.lisp
@@ -449,6 +452,85 @@
     really names a LISP function that should be applied over the following
     function arguments.  The result of the LISP function becomes the value
     of the call, with all due conversions of course.
+
+. : Dynamic bindings.
+
+    As Emacs LISP uses dynamic bindings, it is common that LISP programs
+    use `let' for temporarily setting new values for some LISP variables.
+    These variables recover their previous value automatically when the
+    `let' gets completed, even if an error occurs which interrupts the
+    normal flow of execution.
+
+    Pymacs has a `pymacs.Let' class to represent such temporary settings.
+    Suppose for example that you want to recover the value of `lisp.mark()'
+    when the transient mark mode is active on the LISP side.  The simplest
+    way is to use `lisp.mark(lisp.t)' to "force" reading the mark
+    nevertheless, but for the sake of illustration here, let's suppose
+    we want to temporarily deactivate transient mark mode.  This could be
+    done this way:
+
+    try:
+        let = pymacs.Let()
+        let.push(transient_mark_mode=None)
+        ... USER CODE ...
+    finally:
+        let.pop()
+
+    `let.push()' accepts any number of keywords arguments.  Each keyword name
+    is interpreted as a LISP symbol written the Pymacs way, with underlines.
+    The value of that LISP symbol is saved on the Python side, and the value
+    of the keyword becomes the new temporary value for this LISP symbol.
+    A later `let.pop()' restores the previous value for all symbols which
+    were saved together at the time of the corresponding `let.push()'.
+    There may be more than one `let.push()' call for a single `let' instance,
+    they stack within that instance.  Each `let.pop()' will undo one and
+    only one `let.push()' from the stack, in the reverse order or the pushes.
+
+    When the `let' instance disappears, either because the programmer does
+    `del let' or `let = None', or just because the Python `let' variable
+    goes out of scope, all remaining `let.pop()' get automatically executed,
+    so the `try'/'finally' statement may be omitted in practice.  For this
+    omission to work flawlessly, the programmer should be careful at not
+    keeping extra references to the instance.
+
+    The constructor call `let = pymacs.Let()' also has an implied initial
+    `.push()' over all given arguments, so the explicit `let.push()'
+    may be omitted as well.  In practice, this sums up and the above code
+    could be reduced to a mere:
+
+    let = pymacs.Let(transient_mark_mode=None)
+    ... USER CODE ...
+
+    Be careful at assigning the result of the constructor to some Python
+    variable.  Otherwise, the instance would disappear immediately after
+    having been created, restoring the LISP variable much too soon.
+
+    The `pymacs.Let' class has other methods meant for some macros which
+    are common in Emacs LISP programming, in the spirit of `let' bindings.
+    These method names look like `push_*' or `pop_*', where LISP macros are
+    `save-*'.  One has to use the matching `pop_*' for undoing the effect of
+    a given `push_*' rather than a mere `.pop()': the Python code is clearer,
+    this also ensures that things are undone in the proper order.  The same
+    `let' instance may use many `push_*' methods, their effects nest.
+
+    `push_excursion()' and `pop_excursion' save and restore the current
+    buffer, point and mark.  `push_match_data()' and `pop_match_data()'
+    save and restore the state of the last regular expression match.
+    `push_restriction()' and `pop_restriction()' save and restore
+    the current narrowing limits.  `push_selected_window()' and
+    `pop_selected_window()' save and restore the fact that a window holds
+    the cursor.  `push_window_excursion()' and `pop_window_excursion()'
+    save and restore the current window configuration in the Emacs display.
+
+    For example, one may write:
+
+    let = pymacs.Let()
+    let.push_excursion()
+    ... USER CODE ...
+    let = None
+
+    The last `let = None' might be omitted in a few circumstances, for
+    example if the excursion lasts until the end of the Python function.
 
 . : Raw LISP expressions.
 
