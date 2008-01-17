@@ -8,3 +8,7 @@
 .. Internal cleanup.
 
 . : `(pymacs-eval "dir()"' shows too many things.
+
+.. Packaging
+
+. : Include a testing suite.  (Brian has one.)

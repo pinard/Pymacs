@@ -1,0 +1,53 @@
+2001-09-10  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.3.
+
+	* pymacs.py (Server.send): Ensure an end of line after reply.
+	* pymacs.el (pymacs-round-trip): Do not add one after Python replies.
+
+	* pymacs.el (pymacs-round-trip): Check for vanishing helper process.
+	(pymacs-serve-until-reply): Get text without catching errors, than
+	eval. Else, protocol errors get reported back to Python.
+	* pymacs.py (Server.ProtocolError): New.  Better than AssertError.
+	If it occurs, get out of program, do not keep returning errors.
+	Reported by Carey Evans.
+
+	* pymacs.el (pymacs-round-trip): If point coincides with marker,
+	just keep it that way as the buffer grows.
+
+	* pymacs.el (pymacs-start-services): If the hash table already
+	exists, inform the Python side of IDs that it should not reuse.
+	Otherwise, old lambdas may randomly refer to new Python objects.
+	(pymacs-terminate-services): Remember Python IDs, do not reset them.
+
+	* pymacs.py (zombie_handles): New.
+
+	* Makefile: Transmit $(pymacsdir) to pymacs-services.
+	* pymacs-services: Handle it.
+
+	* pymacs.py (print_lisp): Process an empty tuple properly.
+	Reported by Carey Evans.
+
+	* pymacs.el (pymacs-start-services): With run-at-time, use `20 20'
+	instead of `t 20', so XEmacs is happy.
+	Reported by Carey Evans.
+
+	* pymacs.el (pymacs-start-services, pymacs-terminate-services):
+	Use `post-gc-hook' if available, instead of using a timer.
+	Reported by Gerd Möllman.
+
+	* pymacs.py (Symbol.value, Symbol.copy): Add argument self.
+	(print_lisp): Quote symbols if quoted=1.
+
+2001-09-09  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el (pymacs-defuns): New function.
+	* pymacs.py: Use it.  This should allow faster imports.
+
+	* Makefile, pymacs.el, pymacs.py: Use `(pymacs-version VERSION)',
+	not `(started)'.  Check for version discrepancies.
+
+	* Makefile: A bit more parameterization.
+
+	* : Release 0.2.
+

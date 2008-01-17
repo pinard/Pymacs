@@ -41,12 +41,12 @@ not given, it defaults to MODULE followed by a dash."
      (list module prefix)))
   (unless prefix
     (setq prefix (concat module "-")))
-  (message "Importing %s..." module)
-  (let ((text (pymacs-apply "pymacs_load_helper" (list module prefix))))
-    (unless text
-      (error "Importing %s...failed" module))
-    (eval (read text))
-    (message "Importing %s...done" module)))
+  (message "Pymacs loading %s..." module)
+  (let ((lisp-code (pymacs-apply "pymacs_load_helper" (list module prefix))))
+    (unless lisp-code
+      (error "Pymacs loading %s...failed" module))
+    (eval lisp-code)
+    (message "Pymacs loading %s...done" module)))
 
 (defun pymacs-eval (text)
   "Compile TEXT as a Python expression, and return its value."
@@ -93,22 +93,22 @@ equivalents, other structures are converted into LISP handles."
 	      (not (pymacs-file-force
 		    'file-readable-p (list (car arguments))))
 	      (file-readable-p (car arguments)))
-	 (let ((text (pymacs-apply
-		      "pymacs_load_helper"
-		      (list (substring (car arguments) 0 -3) nil))))
-	   (unless text
+	 (let ((lisp-code (pymacs-apply
+			   "pymacs_load_helper"
+			   (list (substring (car arguments) 0 -3) nil))))
+	   (unless lisp-code
 	     (error "Python import error"))
-	   (eval (read text))))
+	   (eval lisp-code)))
 	((and (eq operation 'insert-file-contents)
 	      (not (pymacs-file-force
 		    'file-readable-p (list (car arguments))))
 	      (file-readable-p (car arguments)))
-	 (let ((text (pymacs-apply
-		      "pymacs_load_helper"
-		      (list (substring (car arguments) 0 -3) nil))))
-	   (unless text
+	 (let ((lisp-code (pymacs-apply
+			   "pymacs_load_helper"
+			   (list (substring (car arguments) 0 -3) nil))))
+	   (unless lisp-code
 	     (error "Python import error"))
-	   (insert text)))
+	   (insert (prin1-to-string lisp-code))))
 	(t (pymacs-file-force operation arguments))))
 
 (defun pymacs-file-force (operation arguments)
@@ -139,7 +139,8 @@ equivalents, other structures are converted into LISP handles."
 (defvar pymacs-gc-running nil
   "Flag telling that a Pymacs garbage collection is in progress.")
 (defvar pymacs-gc-timer nil
-  "Timer to trigger Pymacs garbage collection at regular time intervals.")
+  "Timer to trigger Pymacs garbage collection at regular time intervals.
+The timer is used only if `post-gc-hook' is not available.")
 
 (defun pymacs-schedule-gc ()
   (unless pymacs-gc-running
@@ -162,12 +163,15 @@ equivalents, other structures are converted into LISP handles."
     (when unused-ids
       (pymacs-apply "free_handles" (list unused-ids)))))
 
-(defun pymacs-defun (index name)
-  (fset name (pymacs-register
-	      index
-	      `(lambda (&rest arguments)
-		 (pymacs-apply ,(format "handles[%d]" index) arguments)))))
-
+(defun pymacs-defuns (arguments)
+  (while (>= (length arguments) 2)
+    (let ((index (car arguments))
+	  (name (cadr arguments)))
+      (fset name (pymacs-register
+		  index
+		  `(lambda (&rest arguments)
+		     (pymacs-apply ,(format "handles[%d]" index) arguments))))
+      (setq arguments (cddr arguments)))))
 
 (defun pymacs-register (index object)
   ;; Register INDEX with OBJECT on the LISP side.  An OBJECT of the form
@@ -175,149 +179,6 @@ equivalents, other structures are converted into LISP handles."
   (puthash index object pymacs-weak-hash)
   (setq pymacs-used-ids (cons index pymacs-used-ids))
   object)
-
-;;; Communication protocol.
-
-(defvar pymacs-transit-buffer nil
-  "Communication buffer between Emacs and Python.")
-
-;; The principle behind the communication protocol is that it is easier to
-;; generate than parse, and that each language already has its own parser.
-;; So, the Emacs side generates Python text for the Python side to interpret,
-;; while the Python side generates LISP text for the LISP side to interpret.
-;; About nothing but expressions are transmitted, which are evaluated on
-;; arrival.  The pseudo `reply' function is meant to signal the final result
-;; of a series of exchanges following a request, while the pseudo `error'
-;; function is meant to explain why an exchange could not have been completed.
-
-;; The protocol itself is rather simple, and contains human readable text
-;; only.  A message starts at the beginning of a line in the communication
-;; buffer, either with `>' for the LISP to Python direction, or `<' for the
-;; Python to LISP direction.  This is followed by a decimal number giving the
-;; length of the message text, a TAB character, and the message text itself.
-;; Message direction alternates systematically between messages, it never
-;; occurs that two successive messages are sent in the same direction.  The
-;; very first message is received from the Python side, and reads `(started)'.
-
-(defun pymacs-start-services ()
-  ;; This function gets called automatically, as needed.  However, it is
-  ;; marked interactive as a debugging convenience to reload a new copy of the
-  ;; Python process, after having changed the Python code.
-  (interactive)
-  (let ((name "*Pymacs*"))
-    (when (get-buffer name)
-      (kill-buffer name))
-    (setq pymacs-transit-buffer (get-buffer-create name)))
-  (with-current-buffer pymacs-transit-buffer
-    (let ((process (apply 'start-process
-			  "pymacs" pymacs-transit-buffer "pymacs-services"
-			  (mapcar 'expand-file-name pymacs-load-path))))
-      (process-kill-without-query process)
-      (while (save-excursion
-	       (goto-char (point-min))
-	       (not (search-forward "<9\t(started)" nil t)))
-	(accept-process-output process))))
-  (setq pymacs-weak-hash (make-hash-table :weakness 'value)
-	pymacs-gc-timer (run-at-time t 20 'pymacs-schedule-gc)))
-
-(defun pymacs-terminate-services ()
-  ;; This function is provided for completeness.  It is not really needed.
-  (when (timerp pymacs-gc-timer)
-    (cancel-timer pymacs-gc-timer))
-  (when pymacs-transit-buffer
-    (kill-buffer pymacs-transit-buffer))
-  (setq pymacs-used-ids nil
-	pymacs-weak-hash nil
-	pymacs-gc-running nil
-	pymacs-gc-timer nil
-	pymacs-transit-buffer nil
-	pymacs-handles nil
-	pymacs-freed-list nil))
-
-(defun pymacs-serve-until-reply (inserter)
-  ;; This function evals INSERTER to print a Python request.  It sends it to
-  ;; the Python sub-process, and serves all sub-requests coming from the
-  ;; Python side, until either a reply or an error is finally received.
-  (unless (and pymacs-transit-buffer
-	       (buffer-name pymacs-transit-buffer)
-	       (get-buffer-process pymacs-transit-buffer))
-    (pymacs-start-services))
-  (when pymacs-gc-wanted
-    (pymacs-garbage-collect))
-  (let (done value)
-    (while (not done)
-      (let ((reply (condition-case info
-		       (eval (pymacs-round-trip inserter))
-		     (error (cons 'pymacs-oops (prin1-to-string info))))))
-	(cond ((not (consp reply))
-	       (setq inserter
-		     `(pymacs-print-for-apply 'reply '(,reply))))
-	      ((eq (car reply) 'pymacs-reply)
-	       (setq done t value (cdr reply)))
-	      ((eq (car reply) 'pymacs-error)
-	       (error "Python: %s" (cdr reply)))
-	      ((eq (car reply) 'pymacs-oops)
-	       (setq inserter
-		     `(pymacs-print-for-apply 'error ',(cdr reply))))
-	      ((eq (car reply) 'pymacs-expand)
-	       (setq inserter
-		     `(pymacs-print-for-apply-expanded 'reply ,(cdr reply))))
-	      (t (setq inserter
-		       `(pymacs-print-for-apply 'reply '(,reply)))))))
-    value))
-
-(defun pymacs-reply (expression)
-  ;; This pseudo-function returns `(pymacs-reply . EXPRESSION)'.
-  ;; `serve-until-reply' recognises this form when returned.
-  (cons 'pymacs-reply expression))
-
-(defun pymacs-error (expression)
-  ;; This pseudo-function returns `(pymacs-error . EXPRESSION)'.
-  ;; `serve-until-reply' recognises this form when returned.
-  (cons 'pymacs-error expression))
-
-(defun pymacs-expand (expression)
-  ;; This pseudo-function returns `(pymacs-expand . EXPRESSION)'.
-  ;; `serve-until-reply' recognises this form when returned.
-  (cons 'pymacs-expand expression))
-
-(defun pymacs-round-trip (inserter)
-  ;; This function evals INSERTER to print a Python request.  It sends it to
-  ;; the Python sub-process, and await for any kind of reply.
-  (save-excursion
-    (set-buffer pymacs-transit-buffer)
-    (unless pymacs-trace-transit
-      (erase-buffer))
-    (let* ((process (get-buffer-process pymacs-transit-buffer))
-	   (marker (process-mark process))
-	   send-position reply-position)
-      (goto-char marker)
-      (unless (= (preceding-char) ?\n)
-	(princ "\n" marker))
-      ;; Encode request.
-      (setq send-position (marker-position marker))
-      (let ((standard-output marker))
-	(eval inserter))
-      (goto-char marker)
-      (unless (= (preceding-char) ?\n)
-	(princ "\n" marker))
-      ;; Send request.
-      (goto-char send-position)
-      (insert (format ">%d\t" (- marker send-position)))
-      (setq reply-position (marker-position marker))
-      (process-send-region process send-position marker)
-      ;; Receive reply.
-      (while (progn
-	       (goto-char reply-position)
-	       (not (re-search-forward "^<\\([0-9]+\\)\t" nil t)))
-	(accept-process-output process))
-      (let ((limit-position (+ (match-end 0)
-			       (string-to-number (match-string 1)))))
-	(while (< (marker-position marker) limit-position)
-	  (accept-process-output process))))
-    ;; Return decoded reply.
-    (goto-char (match-end 0))
-    (read (current-buffer))))
 
 ;;; Generating Python code.
 
@@ -350,13 +211,13 @@ equivalents, other structures are converted into LISP handles."
     (let* ((previous pymacs-handles)
 	   (old-size (length previous))
 	   (new-size (if (zerop old-size) 100 (+ old-size (/ old-size 2))))
-	   (counter 0))
+	   (counter new-size))
       (setq pymacs-handles (make-vector new-size nil))
-      (while (< counter new-size)
+      (while (> counter 0)
+	(setq counter (1- counter))
 	(if (< counter old-size)
 	    (aset pymacs-handles counter (aref previous counter))
-	  (setq pymacs-freed-list (cons counter pymacs-freed-list)))
-	(setq counter (1+ counter)))))
+	  (setq pymacs-freed-list (cons counter pymacs-freed-list))))))
   (let ((index (car pymacs-freed-list)))
     (setq pymacs-freed-list (cdr pymacs-freed-list))
     (aset pymacs-handles index expression)
@@ -454,5 +315,186 @@ equivalents, other structures are converted into LISP handles."
 	(t (princ "Handle(")
 	   (princ (pymacs-allocate-handle expression))
 	   (princ ")"))))
+
+;;; Communication protocol.
+
+(defvar pymacs-transit-buffer nil
+  "Communication buffer between Emacs and Python.")
+
+;; The principle behind the communication protocol is that it is easier to
+;; generate than parse, and that each language already has its own parser.
+;; So, the Emacs side generates Python text for the Python side to interpret,
+;; while the Python side generates LISP text for the LISP side to interpret.
+;; About nothing but expressions are transmitted, which are evaluated on
+;; arrival.  The pseudo `reply' function is meant to signal the final result
+;; of a series of exchanges following a request, while the pseudo `error'
+;; function is meant to explain why an exchange could not have been completed.
+
+;; The protocol itself is rather simple, and contains human readable text
+;; only.  A message starts at the beginning of a line in the communication
+;; buffer, either with `>' for the LISP to Python direction, or `<' for the
+;; Python to LISP direction.  This is followed by a decimal number giving the
+;; length of the message text, a TAB character, and the message text itself.
+;; Message direction alternates systematically between messages, it never
+;; occurs that two successive messages are sent in the same direction.  The
+;; first message is received from the Python side, it is `(version VERSION)'.
+
+(defun pymacs-start-services ()
+  ;; This function gets called automatically, as needed.  However, it is
+  ;; marked interactive as a debugging convenience to reload a new copy of the
+  ;; Python process, after having changed the Python code.
+  (interactive)
+  ;; Start with a fresh `*Pymacs*' buffer.
+  (let ((name "*Pymacs*"))
+    (when (get-buffer name)
+      (kill-buffer name))
+    (setq pymacs-transit-buffer (get-buffer-create name)))
+  (with-current-buffer pymacs-transit-buffer
+    ;; Launch the Python helper.
+    (let ((process (apply 'start-process
+			  "pymacs" pymacs-transit-buffer "pymacs-services"
+			  (mapcar 'expand-file-name pymacs-load-path))))
+      (process-kill-without-query process)
+      ;; Receive the synchronising reply.
+      (while (progn
+	       (goto-char (point-min))
+	       (not (re-search-forward "^<\\([0-9]+\\)\t" nil t)))
+	(unless (accept-process-output process 5)
+	  (error "Pymacs helper did not start within 5 seconds.")))
+      (let ((marker (process-mark process))
+	    (limit-position (+ (match-end 0)
+			       (string-to-number (match-string 1)))))
+	(while (< (marker-position marker) limit-position)
+	  (unless (accept-process-output process 5)
+	    (error "Pymacs sub-proces start was apparently interrupted.")))))
+    ;; Check that synchronisation occurred.
+    (goto-char (match-end 0))
+    (let ((reply (read (current-buffer))))
+      (if (and (listp reply)
+	       (= (length reply) 2)
+	       (eq (car reply) 'pymacs-version))
+	  (unless (string-equal (cadr reply) "@VERSION@")
+	    (error "Pymacs LISP version is @VERSION@, Python is %s."
+		   (cadr reply)))
+	(error "Pymacs got an invalid initial reply."))))
+  ;; If a previous Pymacs session occurred in *this* Emacs session, some IDs
+  ;; may hang around which do not correspond to anything on the Python side.
+  ;; Tell Python to just not recycle such IDs for new objects.
+  (if pymacs-weak-hash
+      (when pymacs-used-ids
+	(let ((pymacs-forget-mutability t))
+	  (pymacs-apply "zombie_handles" (list pymacs-used-ids))))
+    (setq pymacs-weak-hash (make-hash-table :weakness 'value)))
+  (if (boundp 'post-gc-hook)
+      (add-hook 'post-gc-hook 'pymacs-schedule-gc)
+    (setq pymacs-gc-timer (run-at-time 20 20 'pymacs-schedule-gc))))
+
+(defun pymacs-terminate-services ()
+  ;; This function is provided for completeness.  It is not really needed.
+  (cond ((boundp 'post-gc-hook) (remove-hook 'post-gc-hook
+					     'pymacs-schedule-gc))
+	((timerp pymacs-gc-timer) (cancel-timer pymacs-gc-timer)))
+  (when pymacs-transit-buffer
+    (kill-buffer pymacs-transit-buffer))
+  (setq pymacs-gc-running nil
+	pymacs-gc-timer nil
+	pymacs-transit-buffer nil
+	pymacs-handles nil
+	pymacs-freed-list nil))
+
+(defun pymacs-serve-until-reply (inserter)
+  ;; This function evals INSERTER to print a Python request.  It sends it to
+  ;; the Python helper, and serves all sub-requests coming from the
+  ;; Python side, until either a reply or an error is finally received.
+  (unless (and pymacs-transit-buffer
+	       (buffer-name pymacs-transit-buffer)
+	       (get-buffer-process pymacs-transit-buffer))
+    (pymacs-start-services))
+  (when pymacs-gc-wanted
+    (pymacs-garbage-collect))
+  (let (done value)
+    (while (not done)
+      (let* ((text (pymacs-round-trip inserter))
+	     (reply (condition-case info
+			(eval text)
+		      (error (cons 'pymacs-oops (prin1-to-string info))))))
+	(cond ((not (consp reply))
+	       (setq inserter
+		     `(pymacs-print-for-apply 'reply '(,reply))))
+	      ((eq 'pymacs-reply (car reply))
+	       (setq done t value (cdr reply)))
+	      ((eq 'pymacs-error (car reply))
+	       (error "Python: %s" (cdr reply)))
+	      ((eq 'pymacs-oops (car reply))
+	       (setq inserter
+		     `(pymacs-print-for-apply 'error ',(cdr reply))))
+	      ((eq 'pymacs-expand (car reply))
+	       (setq inserter
+		     `(pymacs-print-for-apply-expanded 'reply ,(cdr reply))))
+	      (t (setq inserter
+		       `(pymacs-print-for-apply 'reply '(,reply)))))))
+    value))
+
+(defun pymacs-reply (expression)
+  ;; This pseudo-function returns `(pymacs-reply . EXPRESSION)'.
+  ;; `serve-until-reply' later recognises this form.
+  (cons 'pymacs-reply expression))
+
+(defun pymacs-error (expression)
+  ;; This pseudo-function returns `(pymacs-error . EXPRESSION)'.
+  ;; `serve-until-reply' later recognises this form.
+  (cons 'pymacs-error expression))
+
+(defun pymacs-expand (expression)
+  ;; This pseudo-function returns `(pymacs-expand . EXPRESSION)'.
+  ;; `serve-until-reply' later recognises this form.
+  (cons 'pymacs-expand expression))
+
+(defun pymacs-round-trip (inserter)
+  ;; This function evals INSERTER to print a Python request.  It sends it to
+  ;; the Python helper, awaits for any kind of reply, and returns it.
+  (with-current-buffer pymacs-transit-buffer
+    (unless pymacs-trace-transit
+      (erase-buffer))
+    (let* ((process (get-buffer-process pymacs-transit-buffer))
+	   (status (process-status process))
+	   (marker (process-mark process))
+	   (moving (= (point) marker))
+	   send-position reply-position reply)
+      (save-excursion
+	;; Encode request.
+	(setq send-position (marker-position marker))
+	(let ((standard-output marker))
+	  (eval inserter))
+	(goto-char marker)
+	(unless (= (preceding-char) ?\n)
+	  (princ "\n" marker))
+	;; Send request text.
+	(goto-char send-position)
+	(insert (format ">%d\t" (- marker send-position)))
+	(setq reply-position (marker-position marker))
+	(process-send-region process send-position marker)
+	;; Receive reply text.
+	(while (and (eq status 'run)
+		    (progn
+		      (goto-char reply-position)
+		      (not (re-search-forward "^<\\([0-9]+\\)\t" nil t))))
+	  (unless (accept-process-output process 4)
+	    (setq status (process-status process))))
+	(when (eq status 'run)
+	  (let ((limit-position (+ (match-end 0)
+				   (string-to-number (match-string 1)))))
+	    (while (and (eq status 'run)
+			(< (marker-position marker) limit-position))
+	      (unless (accept-process-output process 2)
+		(setq status (process-status process))))))
+	;; Decode reply.
+	(if (not (eq status 'run))
+	    (error "Pymacs helper status is `%S'." status)
+	  (goto-char (match-end 0))
+	  (setq reply (read (current-buffer)))))
+      (when (and moving (not pymacs-trace-transit))
+	(goto-char marker))
+      reply)))
 
 (provide 'pymacs)

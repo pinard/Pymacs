@@ -9,6 +9,11 @@ One of the goals of this small bootstrap is so `pymacs.py' can be kept
 in compiled form.
 """
 
+pymacsdir = '@pymacsdir@'
+
 if __name__ == '__main__':
     import pymacs, sys
-    apply(pymacs.main, sys.argv[1:])
+    if pymacsdir:
+        apply(pymacs.main, [pymacsdir] + sys.argv[1:])
+    else:
+        apply(pymacs.main, sys.argv[1:])

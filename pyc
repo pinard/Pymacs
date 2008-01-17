@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+# Script de compilation de modules Python.
+# Copyright © 2001 Progiciels Bourbeau-Pinard inc.
+# François Pinard <pinard@iro.umontreal.ca>, 2001.
+
+import py_compile, sys
+
+def main(*arguments):
+    for argument in arguments:
+        sys.stderr.write('Compiling %s\n' % argument)
+        py_compile.compile(argument)
+
+if __name__ == '__main__':
+    apply(main, sys.argv[1:])

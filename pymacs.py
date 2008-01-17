@@ -29,10 +29,11 @@ The program arguments are additional search paths for Python modules.
     for argument in arguments:
         if os.path.isdir(argument):
             sys.path.insert(0, argument)
-    lisp._server.send('(started)')
+    lisp._server.send('(pymacs-version "@VERSION@")')
     lisp._server.loop()
 
 class Server:
+    ProtocolError = 'Serious error, should stop'
     ReplyException = 'Reply received from Emacs'
     ErrorException = 'Error returned from Emacs'
 
@@ -63,6 +64,9 @@ class Server:
             except Server.ErrorException, message:
                 status = 'error'
                 argument = message
+            except Server.ProtocolError, message:
+                sys.stderr.write("Protocol error: %s\n" % message)
+                sys.exit(1)
             except:
                 import StringIO, traceback
                 message = StringIO.StringIO()
@@ -81,14 +85,18 @@ class Server:
     def receive(self):
         # Receive a Python expression Emacs and return its text, unevaluated.
         text = sys.stdin.read(3)
-        assert text[0] == '>', text
+        if not text or text[0] != '>':
+            raise Server.ProtocolError, "`>' expected."
         while text[-1] != '\t':
             text = text + sys.stdin.read(1)
         return sys.stdin.read(int(text[1:-1]))
 
     def send(self, text):
         # Send TEXT to Emacs, which is an expression to evaluate.
-        sys.stdout.write('<%d\t%s' % (len(text), text))
+        if text[-1] == '\n':
+            sys.stdout.write('<%d\t%s' % (len(text), text))
+        else:
+            sys.stdout.write('<%d\t%s\n' % (len(text) + 1, text))
         sys.stdout.flush()
 
 def reply(value):
@@ -99,7 +107,7 @@ def error(message):
     # This function implements the `error' pseudo-function.
     raise Server.ErrorException, "Emacs: %s" % message
 
-def pymacs_load_helper(lisp_module, lisp_prefix):
+def pymacs_load_helper(lisp_module, prefix):
     # This function imports a Python module, then returns a LISP string,
     # which when later LISP-read and evaluated, will install trampoline
     # definitions in Emacs for accessing the Python module facilities.
@@ -111,8 +119,8 @@ def pymacs_load_helper(lisp_module, lisp_prefix):
     # to the base name of MODULE, followed by a dash.
     directory, module = os.path.split(lisp_module)
     python_module = string.replace(module, '-', '_')
-    if lisp_prefix is None:
-        lisp_prefix = module + '-'
+    if prefix is None:
+        prefix = module + '-'
     try:
         if directory:
             sys.path.insert(0, directory)
@@ -124,16 +132,12 @@ def pymacs_load_helper(lisp_module, lisp_prefix):
         if directory:
             del sys.path[0]
     globals().update({python_module: object})  # FIXME: use a better way...
-    fragments = []
-    write = fragments.append
-    write('(progn')
+    arguments = []
     for name, value in object.__dict__.items():
-        if callable(value):
-            write(' (pymacs-defun %d \'%s)'
-                  % (allocate_handle(value),
-                     lisp_prefix + string.replace(name, '_', '-')))
-    write(' nil)')
-    return string.join(fragments, '')
+        if callable(value) and value is not lisp:
+            arguments.append(allocate_handle(value))
+            arguments.append(lisp[prefix + string.replace(name, '_', '-')])
+    return (lisp.pymacs_defuns, (lisp.quote, tuple(arguments)))
 
 # Many Python types do not have direct LISP equivalents, and may not be
 # directly returned to LISP for this reason.  They are rather allocated in
@@ -156,9 +160,20 @@ def allocate_handle(value):
     return index
 
 def free_handles(indices):
+    # Return many handles to the pool.
     for index in indices:
         handles[index] = None
         freed_list.append(index)
+
+def zombie_handles(indices):
+    # Ensure that some handles are _not_ in the pool.
+    for index in indices:
+        while index >= len(handles):
+            freed_list.append(len(handles))
+            handles.append(None)
+        freed_list.remove(index)
+    # Merely to make `*Pymacs*' a bit more readable.
+    freed_list.sort()
 
 # Emacs services for Python applications.
 
@@ -218,10 +233,10 @@ class Symbol:
     def __repr__(self):
         return 'Symbol(%s)' % `self.text`
 
-    def value():
+    def value(self):
         return lisp(self.text)
 
-    def copy():
+    def copy(self):
         return lisp('(pymacs-expand %s)' % self.text)
 
     def set(self, value):
@@ -290,12 +305,18 @@ def print_lisp(value, write, quoted=0):
     elif type(value) == types.TupleType:
         if quoted:
             write("'")
-        write('(')
-        print_lisp(value[0], write)
-        for sub_value in value[1:]:
-            write(' ')
-            print_lisp(sub_value, write)
-        write(')')
+        if len(value) == 0:
+            write('nil')
+        elif len(value) == 2 and value[0] == lisp.quote:
+            write("'")
+            print_lisp(value[1], write)
+        else:
+            write('(')
+            print_lisp(value[0], write)
+            for sub_value in value[1:]:
+                write(' ')
+                print_lisp(sub_value, write)
+            write(')')
     elif type(value) == types.ListType:
         write('[')
         if len(value) > 0:
@@ -304,20 +325,11 @@ def print_lisp(value, write, quoted=0):
                 write(' ')
                 print_lisp(sub_value, write)
         write(']')
-    #elif type(value) == types.DictType:
-    #    if quoted:
-    #        write("'")
-    #    write('(')
-    #    for name, value in value.items():
-    #        write('(')
-    #        print_lisp(name, write)
-    #        write(' . ')
-    #        print_lisp(value, write)
-    #        write(')')
-    #    write(')')
     elif isinstance(value, Handle):
         write('(aref pymacs-handles %d)' % value.index)
     elif isinstance(value, Symbol):
+        if quoted:
+            write("'")
         write(value.text)
     elif callable(value):
         id = allocate_handle(value)
