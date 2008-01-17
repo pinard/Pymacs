@@ -17,8 +17,8 @@ Usage: setup [OPTION]
 
   -b BINDIR      Install `pymacs-services' in BINDIR.
   -l LISPDIR     Install `pymacs.el' in LISPDIR.
-  -p PYTHONDIR   Install `pymacs.py' in PYTHONDIR.
-  -x PYMACSDIR   Find Python extension for Emacs in PYMACSDIR.
+  -p PYTHONDIR   Install `pymacs.py' in PYTHONDIR if not "None".
+  -x PYMACSDIR   Find Python extension for Emacs in PYMACSDIR if not "None".
 
   -E EMACS    Use that executable for EMACS, if not `emacs'.
   -P PYTHON   Use that executable for Python, if not `python'.
@@ -27,16 +27,20 @@ Usage: setup [OPTION]
 
 import os, string, sys
 
+sys.path.insert(0, 'Pymacs')
+from version import package, version
+del sys.path[0]
+
+AUTOCONF = ()                           # neither a string nor None
+
 class run:
-    PACKAGE = 'pymacs'
-    VERSION = '0.15'
     interactive = 0
     dry = 0
     group = None
     dot_emacs = 0
-    bindir = None
-    lispdir = None
-    pythondir = None
+    bindir = AUTOCONF
+    lispdir = AUTOCONF
+    pythondir = AUTOCONF
     pymacsdir = None
     emacs = 'emacs'
     python = 'python'
@@ -53,10 +57,13 @@ def main(*arguments):
         elif option == '-P' and value:
             run.python = value
         elif option == '-V':
-            sys.stdout.write('%s-%s' % (run.PACKAGE, run.VERSION))
+            sys.stdout.write('%s-%s' % (package, version))
             sys.exit(0)
         elif option == '-b' and value:
-            run.bindir = [value]
+            if value in ('none', 'None'):
+                run.bindir = None
+            else:
+                run.bindir = [value]
         elif option == '-e':
             run.dot_emacs = 1
         elif option == '-g' and value:
@@ -64,25 +71,34 @@ def main(*arguments):
         elif option == '-i':
             run.interactive = 1
         elif option == '-l' and value:
-            run.lispdir = [value]
+            if value in ('none', 'None'):
+                run.lispdir = None
+            else:
+                run.lispdir = [value]
         elif option == '-p' and value:
-            run.pythondir = [value]
+            if value in ('none', 'None'):
+                run.pythondir = None
+            else:
+                run.pythondir = [value]
         elif option == '-x' and value:
-            run.pymacsdir = [value]
-    study_possible()
+            if value in ('none', 'None'):
+                run.pymacsdir = None
+            else:
+                run.pymacsdir = [value]
+    auto_configure()
     if run.interactive:
         check_with_user()
     check_choices()
     if not run.dry:
         complete_install()
 
-def study_possible():
-    if not run.bindir:
+def auto_configure():
+    if run.bindir is AUTOCONF:
         run.bindir = []
         for path in string.split(os.environ['PATH'], ':'):
             if os.access(path, 7):
                 run.bindir.append(path)
-    if not run.lispdir:
+    if run.lispdir is AUTOCONF:
         run.lispdir = []
         import tempfile
         script = tempfile.mktemp()
@@ -110,7 +126,7 @@ def study_possible():
             path = path[1:-1]
             if os.access(path, 7):
                 run.lispdir.append(path)
-    if not run.pythondir:
+    if run.pythondir is AUTOCONF:
         run.pythondir = []
         text = (os.popen('%s -c \'import sys; print sys.path\'' % run.python)
                 .read())
@@ -125,9 +141,9 @@ def study_possible():
 
 def check_with_user():
     sys.stderr.write("""\
-Installing tool for Pymacs version %s.
+Install tool for %s version %s.
 """
-                     % run.VERSION)
+                     % (package, version))
     run.bindir = user_select('bindir', run.bindir, """\
 This is where `pymacs-services', the Python process starter, should go:
 somewhere on your shell `PATH'.
@@ -137,8 +153,10 @@ This is where `pymacs.el', the Emacs side code of Pymacs, should go:
 somewhere on your Emacs `load-path'.
 """)
     run.pythondir = user_select('pythondir', run.pythondir, """\
-This is where `pymacs.py', the Python side code of Pymacs, should go:
-somewhere on your Python `sys.path'.
+This is where `pymacs.py', the compatibility module of Pymacs, should go:
+somewhere on your Python `sys.path'.  You do not need this one anymore if
+you always use the "from Pymacs import ..." form.  The old "import pymacs"
+form is now deprecated.
 """)
     run.pymacsdir = user_select('pymacsdir', run.pymacsdir, """\
 This is where you intend to keep your Python code to extend Emacs.
@@ -209,29 +227,35 @@ This is not a valid choice.  Please retry.
 def check_choices():
     write = sys.stderr.write
     error = 0
-    if run.bindir and os.access(os.path.expanduser(run.bindir[0]), 7):
-        run.bindir = os.path.expanduser(run.bindir[0])
-    else:
-        write("Use `-b BINDIR' to select where `pymacs-services' should go.\n")
-        error = 1
-    if run.lispdir and os.access(os.path.expanduser(run.lispdir[0]), 7):
-        run.lispdir = run.lispdir[0]
-    else:
-        write("Use `-l LISPDIR' to select where `pymacs.el' should go.\n")
-        error = 1
-    if run.pythondir and os.access(os.path.expanduser(run.pythondir[0]), 7):
-        run.pythondir = os.path.expanduser(run.pythondir[0])
-    else:
-        write("Use `-p PYTHONDIR' to select where `pymacs.py' should go.\n")
-        error = 1
-    if run.pymacsdir:
-        if os.access(os.path.expanduser(run.pymacsdir[0]), 7):
-            run.pymacsdir = os.path.expanduser(run.pymacsdir[0])
+    if run.bindir is not None:
+        if run.bindir and os.access(os.path.expanduser(run.bindir[0]), 7):
+            run.bindir = os.path.expanduser(run.bindir[0])
         else:
-            write("Use `-x PYMACSDIR' to where Python extensions are kept.\n")
+            write("\
+Use `-b BINDIR' to select where `pymacs-services' should go.\n")
             error = 1
-    else:
-        run.pymacsdir = ''
+    if run.lispdir is not None:
+        if run.lispdir and os.access(os.path.expanduser(run.lispdir[0]), 7):
+            run.lispdir = run.lispdir[0]
+        else:
+            write("\
+Use `-l LISPDIR' to select where `pymacs.el' should go.\n")
+            error = 1
+    if run.pythondir is not None:
+        if run.pythondir and os.access(os.path.expanduser(run.pythondir[0]), 7):
+            run.pythondir = os.path.expanduser(run.pythondir[0])
+        else:
+            write("\
+Use `-p PYTHONDIR' to select where `pymacs.py' should go.\n")
+            error = 1
+    if run.pymacsdir is not None:
+        if run.pymacsdir:
+            if os.access(os.path.expanduser(run.pymacsdir[0]), 7):
+                run.pymacsdir = os.path.expanduser(run.pymacsdir[0])
+            else:
+                write("\
+Use `-x PYMACSDIR' to where Python extensions are kept.\n")
+                error = 1
     if error:
         write("ERROR: Installation aborted!\n"
               "       Try `%s -i'.\n" % sys.argv[0])
@@ -247,28 +271,39 @@ def check_choices():
         % run.__dict__)
 
 def complete_install():
-    goal = os.path.join(run.bindir, 'pymacs-services')
-    install('pymacs-services', goal, 0755)
-    goal = os.path.join(run.lispdir, 'pymacs.el')
-    install('pymacs.el', goal, 0644)
-    compile_lisp(goal)
-    goal = os.path.join(run.pythondir, 'pymacs.py')
-    install('pymacs.py', goal, 0644)
-    compile_python(goal)
+    run.substitute = {'PACKAGE': package, 'VERSION': version}
+    if run.pymacsdir is None:
+        run.substitute['pymacsdir'] = 'None'
+    else:
+        run.substitute['pymacsdir'] = '\'%s\'' + run.pymacsdir
+    if run.bindir:
+        goal = os.path.join(run.bindir, 'pymacs-services')
+        install('pymacs-services', goal, 0755)
+    if run.lispdir:
+        goal = os.path.join(run.lispdir, 'pymacs.el')
+        install('pymacs.el', goal, 0644)
+        compile_lisp(goal)
+    if run.pythondir:
+        goal = os.path.join(run.pythondir, 'pymacs.py')
+        install('pymacs.py', goal, 0644)
+        compile_python(goal)
 
 def install(source, destination, permissions):
     sys.stderr.write('Installing %s\n' % destination)
     write = open(destination, 'w').write
     produce_at = 0
+    #print '*', run.substitute
     for fragment in string.split(open(source).read(), '@'):
+        #print '**', produce_at, `fragment`
         if produce_at:
-            replacement = run.__dict__.get(fragment)
-            if replacement:
-                write(replacement)
-                produce_at = 0
-            else:
+            replacement = run.substitute.get(fragment)
+            #print '***', replacement
+            if replacement is None:
                 write('@')
                 write(fragment)
+            else:
+                write(replacement)
+                produce_at = 0
         else:
             write(fragment)
             produce_at = 1

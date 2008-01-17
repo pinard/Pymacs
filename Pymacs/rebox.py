@@ -254,14 +254,15 @@ def main(*arguments):
                              % (old_style, new_style))
 
 def pymacs_load_hook():
-    global pymacs, lisp, region, comment, set_default_style
-    import pymacs
-    from pymacs import lisp
-    # Declare functions for Emacs to import.
+    global lisp, Let, region, comment, set_default_style
+    from Pymacs import lisp, Let
     emacs_rebox = Emacs_Rebox()
+    # Declare functions for Emacs to import.
     region = emacs_rebox.region
     comment = emacs_rebox.comment
     set_default_style = emacs_rebox.set_default_style
+
+interactions = {}
 
 class Emacs_Rebox:
 
@@ -279,14 +280,14 @@ Set the default style to STYLE.
 Rebox the boxed comment in the current region, obeying FLAG.
 """
         self.emacs_engine(flag, self.find_region)
-    region.interaction = 'P'
+    interactions[region] = 'P'
 
     def comment(self, flag):
         """\
 Rebox the surrounding boxed comment, obeying FLAG.
 """
         self.emacs_engine(flag, self.find_comment)
-    comment.interaction = 'P'
+    interactions[comment] = 'P'
 
     def emacs_engine(self, flag, find_limits):
         """\
@@ -305,9 +306,6 @@ of the boxed comment.
         if flag is None:
             style = self.default_style
             refill = 1
-        elif type(flag) == type([]):
-            style = self.default_style
-            refill = 0
         elif type(flag) == type(0):
             if self.default_style is None:
                 style = flag
@@ -315,7 +313,12 @@ of the boxed comment.
                 style = merge_styles(self.default_style, flag)
             refill = 1
         else:
-            lisp.error("Unexpected flag value %s" % flag)
+            flag = flag.copy()
+            if type(flag) == type([]):
+                style = self.default_style
+                refill = 0
+            else:
+                lisp.error("Unexpected flag value %s" % flag)
         # Prepare for reboxing.
         lisp.message("Reboxing...")
         checkpoint = lisp.buffer_undo_list.value()
@@ -384,7 +387,7 @@ Find and return the limits of the block of comments following or enclosing
 the cursor, or return an error if the cursor is not within such a block
 of comments.  Extend it as far as possible in both directions.
 """
-        let = pymacs.Let()
+        let = Let()
         let.push_excursion()
         # Find the start of the current or immediately following comment.
         lisp.beginning_of_line()

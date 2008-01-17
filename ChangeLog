@@ -1,3 +1,28 @@
+2002-01-29  François Pinard  <pinard@iro.umontreal.ca>
+
+	* Release 0.16.
+
+	* Pymacs/pymacs.py: New file, previously top-level.
+	* pymacs.py: Now a mere bootstrap for Pymacs/pymacs.py.
+	* Pymacs/__init__.py: Define lisp and Let.
+	* Makefile (pythondir): Documentation amended.
+	* setup: Distinguish between empty arguments, which ask for
+	autoconfiguration, and None arguments, which inhibit it.
+	* pymacs-services: Import pymacs from Pymacs.
+
+	* Pymacs/version.py: New file.  Rename pymacs to Pymacs.
+	* setup, setup.py, Pymacs/pymacs.py (main): Use it.
+
+	* setup: Substitute None for pymacsdir instead of the empty string.
+	* pymacs-services: Adjusted.
+
+	* Pymacs/pymacs.py (Let): Have all push_* methods to return self.
+
+2002-01-20  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el, pymacs.el: Replace LISP by Lisp in comments.
+	Reported by Paul Foley.
+
 2002-01-10  François Pinard  <pinard@iro.umontreal.ca>
 
 	* Release 0.15.

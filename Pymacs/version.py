@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# Copyright © 2001, 2002 Progiciels Bourbeau-Pinard inc.
-# François Pinard <pinard@iro.umontreal.ca>, 2001.
+# Copyright © 2002 Progiciels Bourbeau-Pinard inc.
+# François Pinard <pinard@iro.umontreal.ca>, 2002.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,17 +17,8 @@
 # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 """\
-Interface between Emacs LISP and Python - Python process starter.
-
-This small bootstrap is so Pymacs modules can be kept in compiled form.
+Interface between Emacs Lisp and Python - Identification of version.
 """
 
-pymacsdir = @pymacsdir@
-
-if __name__ == '__main__':
-    import sys
-    from Pymacs import pymacs
-    if pymacsdir is None:
-        apply(pymacs.main, sys.argv[1:])
-    else:
-        apply(pymacs.main, [pymacsdir] + sys.argv[1:])
+package = 'Pymacs'
+version = '0.16'

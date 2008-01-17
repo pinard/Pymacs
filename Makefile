@@ -10,10 +10,12 @@
 bindir =
 # Somewhere on your Emacs LISP load-path.
 lispdir =
-# Somewhere on your Python sys.path.
+# Somewhere on your python sys.path.
+# Define to None if you only use the new "from Pymacs import" format.
 pythondir =
-# Directory for Python extensions.  Make it empty if you do not use one!
-pymacsdir =
+# Directory for Python extensions.
+# Leave to None unless you have your own special directory for Pymacs code.
+pymacsdir = None
 #
 ### End of customisation.
 
@@ -37,6 +39,6 @@ dist:
 publish: dist
 	chmod 644 $(DISTRIBUTION).tar.gz
 	scp -p $(DISTRIBUTION).tar.gz bor:pymacs/
-	ssh bor rm -vf pymacs/pymacs.tar.gz
-	ssh bor ln -vs $(DISTRIBUTION).tar.gz pymacs/pymacs.tar.gz
+	ssh bor rm -vf pymacs/Pymacs.tar.gz pymacs/pymacs.tar.gz
+	ssh bor ln -vs $(DISTRIBUTION).tar.gz pymacs/Pymacs.tar.gz
 	ssh bor ls -Llt pymacs

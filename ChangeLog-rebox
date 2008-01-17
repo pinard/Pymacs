@@ -1,3 +1,15 @@
+2002-01-29  François Pinard  <pinard@iro.umontreal.ca>
+
+	* Pymacs/rebox.py: Use an interactions map instead of the
+	interaction attribute, so it works with earlier Python versions.
+
+	* Pymacs/rebox.py: Import lisp and Let from Pymacs.
+
+2002-01-13  François Pinard  <pinard@iro.umontreal.ca>
+
+	* Pymacs/rebox.py (Emacs_Rebox.emacs_engine): Expand flag value,
+	when it is neither the - symbol nor a number.
+
 2002-01-08  François Pinard  <pinard@iro.umontreal.ca>
 
 	* Pymacs/rebox.py (Template.build): Subtract margin from width

@@ -1,4 +1,4 @@
-;;; Interface between Emacs LISP and Python - LISP part.
+;;; Interface between Emacs Lisp and Python - Lisp part.
 ;;; Copyright © 2001, 2002 Progiciels Bourbeau-Pinard inc.
 ;;; François Pinard <pinard@iro.umontreal.ca>, 2001.
 
@@ -31,14 +31,14 @@ before each communication round-trip.  Setting it to `t' guarantees that
 the full communication is saved, which is useful for debugging.")
 
 (defvar pymacs-forget-mutability nil
-  "Transmit copies to Python instead of LISP handles, as much as possible.
+  "Transmit copies to Python instead of Lisp handles, as much as possible.
 When this variable is nil, most mutable objects are transmitted as handles.
 This variable is meant to be temporarily rebound to force copies.")
 
 (defvar pymacs-mutable-strings nil
-  "Prefer transmitting LISP strings to Python as handles.
+  "Prefer transmitting Lisp strings to Python as handles.
 When this variable is nil, strings are transmitted as copies, and the
-Python side thus has no way for modifying the original LISP strings.
+Python side thus has no way for modifying the original Lisp strings.
 This variable is ignored whenever `forget-mutability' is set.")
 
 (defvar pymacs-timeout-at-start 30
@@ -56,7 +56,7 @@ The status of `pymacs-services' is checked at every such timeout.")
 (defun pymacs-load (module &optional prefix noerror)
   "Import the Python module named MODULE into Emacs.
 Each function in the Python module is made available as an Emacs function.
-The LISP name of each function is the concatenation of PREFIX with
+The Lisp name of each function is the concatenation of PREFIX with
 the Python name, in which underlines are replaced by dashes.  If PREFIX is
 not given, it defaults to MODULE followed by a dash.
 If NOERROR is not nil, do not raise error when the module is not found."
@@ -95,13 +95,13 @@ This functionality is experimental, and does not appear to be useful."
 (defun pymacs-apply (function arguments)
   "Return the result of calling a Python function FUNCTION over ARGUMENTS.
 FUNCTION is a string denoting the Python function, ARGUMENTS is a list of
-LISP expressions.  Immutable LISP constants are converted to Python
-equivalents, other structures are converted into LISP handles."
+Lisp expressions.  Immutable Lisp constants are converted to Python
+equivalents, other structures are converted into Lisp handles."
   (pymacs-serve-until-reply `(pymacs-print-for-apply ',function ',arguments)))
 
 ;;; Integration details.
 
-;; Python functions and modules should ideally look like LISP functions and
+;; Python functions and modules should ideally look like Lisp functions and
 ;; modules.  This page tries to increase the integration seamlessness.
 
 (defadvice documentation (around pymacs-ad-documentation activate)
@@ -141,8 +141,8 @@ equivalents, other structures are converted into LISP handles."
   ;; Emacs might want the contents of some `MODULE.el' which does not exist,
   ;; while there is a `MODULE.py' or `MODULE.pyc' file in the same directory.
   ;; The goal is to generate a virtual contents for this `MODULE.el' file, as
-  ;; a set of LISP trampoline functions to the Python module functions.
-  ;; Python modules can then be loaded or autoloaded as if they were LISP.
+  ;; a set of Lisp trampoline functions to the Python module functions.
+  ;; Python modules can then be loaded or autoloaded as if they were Lisp.
   ;(message "** %S %S" operation arguments)
   (cond ((and (eq operation 'file-readable-p)
 	      (let ((module (substring (car arguments) 0 -3)))
@@ -184,9 +184,9 @@ equivalents, other structures are converted into LISP handles."
 
 ;;; Gargabe collection of Python IDs.
 
-;; Python objects which have no LISP representation are allocated on the
+;; Python objects which have no Lisp representation are allocated on the
 ;; Python side as `python[INDEX]', and INDEX is transmitted to Emacs, with
-;; the value to use on the LISP side for it.  Whenever LISP does not need a
+;; the value to use on the Lisp side for it.  Whenever Lisp does not need a
 ;; Python object anymore, it should be freed on the Python side.  The
 ;; following variables and functions are meant to fill this duty.
 
@@ -235,7 +235,7 @@ The timer is used only if `post-gc-hook' is not available.")
   ;; Take one argument, a list holding a number of items divisible by 3.  The
   ;; first argument is an INDEX, the second is a NAME, the third is the
   ;; INTERACTION specification, and so forth.  Register Python INDEX with a
-  ;; function with that NAME and INTERACTION on the LISP side.  The strange
+  ;; function with that NAME and INTERACTION on the Lisp side.  The strange
   ;; calling convention is to minimise quoting at call time.
   (while (>= (length arguments) 3)
     (let ((index (nth 0 arguments))
@@ -245,7 +245,7 @@ The timer is used only if `post-gc-hook' is not available.")
       (setq arguments (nthcdr 3 arguments)))))
 
 (defun pymacs-defun (index interaction)
-  ;; Register INDEX on the LISP side with a Python object that is a function,
+  ;; Register INDEX on the Lisp side with a Python object that is a function,
   ;; and return a lambda form calling that function.  If the INTERACTION
   ;; specification is nil, the function is not interactive.  Otherwise, the
   ;; function is interactive, INTERACTION is then either a string, or the
@@ -263,7 +263,7 @@ The timer is used only if `post-gc-hook' is not available.")
 		(pymacs-apply ',object arguments))))))
 
 (defun pymacs-python (index)
-  ;; Register on the LISP side a Python object having INDEX, and return it.
+  ;; Register on the Lisp side a Python object having INDEX, and return it.
   ;; The result is meant to be recognised specially by `print-for-eval', and
   ;; in the function position by `print-for-apply'.
   (let ((object (cons 'pymacs-python index)))
@@ -274,8 +274,8 @@ The timer is used only if `post-gc-hook' is not available.")
 
 ;;; Generating Python code.
 
-;; Many LISP expressions cannot fully be represented in Python, at least
-;; because the object is mutable on the LISP side.  Such objects are allocated
+;; Many Lisp expressions cannot fully be represented in Python, at least
+;; because the object is mutable on the Lisp side.  Such objects are allocated
 ;; somewhere into a vector of handles, and the handle index is used for
 ;; communication instead of the expression itself.
 
@@ -283,10 +283,10 @@ The timer is used only if `post-gc-hook' is not available.")
   "Vector of handles to hold transmitted expressions.")
 
 (defvar pymacs-freed-list nil
-  "List of unallocated indices in LISP.")
+  "List of unallocated indices in Lisp.")
 
-;; When the Python CG is done with a LISP object, a communication occurs so to
-;; free the object on the LISP side as well.
+;; When the Python CG is done with a Lisp object, a communication occurs so to
+;; free the object on the Lisp side as well.
 
 (defun pymacs-allocate-lisp (expression)
   ;; This function allocates some handle for an EXPRESSION, and return its
@@ -308,8 +308,8 @@ The timer is used only if `post-gc-hook' is not available.")
     index))
 
 (defun pymacs-free-lisp (&rest indices)
-  ;; This function is triggered from Python side for LISP handles which lost
-  ;; their last reference.  These references should be cut on the LISP side as
+  ;; This function is triggered from Python side for Lisp handles which lost
+  ;; their last reference.  These references should be cut on the Lisp side as
   ;; well, or else, the objects will never be garbage-collected.
   (while indices
     (let ((index (car indices)))
@@ -327,7 +327,7 @@ The timer is used only if `post-gc-hook' is not available.")
 (defun pymacs-print-for-apply (function arguments)
   ;; This function prints a Python expression calling FUNCTION, which is a
   ;; string naming a Python function, or a Python reference, over all its
-  ;; ARGUMENTS, which are LISP expressions.
+  ;; ARGUMENTS, which are Lisp expressions.
   (let ((separator "")
 	argument)
     (if (eq (car-safe function) 'pymacs-python)
@@ -343,7 +343,7 @@ The timer is used only if `post-gc-hook' is not available.")
     (princ ")")))
 
 (defun pymacs-print-for-eval (expression)
-  ;; This function prints a Python expression out of a LISP EXPRESSION.
+  ;; This function prints a Python expression out of a Lisp EXPRESSION.
   (let (done)
     (cond ((not expression)
 	   (princ "None")
@@ -420,7 +420,7 @@ The timer is used only if `post-gc-hook' is not available.")
 ;; The principle behind the communication protocol is that it is easier to
 ;; generate than parse, and that each language already has its own parser.
 ;; So, the Emacs side generates Python text for the Python side to interpret,
-;; while the Python side generates LISP text for the LISP side to interpret.
+;; while the Python side generates Lisp text for the Lisp side to interpret.
 ;; About nothing but expressions are transmitted, which are evaluated on
 ;; arrival.  The pseudo `reply' function is meant to signal the final result
 ;; of a series of exchanges following a request, while the pseudo `error'
@@ -428,8 +428,8 @@ The timer is used only if `post-gc-hook' is not available.")
 
 ;; The protocol itself is rather simple, and contains human readable text
 ;; only.  A message starts at the beginning of a line in the communication
-;; buffer, either with `>' for the LISP to Python direction, or `<' for the
-;; Python to LISP direction.  This is followed by a decimal number giving the
+;; buffer, either with `>' for the Lisp to Python direction, or `<' for the
+;; Python to Lisp direction.  This is followed by a decimal number giving the
 ;; length of the message text, a TAB character, and the message text itself.
 ;; Message direction alternates systematically between messages, it never
 ;; occurs that two successive messages are sent in the same direction.  The
@@ -464,7 +464,7 @@ The timer is used only if `post-gc-hook' is not available.")
 		   (= (length reply) 2)
 		   (eq (car reply) 'pymacs-version))
 	      (unless (string-equal (cadr reply) "@VERSION@")
-		(error "Pymacs LISP version is @VERSION@, Python is %s."
+		(error "Pymacs Lisp version is @VERSION@, Python is %s."
 		       (cadr reply)))
 	    (error "Pymacs got an invalid initial reply.")))))
     (setq pymacs-use-hash-tables (and (fboundp 'make-hash-table)
