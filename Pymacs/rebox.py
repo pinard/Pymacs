@@ -136,21 +136,66 @@ the default style is set to the absolute value of the prefix.
 A `C-u' prefix avoids refilling the text, but forces using the default box
 style.  `C-u -' lets the user interact to select one attribute at a time.
 
+Adding new styles
+-----------------
+
+Let's suppose you want to add your own boxed comment style, say:
+
+    //--------------------------------------------+
+    // This is the style mandated in our company.
+    //--------------------------------------------+
+
+You might modify `rebox.py' but then, you will have to edit it whenever you
+get a new release of `pybox.py'.  Emacs users might modify their `.emacs'
+file or their `rebox.el' bootstrap, if they use one.  In either cases,
+after the `(pymacs-load "Pymacs.rebox")' line, merely add:
+
+    (rebox-Template NNN MMM ["//-----+"
+                             "// box  "
+                             "//-----+"])
+
+If you use the `rebox' script rather than Emacs, the simplest is to make
+your own.  This is easy, as it is very small.  For example, the above
+style could be implemented by using this script instead of `rebox':
+
+    #!/usr/bin/env python
+    import sys
+    from Pymacs import rebox
+    rebox.Template(226, 325, ('//-----+',
+                              '// box  ',
+                              '//-----+'))
+    apply(rebox.main, tuple(sys.argv[1:]))
+
+In all cases, NNN is the style three-digit number, with no zero digit.
+Pick any free style number, you are safe with 911 and up.  MMM is the
+recognition priority, only used to disambiguate the style of a given boxed
+comments, when it matches many styles at once.  Try something like 400.
+Raise or lower that number as needed if you observe false matches.
+
+On average, the template uses three lines of equal length.  Do not worry if
+this implies a few trailing spaces, they will be cleaned up automatically
+at box generation time.  The first line or the third line may be omitted
+to create vertically opened boxes.  But the middle line may not be omitted,
+it ought to include the word `box', which will get replaced by your actual
+comment.  If the first line is shorter than the middle one, it gets merged
+at the start of the comment.  If the last line is shorter than the middle
+one, it gets merged at the end of the comment and is refilled with it.
+
 History
 -------
 
 I first observed rounded corners, as in style 223 boxes, in code from
 Warren Tucker, a previous maintainer of the `shar' package, circa 1980.
 
-Except for very special files, I carefully avoided boxed comments for real
-work, as I found them much too hard to maintain.  My friend Paul Provost
-was working at Taarna, a computer graphics place, which had boxes as part
-of their coding standards.  He asked that we try something to get out of
-his misery, and this how `rebox.el' was originally written.  I did not
-plan to use it for myself, but Paul was so enthusiastic that I timidly
-started to use boxes in my things, very little at first, but more and
-more as time passed, still in doubt that it was a good move.  Later, many
-friends spontaneously started to use this tool for real, some being very
+Except for very special files, I carefully avoided boxed comments for
+real work, as I found them much too hard to maintain.  My friend Paul
+Provost was working at Taarna, a computer graphics place, which had boxes
+as part of their coding standards.  He asked that we try something to get
+him out of his misery, and this how `rebox.el' was originally written.
+I did not plan to use it for myself, but Paul was so enthusiastic that I
+timidly started to use boxes in my things, very little at first, but more
+and more as time passed, still in doubt that it was a good move.  Later,
+many friends spontaneously started to use this tool for real, some being very
 serious workers.  This convinced me that boxes are acceptable, after all.
 
 I do not use boxes much with Python code.  It is so legible that boxing
@@ -864,7 +909,8 @@ and the total size of each line should ideally not go over WIDTH.
             width = width - len(self.ee)
         if refill:
             lines = refill_lines(lines, width)
-        # Reduce WIDTH further according to the current right margin.
+        # Reduce WIDTH further according to the current right margin,
+        # and excluding the left margin.
         maximum = 0
         for line in lines:
             if line:
@@ -874,7 +920,7 @@ and the total size of each line should ideally not go over WIDTH.
                     length = len(line)
                 if length > maximum:
                     maximum = length
-        width = maximum
+        width = maximum - margin
         # Construct the top line.
         if self.merge_nw:
             lines[0] = ' ' * margin + self.nw + lines[0][margin:]

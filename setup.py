@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='pymacs',
-      version='0.14',
+      version='0.15',
       description='Interface between Emacs LISP and Python.',
       author='François Pinard',
       author_email='pinard@iro.umontreal.ca',

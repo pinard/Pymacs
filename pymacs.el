@@ -449,7 +449,8 @@ The timer is used only if `post-gc-hook' is not available.")
 		   (goto-char (point-min))
 		   (not (re-search-forward "<\\([0-9]+\\)\t" nil t)))
 	    (unless (accept-process-output process pymacs-timeout-at-start)
-	      (error "Pymacs helper did not start within 5 seconds.")))
+	      (error "Pymacs helper did not start within %d seconds."
+		     pymacs-timeout-at-start)))
 	  (let ((marker (process-mark process))
 		(limit-position (+ (match-end 0)
 				   (string-to-number (match-string 1)))))
@@ -603,6 +604,7 @@ Killing the helper might create zombie objects.  Kill? "))
       reply)))
 
 (defun pymacs-proper-list-p (expression)
+  ;; Tell if a list is proper, id est, that it is `nil, or ends with `nil'.
   (cond ((not expression))
 	((consp expression) (not (cdr (last expression))))))
 

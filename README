@@ -20,12 +20,17 @@
 
 . : Warning to Pymacs users.
 
-    It is expected that average Pymacs users have a deeper knowledge of
-    Python than Emacs LISP, so there are a few examples at the end of this
-    file meant for Python users having a limited experience with Emacs.
+    I expect average Pymacs users to have a deeper knowledge of Python than
+    Emacs LISP.  So, the few examples at the end of this file are meant for
+    Python users having a limited experience with Emacs.  Currently, there
+    are only contains two examples, one which is too small, another which
+    is too big :-).  It would be useful to have more: my intent is to wait
+    until such examples pop up naturally.  As there is no dedicated mailing
+    list nor discussion group for Pymacs, let's use `python-list@python.org'
+    for asking questions or discussing Pymacs related matters.
 
     This is beta status software: specifications are slightly frozen, yet
-    a changes may still happen that would require small adaptation of your
+    changes may still happen that would require small adaptations in your
     code.  Report problems to François Pinard at `pinard@iro.umontreal.ca'.
     For discussing specifications or making suggestions, please also copy
     the `python-list@python.org' mailing list, to help brain-storming! :-)
@@ -39,11 +44,11 @@
     a bit, I dropped the `e' in `pyemacs' :-).  Cedric also told me that
     there exist some older patches for linking Python right into XEmacs.
 
-    Brian McErlean independently and simultaneously wrote a similar tool,
-    we decided to join our projects.  Amusing coincidence, he even chose
-    `pymacs' as a name.  Brian paid good attention to complex details that
-    escaped my courage, so his help and collaboration have been beneficial.
-    You may reach Brian at `brianmce@crosswinds.net'.
+    Brian McErlean independently and simultaneously wrote a tool similar
+    to this one, we decided to join our projects.  Amusing coincidence, he
+    even chose `pymacs' as a name.  Brian paid good attention to complex
+    details that escaped my courage, so his help and collaboration have
+    been beneficial.  You may reach Brian at `brianmce@crosswinds.net'.
 
     One other reference of interest is Doug Bagley shoot out project,
     which compares the relative speed of many popular languages.  See
@@ -116,8 +121,9 @@
     Pymacs has been developped on Linux and Emacs (20 and 21), it is expected
     to work out of the box on most other Unices, and also with XEmacs.
 
-    Syver Enstad reports that it works on Windows-2000 (win2k), he suspects
-    it should equally work with NT and XP.
+    Syver Enstad reports that Pymacs could be made to work on Windows-2000
+    (win2k), he suspects it should equally work with NT and XP.  However,
+    little shell stunts may be required, I hope to later document them here.
 
 . : Caveats.
 
@@ -462,6 +468,11 @@
 
         import pymacs
         lisp = pymacs.lisp
+
+    Even if not completely decided yet, be warned that in some future
+    version of Pymacs, the above is likely to disappear and become:
+
+        from Pymacs import pymacs, lisp
 
 . : Response mode.
 

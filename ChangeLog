@@ -1,3 +1,10 @@
+2002-01-10  François Pinard  <pinard@iro.umontreal.ca>
+
+	* Release 0.15.
+
+	* pymacs.el (pymacs-start-services): Properly diagnose a timeout,
+	using the timeout parameter value instead of a fixed string.
+
 2002-01-07  François Pinard  <pinard@iro.umontreal.ca>
 
 	* Release 0.14.
