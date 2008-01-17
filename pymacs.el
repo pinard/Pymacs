@@ -1,5 +1,5 @@
 ;;; Interface between Emacs LISP and Python - LISP part.
-;;; Copyright © 2001 Progiciels Bourbeau-Pinard inc.
+;;; Copyright © 2001, 2002 Progiciels Bourbeau-Pinard inc.
 ;;; François Pinard <pinard@iro.umontreal.ca>, 2001.
 
 ;;; This program is free software; you can redistribute it and/or modify
@@ -62,7 +62,7 @@ not given, it defaults to MODULE followed by a dash.
 If NOERROR is not nil, do not raise error when the module is not found."
   (interactive
    (let* ((module (read-string "Python module? "))
-	  (default (concat module "-"))
+	  (default (concat (car (last (split-string module "\\."))) "-"))
 	  (prefix (read-string (format "Prefix? [%s] " default)
 			       nil nil default)))
      (list module prefix)))

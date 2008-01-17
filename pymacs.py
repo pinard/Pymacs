@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright © 2001 Progiciels Bourbeau-Pinard inc.
+# Copyright © 2001, 2002 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
 # This program is free software; you can redistribute it and/or modify
@@ -41,16 +41,16 @@ The program arguments are additional search paths for Python modules.
     arguments = list(arguments)
     arguments.reverse()
     for argument in arguments:
-	if os.path.isdir(argument):
-	    sys.path.insert(0, argument)
-    lisp._server.send('(pymacs-version "@VERSION@")')
-    lisp._server.loop()
+        if os.path.isdir(argument):
+            sys.path.insert(0, argument)
+    lisp._protocol.send('(pymacs-version "@VERSION@")')
+    lisp._protocol.loop()
 
-class Server:
+class Protocol:
 
     # FIXME: The following should work, but does not:
     #
-    # * pymacs.py (Server): Declare exceptions as classes, not strings.
+    # * pymacs.py (Protocol): Declare exceptions as classes, not strings.
     #
     #class ProtocolError(Exception): pass
     #class ReplyException(Exception): pass
@@ -65,87 +65,87 @@ class Server:
     ErrorException = 'ErrorException'
 
     def __init__(self):
-	self.freed = []
+        self.freed = []
 
     def loop(self):
-	# The server loop repeatedly receives a request from Emacs and
-	# returns a response, which is either the value of the received
-	# Python expression, or the Python traceback if an error occurs
-	# while evaluating the expression.
+        # The server loop repeatedly receives a request from Emacs and
+        # returns a response, which is either the value of the received
+        # Python expression, or the Python traceback if an error occurs
+        # while evaluating the expression.
 
-	# The server loop may also be executed, as a recursive invocation,
-	# in the context of Emacs serving a Python request.  In which
-	# case, we might also receive a notification from Emacs telling
-	# that the reply has been transmitted, or that an error occurred.
-	# A reply notification from Emacs interrupts the loop: the result
-	# of this function is the value returned from Emacs.
-	while 1:
-	    try:
-		text = self.receive()
-		if text[:5] == 'exec ':
-		    exec eval(text[5:], {}, {})
-		    status = 'reply'
-		    argument = None
-		else:
-		    status = 'reply'
-		    argument = eval(text)
-	    except Server.ReplyException, value:
-		return value
-	    except Server.ErrorException, message:
-		status = 'error'
-		argument = message
-	    except Server.ProtocolError, message:
-		sys.stderr.write("Protocol error: %s\n" % message)
-		sys.exit(1)
-	    except KeyboardInterrupt:
-		raise
-	    except:
-		import StringIO, traceback
-		message = StringIO.StringIO()
-		traceback.print_exc(file=message)
-		status = 'error'
-		argument = message.getvalue()
-	    # Send an expression to EMACS applying FUNCTION over ARGUMENT,
-	    # where FUNCTION is `pymacs-STATUS'.
-	    fragments = []
-	    write = fragments.append
-	    if self.freed:
-		write('(progn (pymacs-free-lisp')
-		for index in self.freed:
-		    write(' %d' % index)
-		write(') ')
-	    write('(pymacs-%s ' % status)
-	    print_lisp(argument, write, quoted=1)
-	    write(')')
-	    if self.freed:
-		write(')')
-		self.freed = []
-	    self.send(string.join(fragments, ''))
+        # The server loop may also be executed, as a recursive invocation,
+        # in the context of Emacs serving a Python request.  In which
+        # case, we might also receive a notification from Emacs telling
+        # that the reply has been transmitted, or that an error occurred.
+        # A reply notification from Emacs interrupts the loop: the result
+        # of this function is the value returned from Emacs.
+        while 1:
+            try:
+                text = self.receive()
+                if text[:5] == 'exec ':
+                    exec eval(text[5:], {}, {})
+                    status = 'reply'
+                    argument = None
+                else:
+                    status = 'reply'
+                    argument = eval(text)
+            except Protocol.ReplyException, value:
+                return value
+            except Protocol.ErrorException, message:
+                status = 'error'
+                argument = message
+            except Protocol.ProtocolError, message:
+                sys.stderr.write("Protocol error: %s\n" % message)
+                sys.exit(1)
+            except KeyboardInterrupt:
+                raise
+            except:
+                import StringIO, traceback
+                message = StringIO.StringIO()
+                traceback.print_exc(file=message)
+                status = 'error'
+                argument = message.getvalue()
+            # Send an expression to EMACS applying FUNCTION over ARGUMENT,
+            # where FUNCTION is `pymacs-STATUS'.
+            fragments = []
+            write = fragments.append
+            if self.freed:
+                write('(progn (pymacs-free-lisp')
+                for index in self.freed:
+                    write(' %d' % index)
+                write(') ')
+            write('(pymacs-%s ' % status)
+            print_lisp(argument, write, quoted=1)
+            write(')')
+            if self.freed:
+                write(')')
+                self.freed = []
+            self.send(string.join(fragments, ''))
 
     def receive(self):
-	# Receive a Python expression Emacs and return its text, unevaluated.
-	text = sys.stdin.read(3)
-	if not text or text[0] != '>':
-	    raise Server.ProtocolError, "`>' expected."
-	while text[-1] != '\t':
-	    text = text + sys.stdin.read(1)
-	return sys.stdin.read(int(text[1:-1]))
+        # Receive a Python expression from Emacs, return its text unevaluated.
+        text = sys.stdin.read(3)
+        if not text or text[0] != '>':
+            raise Protocol.ProtocolError, "`>' expected."
+        while text[-1] != '\t':
+            text = text + sys.stdin.read(1)
+        return sys.stdin.read(int(text[1:-1]))
 
     def send(self, text):
-	# Send TEXT to Emacs, which is an expression to evaluate.
-	if text[-1] == '\n':
-	    sys.stdout.write('<%d\t%s' % (len(text), text))
-	else:
-	    sys.stdout.write('<%d\t%s\n' % (len(text) + 1, text))
-	sys.stdout.flush()
+        # Send TEXT to Emacs, which is an expression to evaluate.
+        if text[-1] == '\n':
+            sys.stdout.write('<%d\t%s' % (len(text), text))
+        else:
+            sys.stdout.write('<%d\t%s\n' % (len(text) + 1, text))
+        sys.stdout.flush()
 
 def reply(value):
     # This function implements the `reply' pseudo-function.
-    raise Server.ReplyException, value
+    raise Protocol.ReplyException, value
 
 def error(message):
     # This function implements the `error' pseudo-function.
-    raise Server.ErrorException, "Emacs: %s" % message
+    raise Protocol.ErrorException, "Emacs: %s" % message
 
 def pymacs_load_helper(file_without_extension, prefix):
     # This function imports a Python module, then returns a LISP expression
@@ -158,47 +158,55 @@ def pymacs_load_helper(file_without_extension, prefix):
     # turned into dashes.  If PREFIX is None, it then defaults to the base
     # name of MODULE with underlines turned to dashes, followed by a dash.
     directory, module_name = os.path.split(file_without_extension)
+    module_components = string.split(module_name, '.')
     if prefix is None:
-	prefix = string.replace(module_name, '_', '-') + '-'
+        prefix = string.replace(module_components[-1], '_', '-') + '-'
     try:
-	object = sys.modules.get(module_name)
-	if object:
-	    reload(object)
-	else:
-	    try:
-		if directory:
-		    sys.path.insert(0, directory)
-		object = __import__(module_name)
-	    finally:
-		if directory:
-		    del sys.path[0]
+        object = sys.modules.get(module_name)
+        if object:
+            reload(object)
+        else:
+            try:
+                if directory:
+                    sys.path.insert(0, directory)
+                object = __import__(module_name)
+            finally:
+                if directory:
+                    del sys.path[0]
+            # Whenever MODULE_NAME is of the form [PACKAGE.]...MODULE,
+            # __import__ returns the outer PACKAGE, not the module.
+            for component in module_components[1:]:
+                object = getattr(object, component)
     except ImportError:
-	return None
+        return None
+    load_hook = object.__dict__.get('pymacs_load_hook')
+    if load_hook:
+        load_hook()
     interactions = object.__dict__.get('interactions', {})
     if type(interactions) != types.DictType:
-	interactions = {}
+        interactions = {}
     arguments = []
     for name, value in object.__dict__.items():
-	if callable(value) and value is not lisp:
-	    arguments.append(allocate_python(value))
-	    arguments.append(lisp[prefix + string.replace(name, '_', '-')])
+        if callable(value) and value is not lisp:
+            arguments.append(allocate_python(value))
+            arguments.append(lisp[prefix + string.replace(name, '_', '-')])
             try:
                 interaction = value.interaction
             except AttributeError:
                 interaction = interactions.get(value)
-	    if callable(interaction):
-		arguments.append(allocate_python(interaction))
-	    else:
-		arguments.append(interaction)
+            if callable(interaction):
+                arguments.append(allocate_python(interaction))
+            else:
+                arguments.append(interaction)
     if arguments:
-	return [lisp.progn,
-		[lisp.pymacs_defuns, [lisp.quote, arguments]],
-		object]
+        return [lisp.progn,
+                [lisp.pymacs_defuns, [lisp.quote, arguments]],
+                object]
     return [lisp.quote, object]
 
 def doc_string(object):
     if hasattr(object, '__doc__'):
-	return object.__doc__
+        return object.__doc__
 
 # Garbage collection matters.
 
@@ -215,28 +223,28 @@ def allocate_python(value):
     assert type(value) != type(''), (type(value), `value`)
     # Allocate some handle to hold VALUE, return its index.
     if freed_list:
-	index = freed_list[-1]
-	del freed_list[-1]
-	python[index] = value
+        index = freed_list[-1]
+        del freed_list[-1]
+        python[index] = value
     else:
-	index = len(python)
-	python.append(value)
+        index = len(python)
+        python.append(value)
     return index
 
 def free_python(*indices):
     # Return many handles to the pool.
     for index in indices:
-	python[index] = None
-	freed_list.append(index)
+        python[index] = None
+        freed_list.append(index)
 
 def zombie_python(*indices):
     # Ensure that some handles are _not_ in the pool.
     for index in indices:
-	while index >= len(python):
-	    freed_list.append(len(python))
-	    python.append(None)
-	python[index] = zombie
-	freed_list.remove(index)
+        while index >= len(python):
+            freed_list.append(len(python))
+            python.append(None)
+        python[index] = zombie
+        freed_list.remove(index)
     # Merely to make `*Pymacs*' a bit more readable.
     freed_list.sort()
 
@@ -248,151 +256,150 @@ def zombie(*arguments):
 class Let:
 
     def __init__(self, **keywords):
-	self.stack = []
-	apply(self.push, (), keywords)
+        self.stack = []
+        apply(self.push, (), keywords)
 
     def __del__(self):
-	while self.stack:
-	    type = self.stack[-1][0]
-	    if type == 'variables':
-		self.pop()
-	    elif type == 'excursion':
-		self.pop_excursion()
-	    elif type == 'match_data':
-		self.pop_match_data()
-	    elif type == 'restriction':
-		self.pop_restriction()
-	    elif type == 'selected_window':
-		self.pop_selected_window()
-	    elif type == 'window_excursion':
-		self.pop_window_excursion()
+        while self.stack:
+            type = self.stack[-1][0]
+            if type == 'variables':
+                self.pop()
+            elif type == 'excursion':
+                self.pop_excursion()
+            elif type == 'match_data':
+                self.pop_match_data()
+            elif type == 'restriction':
+                self.pop_restriction()
+            elif type == 'selected_window':
+                self.pop_selected_window()
+            elif type == 'window_excursion':
+                self.pop_window_excursion()
 
     def __nonzero__(self):
-	# So stylistic `if let:' executes faster.
-	return 1
-
+        # So stylistic `if let:' executes faster.
+        return 1
 
     def push(self, **keywords):
-	saved = []
-	for name, value in keywords.items():
-	    saved.append((name, getattr(lisp, name).value()))
-	    setattr(lisp, name, value)
-	self.stack.append(('variables', saved))
+        saved = []
+        for name, value in keywords.items():
+            saved.append((name, getattr(lisp, name).value()))
+            setattr(lisp, name, value)
+        self.stack.append(('variables', saved))
 
     def pop(self):
-	type, saved = self.stack[-1]
-	del self.stack[-1]
-	assert type == 'variables', (type, saved)
-	for name, value in saved:
-	    setattr(lisp, name, value)
+        type, saved = self.stack[-1]
+        del self.stack[-1]
+        assert type == 'variables', (type, saved)
+        for name, value in saved:
+            setattr(lisp, name, value)
 
     def push_excursion(self):
-	self.stack.append(('excursion',
-			   (lisp.current_buffer(),
-			    lisp.point_marker(), lisp.mark_marker())))
+        self.stack.append(('excursion',
+                           (lisp.current_buffer(),
+                            lisp.point_marker(), lisp.mark_marker())))
 
     def pop_excursion(self):
-	type, saved = self.stack[-1]
-	del self.stack[-1]
-	assert type == 'excursion', (type, saved)
-	lisp.set_buffer(saved[0])
-	lisp.goto_char(saved[1])
-	lisp.set_mark(saved[2])
+        type, saved = self.stack[-1]
+        del self.stack[-1]
+        assert type == 'excursion', (type, saved)
+        lisp.set_buffer(saved[0])
+        lisp.goto_char(saved[1])
+        lisp.set_mark(saved[2])
 
     def push_match_data(self):
-	self.stack.append(('match_data', lisp.match_data()))
+        self.stack.append(('match_data', lisp.match_data()))
 
     def pop_match_data(self):
-	type, saved = self.stack[-1]
-	del self.stack[-1]
-	assert type == 'match_data', (type, saved)
-	lisp.set_match_data(saved)
+        type, saved = self.stack[-1]
+        del self.stack[-1]
+        assert type == 'match_data', (type, saved)
+        lisp.set_match_data(saved)
 
     def push_restriction(self):
-	self.stack.append(('restriction',
-			   (lisp.point_min_marker(), lisp.point_max_marker())))
+        self.stack.append(('restriction',
+                           (lisp.point_min_marker(), lisp.point_max_marker())))
 
     def pop_restriction(self):
-	type, saved = self.stack[-1]
-	del self.stack[-1]
-	assert type == 'restriction', (type, saved)
-	lisp.narrow_to_region(saved[0], saved[1])
+        type, saved = self.stack[-1]
+        del self.stack[-1]
+        assert type == 'restriction', (type, saved)
+        lisp.narrow_to_region(saved[0], saved[1])
 
     def push_selected_window(self):
-	self.stack.append(('selected_window', lisp.selected_window()))
+        self.stack.append(('selected_window', lisp.selected_window()))
 
     def pop_selected_window(self):
-	type, saved = self.stack[-1]
-	del self.stack[-1]
-	assert type == 'selected_window', (type, saved)
-	lisp.select_window(saved)
+        type, saved = self.stack[-1]
+        del self.stack[-1]
+        assert type == 'selected_window', (type, saved)
+        lisp.select_window(saved)
 
     def push_window_excursion(self):
-	self.stack.append(('window_excursion',
-			   lisp.current_window_configuration()))
+        self.stack.append(('window_excursion',
+                           lisp.current_window_configuration()))
 
     def pop_window_excursion(self):
-	type, saved = self.stack[-1]
-	del self.stack[-1]
-	assert type == 'window_excursion', (type, saved)
-	lisp.set_window_configuration(saved)
+        type, saved = self.stack[-1]
+        del self.stack[-1]
+        assert type == 'window_excursion', (type, saved)
+        lisp.set_window_configuration(saved)
 
 class Symbol:
 
     def __init__(self, text):
-	self.text = text
+        self.text = text
 
     def __repr__(self):
-	return 'Symbol(%s)' % `self.text`
+        return 'Symbol(%s)' % `self.text`
 
     def value(self):
-	return lisp(self.text)
+        return lisp(self.text)
 
     def copy(self):
-	return lisp('(pymacs-expand %s)' % self.text)
+        return lisp('(pymacs-expand %s)' % self.text)
 
     def set(self, value):
-	if value is None:
-	    lisp('(setq %s nil)' % self.text)
-	else:
-	    fragments = []
-	    write = fragments.append
-	    write('(progn (setq %s ' % self.text)
-	    print_lisp(value, write, quoted=1)
-	    write(') nil)')
-	    lisp(string.join(fragments, ''))
+        if value is None:
+            lisp('(setq %s nil)' % self.text)
+        else:
+            fragments = []
+            write = fragments.append
+            write('(progn (setq %s ' % self.text)
+            print_lisp(value, write, quoted=1)
+            write(') nil)')
+            lisp(string.join(fragments, ''))
 
     def __call__(self, *arguments):
-	fragments = []
-	write = fragments.append
-	write('(%s' % self.text)
-	for argument in arguments:
-	    write(' ')
-	    print_lisp(argument, write, quoted=1)
-	write(')')
-	return lisp(string.join(fragments, ''))
+        fragments = []
+        write = fragments.append
+        write('(%s' % self.text)
+        for argument in arguments:
+            write(' ')
+            print_lisp(argument, write, quoted=1)
+        write(')')
+        return lisp(string.join(fragments, ''))
 
 class Lisp:
 
     def __init__(self, index):
-	self.index = index
+        self.index = index
 
     def __del__(self):
-	lisp._server.freed.append(self.index)
+        lisp._protocol.freed.append(self.index)
 
     def __repr__(self):
-	return 'Lisp(%s)' % self.index
+        return 'Lisp(%s)' % self.index
 
     def value(self):
-	return self
+        return self
 
     def copy(self):
-	return lisp('(pymacs-expand (aref pymacs-lisp %d))' % self.index)
+        return lisp('(pymacs-expand (aref pymacs-lisp %d))' % self.index)
 
 class Buffer(Lisp):
 
     def __repr__(self):
-	return 'Buffer(%s)' % self.index
+        return 'Buffer(%s)' % self.index
 
 #    def write(text):
 #        # So you could do things like
@@ -405,159 +412,159 @@ class Buffer(Lisp):
 class List(Lisp):
 
     def __repr__(self):
-	return 'List(%s)' % self.index
+        return 'List(%s)' % self.index
 
     def __call__(self, *arguments):
-	fragments = []
-	write = fragments.append
-	write('((aref pymacs-lisp %d)' % self.index)
-	for argument in arguments:
-	    write(' ')
-	    print_lisp(argument, write, quoted=1)
-	write(')')
-	return lisp(string.join(fragments, ''))
+        fragments = []
+        write = fragments.append
+        write('((aref pymacs-lisp %d)' % self.index)
+        for argument in arguments:
+            write(' ')
+            print_lisp(argument, write, quoted=1)
+        write(')')
+        return lisp(string.join(fragments, ''))
 
     def __len__(self):
-	return lisp('(length (aref pymacs-lisp %d))' % self.index)
+        return lisp('(length (aref pymacs-lisp %d))' % self.index)
 
     def __getitem__(self, key):
-	return lisp('(nth %d (aref pymacs-lisp %d))' % (key, self.index))
+        return lisp('(nth %d (aref pymacs-lisp %d))' % (key, self.index))
 
     def __setitem__(self, key, value):
-	fragments = []
-	write = fragments.append
-	write('(setcar (nthcdr %d (aref pymacs-lisp %d)) ' % (key, self.index))
-	print_lisp(value, write, quoted=1)
-	write(')')
-	lisp(string.join(fragments, ''))
+        fragments = []
+        write = fragments.append
+        write('(setcar (nthcdr %d (aref pymacs-lisp %d)) ' % (key, self.index))
+        print_lisp(value, write, quoted=1)
+        write(')')
+        lisp(string.join(fragments, ''))
 
 class Table(Lisp):
 
     def __repr__(self):
-	return 'Table(%s)' % self.index
+        return 'Table(%s)' % self.index
 
     def __getitem__(self, key):
-	fragments = []
-	write = fragments.append
-	write('(gethash ')
-	print_lisp(key, write, quoted=1)
-	write(' (aref pymacs-lisp %d))' % self.index)
-	return lisp(string.join(fragments, ''))
+        fragments = []
+        write = fragments.append
+        write('(gethash ')
+        print_lisp(key, write, quoted=1)
+        write(' (aref pymacs-lisp %d))' % self.index)
+        return lisp(string.join(fragments, ''))
 
     def __setitem__(self, key, value):
-	fragments = []
-	write = fragments.append
-	write('(puthash ')
-	print_lisp(key, write, quoted=1)
-	write(' ')
-	print_lisp(value, write, quoted=1)
-	write(' (aref pymacs-lisp %d))' % self.index)
-	lisp(string.join(fragments, ''))
+        fragments = []
+        write = fragments.append
+        write('(puthash ')
+        print_lisp(key, write, quoted=1)
+        write(' ')
+        print_lisp(value, write, quoted=1)
+        write(' (aref pymacs-lisp %d))' % self.index)
+        lisp(string.join(fragments, ''))
 
 class Vector(Lisp):
 
     def __repr__(self):
-	return 'Vector(%s)' % self.index
+        return 'Vector(%s)' % self.index
 
     def __len__(self):
-	return lisp('(length (aref pymacs-lisp %d))' % self.index)
+        return lisp('(length (aref pymacs-lisp %d))' % self.index)
 
     def __getitem__(self, key):
-	return lisp('(aref (aref pymacs-lisp %d) %d)' % (self.index, key))
+        return lisp('(aref (aref pymacs-lisp %d) %d)' % (self.index, key))
 
     def __setitem__(self, key, value):
-	fragments = []
-	write = fragments.append
-	write('(aset (aref pymacs-lisp %d) %d ' % (self.index, key))
-	print_lisp(value, write, quoted=1)
-	write(')')
-	lisp(string.join(fragments, ''))
+        fragments = []
+        write = fragments.append
+        write('(aset (aref pymacs-lisp %d) %d ' % (self.index, key))
+        print_lisp(value, write, quoted=1)
+        write(')')
+        lisp(string.join(fragments, ''))
 
 class Lisp_Interface:
 
     def __init__(self):
-	self.__dict__['_cache'] = {'nil': None}
-	self.__dict__['_server'] = Server()
+        self.__dict__['_cache'] = {'nil': None}
+        self.__dict__['_protocol'] = Protocol()
 
     def __call__(self, text):
-	self._server.send(text)
-	return self._server.loop()
+        self._protocol.send(text)
+        return self._protocol.loop()
 
     def __getattr__(self, name):
-	if name[0] == '_':
-	    raise AttributeError, name
-	return self[string.replace(name, '_', '-')]
+        if name[0] == '_':
+            raise AttributeError, name
+        return self[string.replace(name, '_', '-')]
 
     def __setattr__(self, name, value):
-	if name[0] == '_':
-	    raise AttributeError, name
-	self[string.replace(name, '_', '-')] = value
+        if name[0] == '_':
+            raise AttributeError, name
+        self[string.replace(name, '_', '-')] = value
 
     def __getitem__(self, name):
-	try:
-	    return self._cache[name]
-	except KeyError:
-	    symbol = self._cache[name] = Symbol(name)
-	    return symbol
+        try:
+            return self._cache[name]
+        except KeyError:
+            symbol = self._cache[name] = Symbol(name)
+            return symbol
 
     def __setitem__(self, name, value):
-	try:
-	    symbol = self._cache[name]
-	except KeyError:
-	    symbol = self._cache[name] = Symbol(name)
-	symbol.set(value)
+        try:
+            symbol = self._cache[name]
+        except KeyError:
+            symbol = self._cache[name] = Symbol(name)
+        symbol.set(value)
 
 lisp = Lisp_Interface()
 
 def print_lisp(value, write, quoted=0):
     if value is None:
-	write('nil')
+        write('nil')
     elif type(value) == types.IntType:
-	write(repr(value))
+        write(repr(value))
     elif type(value) == types.FloatType:
-	write(repr(value))
+        write(repr(value))
     elif type(value) == types.StringType:
-	# Python delimits a string it by single quotes preferably, unless
-	# single quotes appear within the string while double quotes do
-	# not, in which case it uses double quotes for string delimiters.
-	# Checking the string contents, the C code stops at the first NUL.
-	# We prefix the string with a single quote and a NUL, this forces
-	# double quotes as delimiters for the whole prefixed string.  Then,
-	# we get rid of the representation of the single quote and the NUL.
-	write('"' + repr("'\0" + value)[6:])
+        # Python delimits a string it by single quotes preferably, unless
+        # single quotes appear within the string while double quotes do
+        # not, in which case it uses double quotes for string delimiters.
+        # Checking the string contents, the C code stops at the first NUL.
+        # We prefix the string with a single quote and a NUL, this forces
+        # double quotes as delimiters for the whole prefixed string.  Then,
+        # we get rid of the representation of the single quote and the NUL.
+        write('"' + repr("'\0" + value)[6:])
     elif type(value) == types.ListType:
-	if quoted:
-	    write("'")
-	if len(value) == 0:
-	    write('nil')
-	elif len(value) == 2 and value[0] == lisp.quote:
-	    write("'")
-	    print_lisp(value[1], write)
-	else:
-	    write('(')
-	    print_lisp(value[0], write)
-	    for sub_value in value[1:]:
-		write(' ')
-		print_lisp(sub_value, write)
-	    write(')')
+        if quoted:
+            write("'")
+        if len(value) == 0:
+            write('nil')
+        elif len(value) == 2 and value[0] == lisp.quote:
+            write("'")
+            print_lisp(value[1], write)
+        else:
+            write('(')
+            print_lisp(value[0], write)
+            for sub_value in value[1:]:
+                write(' ')
+                print_lisp(sub_value, write)
+            write(')')
     elif type(value) == types.TupleType:
-	write('[')
-	if len(value) > 0:
-	    print_lisp(value[0], write)
-	    for sub_value in value[1:]:
-		write(' ')
-		print_lisp(sub_value, write)
-	write(']')
+        write('[')
+        if len(value) > 0:
+            print_lisp(value[0], write)
+            for sub_value in value[1:]:
+                write(' ')
+                print_lisp(sub_value, write)
+        write(']')
     elif isinstance(value, Lisp):
-	write('(aref pymacs-lisp %d)' % value.index)
+        write('(aref pymacs-lisp %d)' % value.index)
     elif isinstance(value, Symbol):
-	if quoted:
-	    write("'")
-	write(value.text)
+        if quoted:
+            write("'")
+        write(value.text)
     elif callable(value):
-	write('(pymacs-defun %d)' % allocate_python(value))
+        write('(pymacs-defun %d)' % allocate_python(value))
     else:
-	write('(pymacs-python %d)' % allocate_python(value))
+        write('(pymacs-python %d)' % allocate_python(value))
 
 if __name__ == '__main__':
     apply(main, sys.argv[1:])

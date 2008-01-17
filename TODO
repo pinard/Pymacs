@@ -1,9 +1,5 @@
 * TODO for `Pymacs'				allout -*- outline -*-
 
-.. Installation
-
-. : Write a ./setup interactive installer.
-
 .. Debugging facilities
 
 . : *Pymacs*

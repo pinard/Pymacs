@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright © 2001 Progiciels Bourbeau-Pinard inc.
+# Copyright © 2001, 2002 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
 """\
@@ -29,7 +29,7 @@ import os, string, sys
 
 class run:
     PACKAGE = 'pymacs'
-    VERSION = '0.12'
+    VERSION = '0.13'
     interactive = 0
     dry = 0
     group = None

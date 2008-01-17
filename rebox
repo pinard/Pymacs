@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+# Copyright © 2002 Progiciels Bourbeau-Pinard inc.
+# François Pinard <pinard@iro.umontreal.ca>, 2002.
+
+"""\
+Handling of comment boxes in various styles.
+"""
+
+import sys
+from Pymacs import rebox
+apply(rebox.main, tuple(sys.argv[1:]))
