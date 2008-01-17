@@ -226,6 +226,8 @@ The timer is used only if `post-gc-hook' is not available.")
 	  (if (gethash id pymacs-weak-hash)
 	      (setq used-ids (cons id used-ids))
 	    (setq unused-ids (cons id unused-ids)))))
+      ;;(message "** pymacs-garbage-collect %d %d"
+      ;;         (length used-ids) (length unused-ids))
       (setq pymacs-used-ids used-ids
 	    pymacs-gc-wanted nil)
       (when unused-ids

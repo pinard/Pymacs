@@ -21,4 +21,4 @@ Interface between Emacs Lisp and Python - Identification of version.
 """
 
 package = 'Pymacs'
-version = '0.16'
+version = '0.17'

@@ -3,7 +3,7 @@
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
 """\
-Installer tool for Pymacs.
+Installer tool for Pymacs `pymacs.el'.
 
 Usage: setup [OPTION]
 
@@ -15,14 +15,8 @@ Usage: setup [OPTION]
   -g GROUP   Install with write permissions for that user GROUP.
   -e         Load `.emacs' before checking Emacs `load-path'.
 
-  -b BINDIR      Install `pymacs-services' in BINDIR.
-  -l LISPDIR     Install `pymacs.el' in LISPDIR.
-  -p PYTHONDIR   Install `pymacs.py' in PYTHONDIR if not "None".
-  -x PYMACSDIR   Find Python extension for Emacs in PYMACSDIR if not "None".
-
-  -E EMACS    Use that executable for EMACS, if not `emacs'.
-  -P PYTHON   Use that executable for Python, if not `python'.
-
+  -l LISPDIR   Install `pymacs.el' in LISPDIR.
+  -E EMACS     Use that executable for EMACS, if not `emacs'.
 """
 
 import os, string, sys
@@ -38,32 +32,21 @@ class run:
     dry = 0
     group = None
     dot_emacs = 0
-    bindir = AUTOCONF
     lispdir = AUTOCONF
-    pythondir = AUTOCONF
-    pymacsdir = None
     emacs = 'emacs'
-    python = 'python'
 
 def main(*arguments):
     import getopt
-    options, arguments = getopt.getopt(arguments, 'E:HP:Vb:eg:il:np:x:')
+    options, arguments = getopt.getopt(arguments, 'E:HVeg:il:n')
     for option, value in options:
         if option == '-E' and value:
             run.emacs = value
         elif option == '-H':
             sys.stdout.write(__doc__)
             sys.exit(0)
-        elif option == '-P' and value:
-            run.python = value
         elif option == '-V':
             sys.stdout.write('%s-%s' % (package, version))
             sys.exit(0)
-        elif option == '-b' and value:
-            if value in ('none', 'None'):
-                run.bindir = None
-            else:
-                run.bindir = [value]
         elif option == '-e':
             run.dot_emacs = 1
         elif option == '-g' and value:
@@ -75,16 +58,6 @@ def main(*arguments):
                 run.lispdir = None
             else:
                 run.lispdir = [value]
-        elif option == '-p' and value:
-            if value in ('none', 'None'):
-                run.pythondir = None
-            else:
-                run.pythondir = [value]
-        elif option == '-x' and value:
-            if value in ('none', 'None'):
-                run.pymacsdir = None
-            else:
-                run.pymacsdir = [value]
     auto_configure()
     if run.interactive:
         check_with_user()
@@ -93,15 +66,14 @@ def main(*arguments):
         complete_install()
 
 def auto_configure():
-    if run.bindir is AUTOCONF:
-        run.bindir = []
-        for path in string.split(os.environ['PATH'], ':'):
-            if os.access(path, 7):
-                run.bindir.append(path)
     if run.lispdir is AUTOCONF:
         run.lispdir = []
         import tempfile
         script = tempfile.mktemp()
+        if sys.platform == 'win32':
+            # Win32 names starting with tilde and Emacs are unhappy together.
+            path, file = os.path.split(script)
+            script = os.path.join(path, 'a' + file)
         try:
             open(script, 'w').write('(message "%S" load-path)')
             load_config = ''
@@ -109,9 +81,11 @@ def auto_configure():
                 config = os.path.join(os.environ['HOME'], '.emacs')
                 for name in config, config + '.el', config + '.elc':
                     if os.path.isfile(name):
-                        load_config = ' -l %s' % name
-                        break
-            text = os.popen('%s -batch%s -l %s 2>&1'
+                        # Quote!  Spaces are common in Win32 file names.
+                        load_config = ' -l "%s"' % name
+                    break
+            # Quote!  Spaces are common in Win32 file names.
+            text = os.popen('%s -batch%s -l "%s" 2>&1'
                             % (run.emacs, load_config, script)).read()
         finally:
             os.remove(script)
@@ -126,43 +100,15 @@ def auto_configure():
             path = path[1:-1]
             if os.access(path, 7):
                 run.lispdir.append(path)
-    if run.pythondir is AUTOCONF:
-        run.pythondir = []
-        text = (os.popen('%s -c \'import sys; print sys.path\'' % run.python)
-                .read())
-        if text[-1] == '\n':
-            text = text[:-1]
-        assert text[:2] == '[\'' and text[-2:] == '\']', text
-        for path in string.split(text[1:-1], ', '):
-            assert path[0] == '\'' and path[-1] == '\'', path
-            path = path[1:-1]
-            if os.access(path, 7):
-                run.pythondir.append(path)
 
 def check_with_user():
     sys.stderr.write("""\
 Install tool for %s version %s.
 """
                      % (package, version))
-    run.bindir = user_select('bindir', run.bindir, """\
-This is where `pymacs-services', the Python process starter, should go:
-somewhere on your shell `PATH'.
-""")
     run.lispdir = user_select('lispdir', run.lispdir, """\
 This is where `pymacs.el', the Emacs side code of Pymacs, should go:
 somewhere on your Emacs `load-path'.
-""")
-    run.pythondir = user_select('pythondir', run.pythondir, """\
-This is where `pymacs.py', the compatibility module of Pymacs, should go:
-somewhere on your Python `sys.path'.  You do not need this one anymore if
-you always use the "from Pymacs import ..." form.  The old "import pymacs"
-form is now deprecated.
-""")
-    run.pymacsdir = user_select('pymacsdir', run.pymacsdir, """\
-This is where you intend to keep your Python code to extend Emacs.
-You should make sure this variable is empty if you do not want to use
-a special directory for this purpose, as you might very well save your
-Python extensions in any directory from your usual Python search path.
 """)
 
 def user_select(name, values, message):
@@ -227,13 +173,6 @@ This is not a valid choice.  Please retry.
 def check_choices():
     write = sys.stderr.write
     error = 0
-    if run.bindir is not None:
-        if run.bindir and os.access(os.path.expanduser(run.bindir[0]), 7):
-            run.bindir = os.path.expanduser(run.bindir[0])
-        else:
-            write("\
-Use `-b BINDIR' to select where `pymacs-services' should go.\n")
-            error = 1
     if run.lispdir is not None:
         if run.lispdir and os.access(os.path.expanduser(run.lispdir[0]), 7):
             run.lispdir = run.lispdir[0]
@@ -241,21 +180,6 @@ Use `-b BINDIR' to select where `pymacs-services' should go.\n")
             write("\
 Use `-l LISPDIR' to select where `pymacs.el' should go.\n")
             error = 1
-    if run.pythondir is not None:
-        if run.pythondir and os.access(os.path.expanduser(run.pythondir[0]), 7):
-            run.pythondir = os.path.expanduser(run.pythondir[0])
-        else:
-            write("\
-Use `-p PYTHONDIR' to select where `pymacs.py' should go.\n")
-            error = 1
-    if run.pymacsdir is not None:
-        if run.pymacsdir:
-            if os.access(os.path.expanduser(run.pymacsdir[0]), 7):
-                run.pymacsdir = os.path.expanduser(run.pymacsdir[0])
-            else:
-                write("\
-Use `-x PYMACSDIR' to where Python extensions are kept.\n")
-                error = 1
     if error:
         write("ERROR: Installation aborted!\n"
               "       Try `%s -i'.\n" % sys.argv[0])
@@ -263,30 +187,16 @@ Use `-x PYMACSDIR' to where Python extensions are kept.\n")
     write(
         '\n'
         "Directory selection for installing Pymacs:\n"
-        "  bindir    = %(bindir)s\n"
         "  lispdir   = %(lispdir)s\n"
-        "  pythondir = %(pythondir)s\n"
-        "  pymacsdir = %(pymacsdir)s\n"
         '\n'
         % run.__dict__)
 
 def complete_install():
     run.substitute = {'PACKAGE': package, 'VERSION': version}
-    if run.pymacsdir is None:
-        run.substitute['pymacsdir'] = 'None'
-    else:
-        run.substitute['pymacsdir'] = '\'%s\'' + run.pymacsdir
-    if run.bindir:
-        goal = os.path.join(run.bindir, 'pymacs-services')
-        install('pymacs-services', goal, 0755)
     if run.lispdir:
         goal = os.path.join(run.lispdir, 'pymacs.el')
         install('pymacs.el', goal, 0644)
         compile_lisp(goal)
-    if run.pythondir:
-        goal = os.path.join(run.pythondir, 'pymacs.py')
-        install('pymacs.py', goal, 0644)
-        compile_python(goal)
 
 def install(source, destination, permissions):
     sys.stderr.write('Installing %s\n' % destination)
@@ -313,12 +223,6 @@ def install(source, destination, permissions):
 def compile_lisp(name):
     sys.stderr.write('Compiling %s\n' % name)
     os.system('%s -batch -f batch-byte-compile %s' % (run.emacs, name))
-    set_attributes(name + 'c', 0644)
-
-def compile_python(name):
-    sys.stderr.write('Compiling %s\n' % name)
-    import py_compile
-    py_compile.compile(name)
     set_attributes(name + 'c', 0644)
 
 def set_attributes(name, permissions):

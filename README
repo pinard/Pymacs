@@ -59,9 +59,9 @@
 . : Install the Pymacs proper.
 
     We then invite you to follow the instructions below.  Currently,
-    there are two installation scripts, and both should be run (we hope
-    combining the second into the first in some later release).  If you
-    prefer, you may study and modify `Makefile', then use `make install'.
+    there are two installation scripts, and both should be run.  If you
+    prefer, you may use `make install lispdir=LISPDIR', where LISPDIR is
+    some directory along the list kept in your Emacs `load-path'.
 
     The first installation script installs the Python package, including the
     Pymacs examples, using the Python standard Distutils tool.  Merely `cd'
@@ -69,16 +69,19 @@
     To get an option reminder, do `python setup.py install --help'.  Check
     the Distutils documentation if you need more information about this.
 
-    The second installation script installs the Emacs Lisp part, that
-    script which Emacs calls to launch the Pymacs server, and a Python
-    module meant to offer the old Pymacs interface, as before release 0.16.
+    The second installation script installs the Emacs Lisp part only.
+    (It used to do everything, but is now doomed to disappear completely.)
     Merely `cd' into the Pymacs distribution, then run `python setup -ie'.
-    This will invite you to interactively confirm installation directories.
-    Without `-ie', Pymacs will be installed in automatically guessed places.
-    Use `-n' to known about these guesses without proceeding to the actual
-    installation.  You may use options to select various directories or
-    executables for Emacs or Python.  For example, `./setup -E xemacs ...'
-    is useful to XEmacs lovers.  Try `./setup -H' for a complete list.
+    This will invite you to interactively confirm the Lisp installation
+    directory.  Without `-ie', the Lisp part of Pymacs will be installed
+    in some automatically guessed place.  Use `-n' to known about the guess
+    without proceeding to the actual installation.  `./setup -E xemacs ...'
+    may be useful to XEmacs lovers.  See `./setup -H' for all options.
+
+    About Win32 systems, Syver Enstad says: "For Pymacs to operate correctly,
+    one should create a batch file with `pymacs-services.bat' as a name,
+    which runs the `pymacs-services' script.  The `.bat' file could be
+    placed along with `pymacs-services', wherever that maybe.".
 
     To check that `pymacs.el' is properly installed, start Emacs and give
     it the command `M-x load-library RET pymacs': you should not receive
@@ -86,8 +89,8 @@
     an interactive Python session and type `from Pymacs import lisp':
     you should not receive any error.  To check that `pymacs-services'
     is properly installed, type `pymacs-services </dev/null' in a shell;
-    you should then a line ending with "(pymacs-version VERSION)", and
-    another saying: "Protocol error: `>' expected.".
+    you should then get a line ending with "(pymacs-version VERSION)",
+    and another saying: "Protocol error: `>' expected.".
 
     Currently, there is only one installed Pymacs example, which come
     in two parts: a batch script `rebox' and a `Pymacs.rebox' module.
@@ -102,7 +105,13 @@
       (autoload 'pymacs-load "pymacs" nil t)
       (autoload 'pymacs-eval "pymacs" nil t)
       (autoload 'pymacs-apply "pymacs")
+      ;;(eval-after-load "pymacs"
+      ;;  (add-to-list 'pymacs-load-path "YOUR-PYMACS-DIRECTORY"))
 
+    If you plan to use a special directory to hold your own Pymacs code in
+    Python, which should be searched prior to the usual Python import search
+    path, then uncomment the last two lines (by removing the semi-colons)
+    and replace YOUR-PYMACS-DIRECTORY by the name of your special directory.
     If the file "$HOME/.emacs" does not exist, merely create it with the
     above lines.  You are now all set to use Pymacs.
 
@@ -180,9 +189,9 @@
     by Python underscores.  This convention is welcome, as Emacs Lisp
     programmers commonly prefer using dashes, where Python programmers
     use underlines.  Otherwise, the second notation is used.  Conversely,
-    `lisp.SYMBOL' on the Python side yields a Emacs Lisp symbol with
+    `lisp.SYMBOL' on the Python side yields an Emacs Lisp symbol with
     underscores replaced with hyphens, while `lisp[STRING]' corresponds
-    to a Emacs Lisp symbol printed with that STRING which, of course,
+    to an Emacs Lisp symbol printed with that STRING which, of course,
     should then be a valid Emacs Lisp symbol name.
 
 . : Sequences.
@@ -231,12 +240,12 @@
     fixed.  Mapping vectors to tuples, which is admittedly strange, will only
     be done if the Python side requests an expanded copy, otherwise an opaque
     Emacs Lisp object is seen in Python.  In the other direction, whenever
-    a Emacs Lisp vector is needed, one has to write `tuple(python_list)'
+    an Emacs Lisp vector is needed, one has to write `tuple(python_list)'
     while transmitting the object.  Such transmissions are most probably
     to be unusual, as people are not going to blindly transmit whole big
     structures back and forth between Emacs and Python, they would rather do
     it once in a while only, and do only local modifications afterwards.
-    The infrequent casting to `tuple' for getting a Emacs Lisp vector
+    The infrequent casting to `tuple' for getting an Emacs Lisp vector
     seems to suggest that we did a reasonable compromise.
 
     In Python, both tuples and lists have O(1) access, so there is no real
@@ -266,19 +275,19 @@
      for Emacs services to do so.  Emacs Lisp handles are a mean to ease
      this communication.
 
-     Whenever a Emacs Lisp object may not be converted to a Python object, an
+     Whenever an Emacs Lisp object may not be converted to a Python object, an
      Emacs Lisp handle is created and used instead.  Whenever that Emacs Lisp
      handle is returned into Emacs Lisp from a Python function, or is used
-     as an argument to a Emacs Lisp function from Python, the original Emacs
+     as an argument to an Emacs Lisp function from Python, the original Emacs
      Lisp object behind the Emacs Lisp handle is automatically retrieved.
 
      Emacs Lisp handles are either instances of the internal `Lisp' class,
-     or of one of its subclasses.  If `object' is a Emacs Lisp handle, and
-     if the underlying Emacs Lisp object is a Emacs Lisp sequence, then
+     or of one of its subclasses.  If `object' is an Emacs Lisp handle, and
+     if the underlying Emacs Lisp object is an Emacs Lisp sequence, then
      whenever `object[index]', `object[index] = value' and `len(object)'
      are meaningful, these may be used to fetch or alter an element of the
      sequence directly in Emacs Lisp space.  Also, if `object' corresponds
-     to a Emacs Lisp function, `object(ARGUMENTS)' may be used to apply
+     to an Emacs Lisp function, `object(ARGUMENTS)' may be used to apply
      the Emacs Lisp function over the given arguments.  Since arguments
      have been evaluated the Python way on the Python side, it would be
      conceptual overkill evaluating them again the Emacs Lisp way on the
@@ -292,11 +301,11 @@
      the structure of the copy on the Python side has no effect on the
      Emacs Lisp side.
 
-     For Emacs Lisp handles, `str()' returns a Emacs Lisp representation
+     For Emacs Lisp handles, `str()' returns an Emacs Lisp representation
      of the handle which should be `eq' to the original object if read back
      and evaluated in Emacs Lisp.  `repr()' returns a Python representation
      of the expanded Emacs Lisp object.  If that Emacs Lisp object has
-     a Emacs Lisp representation which Emacs Lisp could read back, then
+     an Emacs Lisp representation which Emacs Lisp could read back, then
      `repr()' value is such that it could be read back and evaluated in
      Python as well, this would result in another object which is `equal'
      to the original, but not neccessarily `eq'.
@@ -314,7 +323,7 @@
      These are automatically recovered into the original Python objects
      whenever transmitted back to Python, either as arguments to a Python
      function, as the Python function itself, or as the return value of
-     a Emacs Lisp function called from Python.
+     an Emacs Lisp function called from Python.
 
      The objects represented by these Python handles may be inspected or
      modified using the basic library of Python functions.  For example, in:
@@ -499,17 +508,16 @@
     Except for `lisp.nil' or `lisp["nil"]', which are the same as `None',
     both `lisp.SYMBOL' and `lisp[STRING]' yield objects of the internal
     `Symbol' type.  These are genuine Python objects, that could be referred
-    to by simple Python variables.  One can write `quote = lisp.quote',
+    to by simple Python variables.  One may write `quote = lisp.quote',
     for example, and use `quote' afterwards to mean that Emacs Lisp symbol.
-    Here are other examples.  If a Python function received a Emacs Lisp
-    symbol as an argument, it can check with `==' if that argument is,
-    for example, `lisp.never' or `lisp.ask'.  A Python function may well
-    choose to return `lisp.t'.
+    If a Python function received an Emacs Lisp symbol as an argument, it
+    can check with `==' if that argument is `lisp.never' or `lisp.ask', say.
+    A Python function may well choose to return `lisp.t'.
 
     In Python, writing `lisp.SYMBOL = VALUE' or `lisp[STRING] = VALUE'
     does assign VALUE to the corresponding symbol in Emacs Lisp space.
     Beware that in such cases, the `lisp.' prefix may not be spared.
-    Afet `result = lisp.result', one cannot hope that a later `result = 3'
+    After `result = lisp.result', one cannot hope that a later `result = 3'
     will have any effect in the Emacs Lisp space: this would merely change
     the Python variable `result', which was a reference to a `Symbol'
     instance, so it is now a reference to the number 3.
@@ -517,12 +525,12 @@
     The `Symbol' class has `value()' and `copy()' methods.  One can use
     either `lisp.SYMBOL.value()' or `lisp.SYMBOL.copy()' to access the
     Emacs Lisp value of a symbol, after conversion to some Python object,
-    of course.  However, if `value()' would have given a Emacs Lisp handle,
+    of course.  However, if `value()' would have given an Emacs Lisp handle,
     `lisp.SYMBOL.copy()' has the same effect of `lisp.SYMBOL.value().copy()',
     that is, it returns the value of the symbol as opened as possible.
 
     A symbol may also be as if it was a Python function, in which case
-    it really names a Emacs Lisp function that should be applied over the
+    it really names an Emacs Lisp function that should be applied over the
     following function arguments.  The result of the Emacs Lisp function
     becomes the value of the call, with all due conversions of course.
 
@@ -549,7 +557,7 @@
             let.pop()
 
     `let.push()' accepts any number of keywords arguments.  Each keyword
-    name is interpreted as a Emacs Lisp symbol written the Pymacs way,
+    name is interpreted as an Emacs Lisp symbol written the Pymacs way,
     with underlines.  The value of that Emacs Lisp symbol is saved on the
     Python side, and the value of the keyword becomes the new temporary value
     for this Emacs Lisp symbol.  A later `let.pop()' restores the previous
@@ -564,7 +572,7 @@
     goes out of scope, all remaining `let.pop()' get automatically executed,
     so the `try'/'finally' statement may be omitted in practice.  For this
     omission to work flawlessly, the programmer should be careful at not
-    keeping extra references to the instance.
+    keeping extra references to the `Let' instance.
 
     The constructor call `let = Let()' also has an implied initial `.push()'
     over all given arguments, so the explicit `let.push()' may be omitted
@@ -706,7 +714,7 @@
 
         lisp.global_set_key((lisp.f1,), lisp.module_helper)
 
-    (item,) is a Python tuple yielding a Emacs Lisp vector.  `lisp.f1'
+    (item,) is a Python tuple yielding an Emacs Lisp vector.  `lisp.f1'
     translates to the Emacs Lisp symbol `f1'.  So, Python `(lisp.f1,)' is
     Emacs Lisp `[f1]'.  Keys like `[M-f2]' might require some more ingenuity,
     one may write either (lisp['M-f2'],) or (lisp.M_f2,) on the Python side.
@@ -845,7 +853,6 @@
 
      Here is a first draft for the Python side of the problem:
 
-         import string
          from Pymacs import lisp
 
          def break_on_whitespace():
@@ -855,7 +862,7 @@
                  start, end = end, start
              text = lisp.buffer_substring(start, end)
              words = text.split()
-             replacement = string.join(words, '\n')
+             replacement = '\n'.join(words)
              lisp.delete_region(start, end)
              lisp.insert(replacement)
 
@@ -863,7 +870,6 @@
 
      For various stylistic reasons, this could be rewritten into:
 
-         from string import join
          from Pymacs import lisp
          interactions = {}
 
@@ -871,7 +877,7 @@
              start, end = lisp.point(), lisp.mark(lisp.t)
              words = lisp.buffer_substring(start, end).split()
              lisp.delete_region(start, end)
-             lisp.insert(join(words, '\n'))
+             lisp.insert('\n'.join(words))
 
          interactions[break_on_whitespace] = ''
 
@@ -949,7 +955,7 @@
      the Emacs memory, the code doing this stays neat and legible.  However,
      I found out that the undo list may grow quickly when the Emacs buffer
      use markers, with the consequence of making this routine so Pymacs
-     intensive that most of the CPU was spent there.  I rewrote that
+     intensive that most of the CPU is spent there.  I rewrote that
      routine in Emacs Lisp so it executes in a single Pymacs interaction.
 
      Function `Emacs_Rebox.remainder_of_line' could have been written in
@@ -981,3 +987,7 @@
 
      The Emacs recipe appears under the `Emacs usage' section, near the
      beginning of `Pymacs/rebox.py', so I do not repeat it here.
+
+..
+                                        François Pinard,
+                                        pinard@iro.umontreal.ca

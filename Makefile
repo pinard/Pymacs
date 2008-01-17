@@ -6,29 +6,23 @@
 
 ### Start of customisation.
 #
-# Somewhere on your shell PATH.
-bindir =
 # Somewhere on your Emacs LISP load-path.
 lispdir =
-# Somewhere on your python sys.path.
-# Define to None if you only use the new "from Pymacs import" format.
-pythondir =
-# Directory for Python extensions.
-# Leave to None unless you have your own special directory for Pymacs code.
-pymacsdir = None
 #
 ### End of customisation.
 
-SETUP = python setup.py --quiet
+SETUP = python setup.py
 DISTRIBUTION := $(shell ./setup -V)
 
 all:
 	$(SETUP) build
 
 install: all
-	@./setup \
-	  -b '$(bindir)' -l '$(lispdir)' -p '$(pythondir)' -x '$(pymacsdir)'
+	@./setup -l '$(lispdir)'
 	$(SETUP) install
+
+tags:
+	(find bin -type f; find -name '*.py') | grep -v '~$$' | etags -
 
 dist:
 	$(SETUP) sdist
@@ -38,7 +32,7 @@ dist:
 
 publish: dist
 	chmod 644 $(DISTRIBUTION).tar.gz
-	scp -p $(DISTRIBUTION).tar.gz bor:pymacs/
-	ssh bor rm -vf pymacs/Pymacs.tar.gz pymacs/pymacs.tar.gz
-	ssh bor ln -vs $(DISTRIBUTION).tar.gz pymacs/Pymacs.tar.gz
-	ssh bor ls -Llt pymacs
+	scp -p $(DISTRIBUTION).tar.gz bor:w/pymacs/
+	ssh bor rm -vf w/pymacs/Pymacs.tar.gz
+	ssh bor ln -vs $(DISTRIBUTION).tar.gz w/pymacs/Pymacs.tar.gz
+	ssh bor ls -Llt w/pymacs

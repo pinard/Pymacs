@@ -22,12 +22,6 @@ Interface between Emacs LISP and Python - Python process starter.
 This small bootstrap is so Pymacs modules can be kept in compiled form.
 """
 
-pymacsdir = @pymacsdir@
-
-if __name__ == '__main__':
-    import sys
-    from Pymacs import pymacs
-    if pymacsdir is None:
-        apply(pymacs.main, sys.argv[1:])
-    else:
-        apply(pymacs.main, [pymacsdir] + sys.argv[1:])
+import sys
+from Pymacs import pymacs
+apply(pymacs.main, sys.argv[1:])
