@@ -24,7 +24,7 @@ acts as a server of Python facilities for that Emacs session, reading
 requests from standard input and writing replies on standard output.
 
 This module may also be usefully imported by those other Python modules.
-See the Pymacs documentation for more information.
+See the Pymacs documentation (in `README') for more information.
 """
 
 import os, string, sys, types
@@ -261,18 +261,18 @@ class Let:
 
     def __del__(self):
         while self.stack:
-            type = self.stack[-1][0]
-            if type == 'variables':
+            method = self.stack[-1][0]
+            if method == 'variables':
                 self.pop()
-            elif type == 'excursion':
+            elif method == 'excursion':
                 self.pop_excursion()
-            elif type == 'match_data':
+            elif method == 'match_data':
                 self.pop_match_data()
-            elif type == 'restriction':
+            elif method == 'restriction':
                 self.pop_restriction()
-            elif type == 'selected_window':
+            elif method == 'selected_window':
                 self.pop_selected_window()
-            elif type == 'window_excursion':
+            elif method == 'window_excursion':
                 self.pop_window_excursion()
 
     def __nonzero__(self):
@@ -280,17 +280,17 @@ class Let:
         return 1
 
     def push(self, **keywords):
-        saved = []
+        pairs = []
         for name, value in keywords.items():
-            saved.append((name, getattr(lisp, name).value()))
+            pairs.append((name, getattr(lisp, name).value()))
             setattr(lisp, name, value)
-        self.stack.append(('variables', saved))
+        self.stack.append(('variables', pairs))
 
     def pop(self):
-        type, saved = self.stack[-1]
+        method, pairs = self.stack[-1]
+        assert method == 'variables', self.stack[-1]
         del self.stack[-1]
-        assert type == 'variables', (type, saved)
-        for name, value in saved:
+        for name, value in pairs:
             setattr(lisp, name, value)
 
     def push_excursion(self):
@@ -299,50 +299,54 @@ class Let:
                             lisp.point_marker(), lisp.mark_marker())))
 
     def pop_excursion(self):
-        type, saved = self.stack[-1]
+        method, (buffer, point_marker, mark_marker) = self.stack[-1]
+        assert method == 'excursion', self.stack[-1]
         del self.stack[-1]
-        assert type == 'excursion', (type, saved)
-        lisp.set_buffer(saved[0])
-        lisp.goto_char(saved[1])
-        lisp.set_mark(saved[2])
+        lisp.set_buffer(buffer)
+        lisp.goto_char(point_marker)
+        lisp.set_mark(mark_marker)
+        lisp.set_marker(point_marker, None)
+        lisp.set_marker(mark_marker, None)
 
     def push_match_data(self):
         self.stack.append(('match_data', lisp.match_data()))
 
     def pop_match_data(self):
-        type, saved = self.stack[-1]
+        method, match_data = self.stack[-1]
+        assert method == 'match_data', self.stack[-1]
         del self.stack[-1]
-        assert type == 'match_data', (type, saved)
-        lisp.set_match_data(saved)
+        lisp.set_match_data(match_data)
 
     def push_restriction(self):
         self.stack.append(('restriction',
                            (lisp.point_min_marker(), lisp.point_max_marker())))
 
     def pop_restriction(self):
-        type, saved = self.stack[-1]
+        method, (point_min_marker, point_max_marker) = self.stack[-1]
+        assert method == 'restriction', self.stack[-1]
         del self.stack[-1]
-        assert type == 'restriction', (type, saved)
-        lisp.narrow_to_region(saved[0], saved[1])
+        lisp.narrow_to_region(point_min_marker, point_max_marker)
+        lisp.set_marker(point_min_marker, None)
+        lisp.set_marker(point_max_marker, None)
 
     def push_selected_window(self):
         self.stack.append(('selected_window', lisp.selected_window()))
 
     def pop_selected_window(self):
-        type, saved = self.stack[-1]
+        method, selected_window = self.stack[-1]
+        assert method == 'selected_window', self.stack[-1]
         del self.stack[-1]
-        assert type == 'selected_window', (type, saved)
-        lisp.select_window(saved)
+        lisp.select_window(selected_window)
 
     def push_window_excursion(self):
         self.stack.append(('window_excursion',
                            lisp.current_window_configuration()))
 
     def pop_window_excursion(self):
-        type, saved = self.stack[-1]
+        method, current_window_configuration = self.stack[-1]
+        assert method == 'window_excursion', self.stack[-1]
         del self.stack[-1]
-        assert type == 'window_excursion', (type, saved)
-        lisp.set_window_configuration(saved)
+        lisp.set_window_configuration(current_window_configuration)
 
 class Symbol:
 
@@ -350,7 +354,10 @@ class Symbol:
         self.text = text
 
     def __repr__(self):
-        return 'Symbol(%s)' % `self.text`
+        return 'lisp[%s]' % repr(self.text)
+
+    def __str__(self):
+        return '\'' + self.text
 
     def value(self):
         return lisp(self.text)
@@ -388,36 +395,34 @@ class Lisp:
         lisp._protocol.freed.append(self.index)
 
     def __repr__(self):
-        return 'Lisp(%s)' % self.index
+        return ('lisp(%s)' % repr(lisp('(prin1-to-string %s)' % self)))
+
+    def __str__(self):
+        return '(aref pymacs-lisp %d)' % self.index
 
     def value(self):
         return self
 
     def copy(self):
-        return lisp('(pymacs-expand (aref pymacs-lisp %d))' % self.index)
+        return lisp('(pymacs-expand %s)' % self)
 
 class Buffer(Lisp):
+    pass
 
-    def __repr__(self):
-        return 'Buffer(%s)' % self.index
+    #def write(text):
+    #    # So you could do things like
+    #    # print >>lisp.current_buffer(), "Hello World"
+    #    lisp.insert(text, self)
 
-#    def write(text):
-#        # So you could do things like
-#        # print >>lisp.current_buffer(), "Hello World"
-#        lisp.insert(text, self)
-#
-#    def point(self):
-#        return lisp.point(self)
+    #def point(self):
+    #    return lisp.point(self)
 
 class List(Lisp):
-
-    def __repr__(self):
-        return 'List(%s)' % self.index
 
     def __call__(self, *arguments):
         fragments = []
         write = fragments.append
-        write('((aref pymacs-lisp %d)' % self.index)
+        write('(%s' % self)
         for argument in arguments:
             write(' ')
             print_lisp(argument, write, quoted=1)
@@ -425,30 +430,27 @@ class List(Lisp):
         return lisp(string.join(fragments, ''))
 
     def __len__(self):
-        return lisp('(length (aref pymacs-lisp %d))' % self.index)
+        return lisp('(length %s)' % self)
 
     def __getitem__(self, key):
-        return lisp('(nth %d (aref pymacs-lisp %d))' % (key, self.index))
+        return lisp('(nth %d %s)' % (key, self))
 
     def __setitem__(self, key, value):
         fragments = []
         write = fragments.append
-        write('(setcar (nthcdr %d (aref pymacs-lisp %d)) ' % (key, self.index))
+        write('(setcar (nthcdr %d %s) ' % (key, self))
         print_lisp(value, write, quoted=1)
         write(')')
         lisp(string.join(fragments, ''))
 
 class Table(Lisp):
 
-    def __repr__(self):
-        return 'Table(%s)' % self.index
-
     def __getitem__(self, key):
         fragments = []
         write = fragments.append
         write('(gethash ')
         print_lisp(key, write, quoted=1)
-        write(' (aref pymacs-lisp %d))' % self.index)
+        write(' %s)' % self)
         return lisp(string.join(fragments, ''))
 
     def __setitem__(self, key, value):
@@ -458,24 +460,21 @@ class Table(Lisp):
         print_lisp(key, write, quoted=1)
         write(' ')
         print_lisp(value, write, quoted=1)
-        write(' (aref pymacs-lisp %d))' % self.index)
+        write(' %s)' % self)
         lisp(string.join(fragments, ''))
 
 class Vector(Lisp):
 
-    def __repr__(self):
-        return 'Vector(%s)' % self.index
-
     def __len__(self):
-        return lisp('(length (aref pymacs-lisp %d))' % self.index)
+        return lisp('(length %s)' % self)
 
     def __getitem__(self, key):
-        return lisp('(aref (aref pymacs-lisp %d) %d)' % (self.index, key))
+        return lisp('(aref %s %d)' % (self, key))
 
     def __setitem__(self, key, value):
         fragments = []
         write = fragments.append
-        write('(aset (aref pymacs-lisp %d) %d ' % (self.index, key))
+        write('(aset %s %d ' % (self, key))
         print_lisp(value, write, quoted=1)
         write(')')
         lisp(string.join(fragments, ''))
@@ -556,7 +555,7 @@ def print_lisp(value, write, quoted=0):
                 print_lisp(sub_value, write)
         write(']')
     elif isinstance(value, Lisp):
-        write('(aref pymacs-lisp %d)' % value.index)
+        write(str(value))
     elif isinstance(value, Symbol):
         if quoted:
             write("'")

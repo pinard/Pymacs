@@ -24,9 +24,9 @@
     Python than Emacs LISP, so there are a few examples at the end of this
     file meant for Python users having a limited experience with Emacs.
 
-    This is beta status software: specifications are only slightly frozen,
-    you might have to later adapt your code to specification changes.  Report
-    the problems you see to François Pinard at `pinard@iro.umontreal.ca'.
+    This is beta status software: specifications are slightly frozen, yet
+    a changes may still happen that would require small adaptation of your
+    code.  Report problems to François Pinard at `pinard@iro.umontreal.ca'.
     For discussing specifications or making suggestions, please also copy
     the `python-list@python.org' mailing list, to help brain-storming! :-)
 
@@ -35,15 +35,14 @@
     Pymacs revisits previous Cedric Adjih's works about running Python as a
     process separate from Emacs.  See `http://www.crepuscule.com/pyemacs/',
     or write Cedric at `adjih-pam@crepuscule.com'.  Cedric presented
-    `pyemacs' to me as a proof of concept.  I spiced the `pyemacs' concept
-    with a few simplification ideas on my own, and decided to drop the `e'
-    from `pyemacs' to witness that simplification :-).  Cedric told me that
-    there also exist some older patches for linking Python right into XEmacs.
+    `pyemacs' to me as a proof of concept.  As I simplified that concept
+    a bit, I dropped the `e' in `pyemacs' :-).  Cedric also told me that
+    there exist some older patches for linking Python right into XEmacs.
 
-    Brian McErlean contacted me, as he independently and simultaneously
-    wrote a very similar project.  Amusing coincidence, he even chose
-    `pymacs' as a name.  As he paid good attention to complex details that
-    escaped my courage, his help and collaboration have been beneficial.
+    Brian McErlean independently and simultaneously wrote a similar tool,
+    we decided to join our projects.  Amusing coincidence, he even chose
+    `pymacs' as a name.  Brian paid good attention to complex details that
+    escaped my courage, so his help and collaboration have been beneficial.
     You may reach Brian at `brianmce@crosswinds.net'.
 
     One other reference of interest is Doug Bagley shoot out project,
@@ -87,8 +86,8 @@
 
     Currently, there is only one Pymacs example to install.  There are
     two parts to it: a batch script `rebox' and a `Pymacs.rebox' module.
-    To check that it is properly installed, type `rebox 111 </dev/null'
-    in a shell; you should not receive any error.
+    To check that both are properly installed, type `rebox </dev/null'
+    in a shell; you should not receive any output nor see any error.
 
 . : Prepare your `.emacs' file.
 
@@ -274,6 +273,14 @@
      vectors are turned into Python tuples.  Then, modifying the structure
      of the copy on the Python side has no effect on the LISP side.
 
+     For LISP handles, `str()' returns a LISP representation of the handle
+     which should be `eq' to the original object if read back and evaluated
+     in LISP.  `repr()' returns a Python representation of the expanded
+     LISP object.  If that LISP object has a LISP representation which LISP
+     could read back, then `repr()' value is such that it could be read
+     back and evaluated in Python as well, this would result in another
+     object which is `equal' to the original, but not neccessarily `eq'.
+
 .  , Python handles.
 
      The same as LISP handles are useful to handle LISP objects on the
@@ -366,8 +373,8 @@
 
     Users could alter the inner working of Pymacs through a few variables,
     which are documented here.  Except for `pymacs-load-path', which should
-    be set before the first call to `pymacs-eval' or `python-load', the
-    value of these variables can be changed at any time.
+    be set before calling any Pymacs function, the value of these variables
+    can be changed at any time.
 
 .  , pymacs-load-path
 
@@ -403,18 +410,17 @@
      LISP representation for the Python object.  This assymetry is on
      purpose, yet debatable.  Maybe Pymacs could have a variable telling
      that mutability _is_ important for Python objects?  That would give
-     Pymacs users the capability of restoring the symmetry somewhat, if
-     they have a strong appetite for it.  But I'm not sure it would be
-     worth the effort: I merely tried to guess what's most useful.
+     Pymacs users the capability of restoring the symmetry somewhat,
+     yet so far, in our experience, this has never been needed.
 
 .  , pymacs-mutable-strings
 
      Strictly speaking, Emacs LISP strings are mutable. Yet, it does not
      come naturally to a Python programmer to modify a string "in-place",
-     as Python strings are never mutable.  When `pymacs-mutable-strings'
-     is `nil', which is the default setting, LISP strings are transmitted
-     to Python as Python strings, and so, loose their mutability.  Also,
-     with the default setting, text properties are not reflected.  If that
+     as Python strings are never mutable.  When `pymacs-mutable-strings' is
+     `nil', which is the default setting, LISP strings are transmitted to
+     Python as Python strings, and so, loose their mutability.  Moreover,
+     text properties are not reflected on the Python side.  But if that
      variable is not `nil', LISP strings are rather passed as LISP handles.
      This variable is ignored whenever `pymacs-forget-mutability' is set.
 
@@ -435,7 +441,7 @@
 
      The two other variables almost never need to be changed in practice.
      When Emacs is expecting a reply from Python, it might repeatedly
-     check the status of the Pymacs service program if that reply is not
+     check the status of the Pymacs service program when that reply is not
      received fast enough, just to make sure that this program did not die.
      The timeout at reply, which defaults to 5, says how many seconds
      to wait without checking, while expecting the first line of a reply.
@@ -460,10 +466,9 @@
 . : Response mode.
 
     When Python receives a request from Emacs in the context of Pymacs,
-    and until it returns the reply, Emacs keeps listening to serve
-    Python requests.  Emacs is not listening otherwise.  Consequently,
-    Python should never attempt calling for Emacs services at other times.
-    Other Python threads may not call Emacs without careful synchronisation.
+    and until it returns the reply, Emacs keeps listening to serve Python
+    requests.  Emacs is not listening otherwise.  Other Python threads,
+    if any, may not call Emacs without _very_ careful synchronisation.
 
 . : LISP symbols.
 
@@ -792,7 +797,7 @@
 
 .. Exemples.
 
-. : Paul Winkler's submission.
+. : Paul Winkler's.
 
 .  , The problem.
 
@@ -864,31 +869,23 @@
      This piece of Python code eases my life on this.  It may be used
      interactively from within Emacs through the Pymacs interface, or in
      batch as a script which filters a single region to be reformatted.
+     Pymacs features are used exclusively within the `Emacs_Rebox' class.
 
-     This module is meant to be executed in batch, outside any Pymacs
-     context, or else, as a Pymacs module.  A class `Rebox' contains the
-     main part of the code, while classes `Batch_Rebox' and `Emacs_Rebox',
-     provide methods which are particular to each application.  Pymacs
-     features are only used from within `Emacs_Rebox' methods.
-
-     The interface is fairly different.  In batch, the code is driven
-     by command options and arguments, and presume that a complete,
-     self-contained boxed comment is available on standard input.
-     From Emacs, the function `rebox-region' also presumes that the region
-     encloses a self-contained boxed comment, while `rebox-comment' has
-     to itself discover the extent of the surrounding set of comments.
+     In batch, the reboxing is driven by command options and arguments
+     and expects a complete, self-contained boxed comment from a file.
+     Emacs function `rebox-region' also presumes that the region encloses
+     a single boxed comment.  Emacs `rebox-comment' is different, as it
+     has to chase itself the extent of the surrounding boxed comment.
 
 .  , Python side.
 
-     The code is too big to be inserted in this documentation, rather see
-     file `Pymacs/rebox.py' in the Pymacs distribution.  Let me presume
-     that you have this file handy for perusal, and that you quickly
-     glanced through the documentation at the beginning of this module.
-     This section merely discusses some design choices for Pymacs usage.
+     The Python code is too big to be inserted in this documentation: see
+     file `Pymacs/rebox.py' in the Pymacs distribution.  This section is
+     meant to discuss some of the design choices, in Pymacs context.
 
      In batch mode, as well as with `rebox-region', the text to handle is
      turned over to Python, and fully processed in Python, with practically
-     no Pymacs interaction while this is being done.  On the other hand,
+     no Pymacs interaction while the work gets done.  On the other hand,
      `rebox-comment' is rather Pymacs intensive: the comment boundaries
      are chased right from the Emacs buffer, as directed by the function
      `Emacs_Rebox.find_comment'.  Once the boundaries are found, the
@@ -897,26 +894,26 @@
      Once the boxed comment has been reformatted in Python, the old comment
      is removed in a single delete operation, the new comment is inserted in
      a second operation, this occurs in `Emacs_Rebox.process_emacs_region'.
-     But by doing so, if point lied within the boxed comment before the
-     reformatting, its precise position is lost.  To preserve point,
+     But by doing so, if point was within the boxed comment before the
+     reformatting, its precise position is lost.  To well preserve point,
      Python might have driven all reformatting details directly in the
      Emacs buffer.  We really preferred doing it all on the Python side:
-     as we get more legibility by expressing the algorithms in pure Python,
-     the same code may be used in batch or interactively, and we avoid
-     the slowdown that would result from heavy calling of Emacs services.
+     as we gain legibility by expressing the algorithms in pure Python,
+     the same Python code may be used in batch or interactively, and we
+     avoid the slowdown that would result from heavy use of Emacs services.
 
-     To avoid completely loosing point, I kludged a `Marker' class, which
-     goal is to estimate the new value of point from the old.  Reformatting
-     may change the amount of white space, and either delete or insert
-     an arbitrary number characters meant to draw the commenting box.
+     To avoid completely loosing point, I kludged a `Marker' class,
+     which goal is to estimate the new value of point from the old.
+     Reformatting may change the amount of white space, and either delete
+     or insert an arbitrary number characters meant to draw the box.
      The idea is to initially count the number of characters between the
      beginning of the region and point, while ignoring any problematic
      character.  Once the comment has been reboxed, point is advanced from
      the beginning of the region until we get the same count of characters,
-     skipping all problematic characters.  This `Marker' class completely
-     works on the Python side, it does not involve Pymacs at all, yet
-     it solves a problem induced by the choice of working details on the
-     Python side instead of directly in the Emacs buffer.
+     skipping all problematic characters.  This `Marker' class works fully
+     on the Python side, it does not involve Pymacs at all, but it does
+     solve a problem that resulted from my choice of keeping the data on
+     the Python side instead of handling it directly in the Emacs buffer.
 
      We want a comment reformatting to appear as a single operation, in
      the context of Emacs Undo.  The method `Emacs_Rebox.clean_undo_after'
@@ -925,6 +922,10 @@
      some other little adjustements at `Emacs_Rebox.find_comment' time.
      Even if this method scans and mofifies an Emacs LISP list directly
      in the Emacs memory, the code doing this stays neat and legible.
+     However, I found out that the undo list may grow quickly when the
+     Emacs buffer use markers, with the consequence of making this routine
+     so Pymacs intensive that most of the CPU was spent there.  I rewrote
+     that routine in LISP so it executes in a single Pymacs interaction.
 
      Function `Emacs_Rebox.remainder_of_line' could have been written in
      Python, but it was probably not worth going away from this one-liner
@@ -935,26 +936,23 @@
      and do the pattern match on the Python side, than transmitting the
      source of the regexp to Emacs for it to compile and apply it.
 
-     let's discuss the refilling algorithm.  I could have either used the
-     refill algorithm built within in Emacs, programmed a new one in Python,
-     or relied on Ross Paterson's `fmt', distributed by GNU and available
-     on most Linuxes.  In fact, `refill_lines' prefers the latter.
-
-     In my own Emacs setup, I _already_ have overriden the built-in
-     refill algorithm by GNU `fmt', which really does a much better job.
-     Experience taught me that calling an external program is fast enough
-     to be very bearable, even interactively.  Rather than having Python
-     call Emacs to do the refilling, knowning that Emacs would call GNU
-     `fmt' itself, I found better that Python calls GNU `fmt' directly.
-
-     Another avenue would have been to reprogram GNU `fmt' in Python. This
-     would be an interesting, yet uneasy project: Ross implemented in `fmt'
+     For refilling, I could have either used the refill algorithm built
+     within in Emacs, programmed a new one in Python, or relied on Ross
+     Paterson's `fmt', distributed by GNU and available on most Linuxes.
+     In fact, `refill_lines' prefers the latter.  My own Emacs setup is
+     such that the built-in refill algorithm is _already_ overridden by GNU
+     `fmt', and it really does a much better job.  Experience taught me
+     that calling an external program is fast enough to be very bearable,
+     even interactively.  If Python called Emacs to do the refilling, Emacs
+     would itself call GNU `fmt' in my case, I preferred that Python calls
+     GNU `fmt' directly.  I could have reprogrammed GNU `fmt' in Python.
+     Despite interesting, this is an uneasy project: `fmt' implements
      the Knuth refilling algorithm, which depends on dynamic programming
-     techniques; he fine tuned them, and took care of many details.  If GNU
-     `fmt' fails, most probably because it is not available, `refill_lines'
-     falls back on a dumb refilling algorithm, this is better than none.
+     techniques; Ross fine tuned them, and took care of many details.
+     If GNU `fmt' fails, for not being available, say, `refill_lines'
+     falls back on a dumb refilling algorithm, which is better than none.
 
 .  , Emacs side.
 
-     The Emacs recipe is all told under the `Emacs usage' section, in the
-     documentation found at the beginning of `Pymacs/rebox.py'.
+     The Emacs recipe appears under the `Emacs usage' section, near the
+     beginning of `Pymacs/rebox.py', so I do not repeat it here.

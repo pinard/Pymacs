@@ -1,3 +1,13 @@
+2002-01-07  François Pinard  <pinard@iro.umontreal.ca>
+
+	* Release 0.14.
+
+	* pymacs.py: Set various __repr__() to yield Python code,
+	containing the corresponding expanded LISP expression.
+	Set various __str__() to yield mutable LISP code.
+
+	* pymacs.py (Let): Point markers to nowhere once done with them.
+
 2002-01-06  François Pinard  <pinard@iro.umontreal.ca>
 
 	* Release 0.13.

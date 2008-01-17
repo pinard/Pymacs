@@ -29,7 +29,7 @@ import os, string, sys
 
 class run:
     PACKAGE = 'pymacs'
-    VERSION = '0.13'
+    VERSION = '0.14'
     interactive = 0
     dry = 0
     group = None

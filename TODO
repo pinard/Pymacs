@@ -1,6 +1,24 @@
 * TODO for `Pymacs'				allout -*- outline -*-
 
-.. Debugging facilities
+.. Internal cleanup.
+
+. : `(pymacs-eval "dir()"' shows too many things.
+
+.. Type conversions.
+
+. : Convert LISP hash tables into Python dicts and vice-versa.
+
+.. Rebox.
+
+. : Debug the Undo list cleanup!
+
+. : Try the fall back refiller.
+
+. : Unicode boxes (suggested by Bruno).
+.  , U+231C..U+231F
+.  , U+25xx
+
+.. Debugging facilities.
 
 . : *Pymacs*
 .  , Indent.
@@ -10,11 +28,3 @@
 . : Test suite.  (Brian has one.)
 
 . : Python shell link to helper.
-
-.. Internal cleanup.
-
-. : `(pymacs-eval "dir()"' shows too many things.
-
-.. Type conversions.
-
-. : Convert LISP hash tables into Python dicts and vice-versa.

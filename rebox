@@ -3,7 +3,7 @@
 # François Pinard <pinard@iro.umontreal.ca>, 2002.
 
 """\
-Handling of comment boxes in various styles.
+Handling of boxed comments in various box styles.
 """
 
 import sys
