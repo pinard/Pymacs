@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: Latin-1 -*-
-# Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
-# François Pinard <pinard@iro.umontreal.ca>, 2001.
+# -*- coding: UTF-8 -*-
+# Copyright Â© 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
+# FranÃ§ois Pinard <pinard@iro.umontreal.ca>, 2001.
 
 """\
 Installer tool for Pymacs `pymacs.el'.

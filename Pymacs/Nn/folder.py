@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: Latin-1 -*-
-# Copyright © 2003 Progiciels Bourbeau-Pinard inc.
-# François Pinard <pinard@iro.umontreal.ca>, 2003-05.
+# -*- coding: UTF-8 -*-
+# Copyright Â© 2003 Progiciels Bourbeau-Pinard inc.
+# FranÃ§ois Pinard <pinard@iro.umontreal.ca>, 2003-05.
 
 """\
-Traitements Babyl ou mbox fréquents: partie mise en commun.
+Traitements Babyl ou mbox frÃ©quents: partie mise en commun.
 """
 
 class Error(Exception): pass

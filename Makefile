@@ -1,6 +1,6 @@
 # Interface between Emacs LISP and Python - Makefile.
-# Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
-# François Pinard <pinard@iro.umontreal.ca>, 2001.
+# Copyright Â© 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
+# FranÃ§ois Pinard <pinard@iro.umontreal.ca>, 2001.
 
 # The `README' file provides a few good hints about installation.
 

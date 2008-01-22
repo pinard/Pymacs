@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
-# François Pinard <pinard@iro.umontreal.ca>, 2001.
+# Copyright Â© 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
+# FranÃ§ois Pinard <pinard@iro.umontreal.ca>, 2001.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

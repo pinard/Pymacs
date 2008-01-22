@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: ISO-8859-1 -*-
+# -*- coding: UTF-8 -*-
 
 import sys
 sys.path.insert(0, '.')
@@ -23,7 +23,7 @@ update_version_texi()
 
 setup(name=__package__, version=__version__,
       description="Interface between Emacs LISP and Python.",
-      author='François Pinard', author_email='pinard@iro.umontreal.ca',
+      author='FranÃ§ois Pinard', author_email='pinard@iro.umontreal.ca',
       url='http://www.iro.umontreal.ca/~pinard',
       scripts=['scripts/pymacs-services', 'scripts/rebox'],
       packages=['Pymacs', 'Pymacs.Nn', 'Pymacs.Rebox'])

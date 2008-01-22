@@ -1,21 +1,21 @@
-2003-06-30  François Pinard  <pinard@iro.umontreal.ca>
+2003-06-30  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.22.
 
 	* setup: Simplified a bit, substitutions now made by other means.
 	* Makefile: Simplified, distribution now made by other means.
 
-2003-06-29  François Pinard  <pinard@iro.umontreal.ca>
+2003-06-29  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-round-trip): Handle pymacs-trace-transit being
 	a cons cell.
 
-2003-05-19  François Pinard  <pinard@iro.umontreal.ca>
+2003-05-19  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* setup.py: Install Pymacs.Nn.
 	Reported by Carel Fellinger.
 
-2003-05-18  François Pinard  <pinard@iro.umontreal.ca>
+2003-05-18  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* setup (main): Correctly process -n option.
 	Reported by Carel Fellinger.
@@ -25,7 +25,7 @@
 	* doc/Makefile: Adjusted.
 	Reported by Carel Fellinger.
 
-2003-05-17  François Pinard  <pinard@iro.umontreal.ca>
+2003-05-17  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* doc: New directory to hold the manual, extracted from README.
 	* README: Simplified.
@@ -39,18 +39,18 @@
 
 	* MANIFEST, setup.py: Adjusted.
 
-2003-05-16  François Pinard  <pinard@iro.umontreal.ca>
+2003-05-16  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-call): Call pymacs-server-until-reply directly,
 	instead of going through pymacs-apply.  Merely cosmetic, no bug.
 
-2002-12-24  François Pinard  <pinard@iro.umontreal.ca>
+2002-12-24  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-print-for-eval): Increase counter while
 	printing vectors.
 	Reported by Marco Gidde.
 
-2002-12-14  François Pinard  <pinard@iro.umontreal.ca>
+2002-12-14  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.21.
 
@@ -63,7 +63,7 @@
 	Python references back to Python.
 	Reported by Marco Gidde.
 
-2002-11-23  François Pinard  <pinard@iro.umontreal.ca>
+2002-11-23  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.20.
 
@@ -71,12 +71,12 @@
 	* Pymacs/version.py: Deleted.
 	* setup, setup.py, Pymacs/pymacs.py: Adjusted.
 
-2002-11-15  François Pinard  <pinard@iro.umontreal.ca>
+2002-11-15  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-python-reference): Handle when function is
 	defined as a mere variable, or when a function is being advised.
 
-2002-11-14  François Pinard  <pinard@iro.umontreal.ca>
+2002-11-14  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.19.
 
@@ -85,38 +85,38 @@
 
 	* README.html: New, merely a template for Webert.
 
-2002-11-13  François Pinard  <pinard@iro.umontreal.ca>
+2002-11-13  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-call): New.  Use it whenever adequate.
 
-2002-09-26  François Pinard  <pinard@iro.umontreal.ca>
+2002-09-26  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* Makefile (publish): Revised.
 
-2002-08-18  François Pinard  <pinard@iro.umontreal.ca>
+2002-08-18  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.18.
 
-2002-08-09  François Pinard  <pinard@iro.umontreal.ca>
+2002-08-09  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* Pymacs/rebox.py (Emacs_Rebox.find_comment): Correctly spell
 	backward_char, not backward-char.
 
-2002-08-08  François Pinard  <pinard@iro.umontreal.ca>
+2002-08-08  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* Pymacs/rebox.py (pymacs_load_hook): Compute the interactions
 	map from the bound methods, instead of from the generic ones.
 
-2002-07-14  François Pinard  <pinard@iro.umontreal.ca>
+2002-07-14  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* Pymacs/pymacs.py (Lisp_Interface.__call__): Wrap argument in
 	progn, so lisp() could accept a sequence of expressions.
 
-2002-07-01  François Pinard  <pinard@iro.umontreal.ca>
+2002-07-01  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-start-services): Disable undo for *Pymacs*.
 
-2002-06-25  François Pinard  <pinard@iro.umontreal.ca>
+2002-06-25  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.17.
 
@@ -135,7 +135,7 @@
 	2.2.  Those hexadecimal sequences confused Emacs when immediately
 	followed by more hexadecimal looking characters.
 
-2002-01-30  François Pinard  <pinard@iro.umontreal.ca>
+2002-01-30  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-load-path): Initialise with pymacsdir.
 	* pymacs-services: Do not handle a patched pymacsdir anymore.
@@ -144,7 +144,7 @@
 	as this is now to be done through setup.py.
 	* Makefile (install): Do not use -b while calling setup.
 
-2002-01-29  François Pinard  <pinard@iro.umontreal.ca>
+2002-01-29  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.16.
 
@@ -164,19 +164,19 @@
 
 	* Pymacs/pymacs.py (Let): Have all push_* methods to return self.
 
-2002-01-20  François Pinard  <pinard@iro.umontreal.ca>
+2002-01-20  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el, pymacs.el: Replace LISP by Lisp in comments.
 	Reported by Paul Foley.
 
-2002-01-10  François Pinard  <pinard@iro.umontreal.ca>
+2002-01-10  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.15.
 
 	* pymacs.el (pymacs-start-services): Properly diagnose a timeout,
 	using the timeout parameter value instead of a fixed string.
 
-2002-01-07  François Pinard  <pinard@iro.umontreal.ca>
+2002-01-07  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.14.
 
@@ -186,7 +186,7 @@
 
 	* pymacs.py (Let): Point markers to nowhere once done with them.
 
-2002-01-06  François Pinard  <pinard@iro.umontreal.ca>
+2002-01-06  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.13.
 
@@ -201,23 +201,23 @@
 	* MANIFEST.in, setup.py, Pymacs/__init__.py: New files.
 	* Makefile: Adjusted and simplified.
 
-2002-01-03  François Pinard  <pinard@iro.umontreal.ca>
+2002-01-03  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.py (pymacs_load_helper): Handle module within package.
 	Reported by Syver Enstad.
 
-2001-12-18  François Pinard  <pinard@iro.umontreal.ca>
+2001-12-18  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.bat: New file.
 
-2001-11-29  François Pinard  <pinard@iro.umontreal.ca>
+2001-11-29  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.12.
 
 	* pymacs.el (pymacs-timeout-at-start, pymacs-timeout-at-reply,
 	pymacs-timeout-at-line): New variables.  Use them.
 
-2001-10-17  François Pinard  <pinard@iro.umontreal.ca>
+2001-10-17  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.py (pymacs_load_helper): Check the function attribute
 	before the interactions dictionary, for people having Python 2.x.
@@ -226,7 +226,7 @@
 	* pymacs.el, pymacs.py, pymacs-services: Add the usual GPL notices.
 	Reported by Richard Stallman.
 
-2001-10-16  François Pinard  <pinard@iro.umontreal.ca>
+2001-10-16  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.11.
 
@@ -234,18 +234,18 @@
 	(pymacs-defun): Process an interaction specification.
 	(pymacs-python-reference): Adjust for interactive functions.
 	* pymacs.py (pymacs_load_helper): Transmit interaction specifications.
-	Reported by Christian Tanzer and Stefan Reichör.
+	Reported by Christian Tanzer and Stefan ReichÃ¶r.
 
-2001-10-15  François Pinard  <pinard@iro.umontreal.ca>
+2001-10-15  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.py (pymacs_load_helper): Accept dashed module names.
-	Reported by Stefan Reichör.
+	Reported by Stefan ReichÃ¶r.
 
 	* pymacs.el (pymacs-python-reference): Rewrite, as it was broken.
 	(documentation): Say it is a Python function, even if no docstring.
-	Reported by Stefan Reichör.
+	Reported by Stefan ReichÃ¶r.
 
-2001-10-12  François Pinard  <pinard@iro.umontreal.ca>
+2001-10-12  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.10.
 
@@ -255,20 +255,20 @@
 	* pymacs.el (pymacs-print-for-eval): Remove string text properties.
 	Reported by Eli Zaretskii.
 
-2001-10-06  François Pinard  <pinard@iro.umontreal.ca>
+2001-10-06  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.py (Let.__nonzero__): New.
 
-2001-09-28  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-28  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.9.
 
-2001-09-26  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-26  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.py (Let.push): Save the value of the symbol, not the
 	symbol itself.
 
-2001-09-25  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-25  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.8.
 
@@ -279,13 +279,13 @@
 	older Emacs would work.
 	Reported by Dirk Vleugels.
 
-2001-09-21  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-21  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-defun): Ensure the function is registered
 	at definition, not at call time.  Otherwise, it would never be
 	garbage-collected if it is never called.
 
-2001-09-20  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-20  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.7.
 
@@ -295,11 +295,11 @@
 	(pymacs-python): Merge pymacs-save-index.
 	(pymacs-save-index): Deleted.
 
-2001-09-18  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-18  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-load): Accept a noerror argument.
 
-2001-09-17  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-17  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* setup: New script.
 	* Makefile: Use it.
@@ -312,14 +312,14 @@
 	* pymacs.py (pymacs_load_helper, print_lisp): Similar changes.
 	Reported by John Wiegley.
 
-2001-09-16  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-16  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.6.
 
 	* pymacs.el (pymacs-start-services, pymacs-print-for-eval,
 	pymacs-round-trip): Protect match data.
 
-2001-09-15  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-15  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (documentation): Completed.  Now into service.
 	(pymacs-documentation): Deleted.
@@ -327,7 +327,7 @@
 
 	* pymacs.el (pymacs-print-for-eval): Use car-safe.
 
-2001-09-14  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-14  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-print-for-eval): replace-regexp-in-string does
 	not exist in older Emacs versions, so use paraphrases.
@@ -337,7 +337,7 @@
 	permanently only at end of the function, in case anything fails.
 	Reported by Carey Evans.
 
-2001-09-13  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-13  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.5.
 
@@ -345,7 +345,7 @@
 	* pymacs.py (doc_string): New.
 	(pymacs_load_helper): The result should evaluate to the module.
 
-2001-09-12  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-12  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.py (pymacs_load_helper): Use reload instead of __import__
 	whenever the module was already loaded.
@@ -368,7 +368,7 @@
 	reply even when not at beginning of line.  The Python module may
 	print incomplete lines, unrelated to the communication protocol.
 
-2001-09-11  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-11  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.4.
 
@@ -425,7 +425,7 @@
 	Avoid double escaping of the transmitted string in this case.
 	Reported by Brian McErlean.
 
-2001-09-10  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-10  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.3.
 
@@ -461,12 +461,12 @@
 
 	* pymacs.el (pymacs-start-services, pymacs-terminate-services):
 	Use `post-gc-hook' if available, instead of using a timer.
-	Reported by Gerd Möllman.
+	Reported by Gerd MÃ¶llman.
 
 	* pymacs.py (Symbol.value, Symbol.copy): Add argument self.
 	(print_lisp): Quote symbols if quoted=1.
 
-2001-09-09  François Pinard  <pinard@iro.umontreal.ca>
+2001-09-09  FranÃ§ois Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el (pymacs-defuns): New function.
 	* pymacs.py: Use it.  This should allow faster imports.

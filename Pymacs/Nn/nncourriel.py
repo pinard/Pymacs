@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: Latin-1 -*-
-# Copyright © 2003 Progiciels Bourbeau-Pinard inc.
-# François Pinard <pinard@iro.umontreal.ca>, 2003-02.
+# -*- coding: UTF-8 -*-
+# Copyright Â© 2003 Progiciels Bourbeau-Pinard inc.
+# FranÃ§ois Pinard <pinard@iro.umontreal.ca>, 2003-02.
 
 """\
 Gnus back-end for editable Babyl or Mbox files, implemented in Python.
@@ -85,7 +85,7 @@ Here is how I get it all in motion from `.emacs'.
 """                                     # '
 
 # REVOIR:
-# - Double Summary au départ.
+# - Double Summary au dÃ©part.
 
 from Pymacs import Let, lisp
 OK = lisp.t
