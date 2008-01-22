@@ -22,3 +22,7 @@ install:
 
 tags:
 	(find bin -type f; find -name '*.py') | grep -v '~$$' | etags -
+
+clean:
+	rm -rf build*
+
