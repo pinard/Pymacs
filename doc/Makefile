@@ -16,6 +16,9 @@ pdf: $p/pymacs.pdf
 
 ps: $p/pymacs.ps
 	cp $p/pymacs.ps .
+clean:
+	rm -f pymacs.dvi pymacs.info pymacs.pdf pymacs.ps
+	rm -rf $p
 
 $p/pymacs.info: $p/pymacs.texi
 	makeinfo --force $<
