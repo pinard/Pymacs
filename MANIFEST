@@ -1,18 +1,14 @@
 ChangeLog
-ChangeLog-rebox
 MANIFEST
 Makefile
 Pymacs/Nn/__init__.py
 Pymacs/Nn/folder.py
 Pymacs/Nn/nncourriel.py
-Pymacs/Rebox/__init__.py
-Pymacs/Rebox/rebox.py
 Pymacs/__init__.py
 Pymacs/pymacs.py
 README
 README.html
 THANKS
-THANKS-rebox
 TODO
 doc/Makefile
 doc/README
@@ -23,6 +19,5 @@ doc/texinfo.tex
 doc/version.texi
 pymacs.el
 scripts/pymacs-services
-scripts/rebox
 setup
 setup.py
