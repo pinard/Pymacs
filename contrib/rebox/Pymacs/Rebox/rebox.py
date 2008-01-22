@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-# Copyright © 1991-1998, 2000, 2002 Progiciels Bourbeau-Pinard inc.
+# -*- coding: UTF-8 -*-
+# Copyright © 1991-1998, 2000, 2002, 2003 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, April 1991.
 
 # This program is free software; you can redistribute it and/or modify
@@ -38,7 +39,7 @@ arbitrary, yet by _convention_, it holds three non-zero digits such the the
 hundreds digit roughly represents the programming language, the tens digit
 roughly represents a box quality (or weight) and the units digit roughly
 a box type (or figure).  An unboxed comment is merely one of box styles.
-Language, quality and types are collectively referred to as style attributes.
+Language, quality and type are collectively referred to as style attributes.
 
 When rebuilding a boxed comment, attributes are selected independently
 of each other.  They may be specified by the digits of the value given
@@ -115,7 +116,7 @@ with a "rebox.el" file having this single line:
 
      (pymacs-load "Pymacs.rebox")
 
-Install Pymacs from `http://www.iro.umontreal.ca/~pinard/pymacs.tar.gz'.
+Install Pymacs from `http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz'.
 
 The Emacs function `rebox-comment' automatically discovers the extent of
 the boxed comment near the cursor, possibly refills the text, then adjusts
@@ -191,7 +192,7 @@ Except for very special files, I carefully avoided boxed comments for
 real work, as I found them much too hard to maintain.  My friend Paul
 Provost was working at Taarna, a computer graphics place, which had boxes
 as part of their coding standards.  He asked that we try something to get
-him out of his misery, and this how `rebox.el' was originally written.
+him out of his misery, and this is how `rebox.el' was originally written.
 I did not plan to use it for myself, but Paul was so enthusiastic that I
 timidly started to use boxes in my things, very little at first, but more
 and more as time passed, still in doubt that it was a good move.  Later,
@@ -213,6 +214,8 @@ into `rebox.py', and added the facility to use it as a batch script.
 ## Note: a double hash comment introduces a group of functions or methods.
 
 import re, string, sys
+
+## Batch specific features.
 
 def main(*arguments):
     refill = 1
@@ -255,6 +258,8 @@ def main(*arguments):
         else:
             sys.stderr.write("Reboxed from style %d to %d.\n"
                              % (old_style, new_style))
+
+## Emacs specific features.
 
 def pymacs_load_hook():
     global interactions, lisp, Let, region, comment, set_default_style
@@ -504,6 +509,8 @@ Remove all intermediate boundaries from the Undo list since CHECKPOINT.
   nil)
 """
              % (checkpoint or 'nil'))
+
+## Reboxing main control.
 
 def engine(text, style=None, width=79, refill=1, tabify=0, position=None):
     """\
@@ -605,59 +612,122 @@ overridden by non-zero corresponding style attributes from UPDATE.
         if merge[counter]:
             style[counter] = merge[counter]
     return 100*style[0] + 10*style[1] + style[2]
+
+## Refilling logic.
 
-def refill_lines(lines, width):
+def refill_lines(lines, width,
+                 cached_refiller=[]):
     """\
 Refill LINES, trying to not produce lines having more than WIDTH columns.
 """
-    # Try using GNU `fmt'.
-    import tempfile, os
-    name = tempfile.mktemp()
-    open(name, 'w').write(string.join(lines, '\n') + '\n')
-    process = os.popen('fmt -cuw %d %s' % (width, name))
-    text = process.read()
-    os.remove(name)
-    if process.close() is None:
-        return map(string.expandtabs, string.split(text, '\n')[:-1])
-    # If `fmt' failed, do refilling more naively, wihtout using the
-    # Knuth algorithm, nor protecting full stops at end of sentences.
-    lines.append(None)
-    new_lines = []
-    new_line = ''
-    start = 0
-    for end in range(len(lines)):
-        if not lines[end]:
-            margin = left_margin_size(lines[start:end])
-            for line in lines[start:end]:
-                counter = len(re.match(' *', line).group())
-                if counter > margin:
-                    if new_line:
-                        new_lines.append(' ' * margin + new_line)
-                        new_line = ''
-                    indent = counter - margin
-                else:
-                    indent = 0
-                for word in string.split(line):
-                    if new_line:
-                        if len(new_line) + 1 + len(word) > width:
-                            new_lines.append(' ' * margin + new_line)
-                            new_line = word
-                        else:
-                            new_line = new_line + ' ' + word
+    if not cached_refiller:
+        for Refiller in Refiller_Gnu_Fmt, Refiller_Textwrap, Refiller_Dumb:
+            refiller = Refiller()
+            new_lines = refiller.fill(lines, width)
+            if new_lines is not None:
+                cached_refiller.append(refiller)
+                return new_lines
+    return cached_refiller[0].fill(lines, width)
+
+class Refiller:
+    available = 1
+
+    def fill(self, lines, width):
+        if self.available:
+            new_lines = []
+            start = 0
+            while start < len(lines) and not lines[start]:
+                start = start + 1
+            end = start
+            while end < len(lines):
+                while end < len(lines) and lines[end]:
+                    end = end + 1
+                new_lines = new_lines + self.fill_paragraph(lines[start:end],
+                                                            width)
+                while end < len(lines) and not lines[end]:
+                    end = end + 1
+                if end < len(lines):
+                    new_lines.append('')
+                    start = end
+            return new_lines
+
+class Refiller_Gnu_Fmt(Refiller):
+    """\
+Use both Knuth algorithm and protection for full stops at end of sentences.
+"""
+
+    def fill(self, lines, width):
+        if self.available:
+            import tempfile, os
+            name = tempfile.mktemp()
+            open(name, 'w').write(string.join(lines, '\n') + '\n')
+            process = os.popen('fmt -cuw %d %s' % (width, name))
+            text = process.read()
+            os.remove(name)
+            if process.close() is None:
+                return map(string.expandtabs, string.split(text, '\n')[:-1])
+
+class Refiller_Textwrap(Refiller):
+    """\
+No Knuth algorithm, but protection for full stops at end of sentences.
+"""
+    def __init__(self):
+        try:
+            from textwrap import TextWrapper
+        except ImportError:
+            self.available = 0
+        else:
+            self.wrapper = TextWrapper(fix_sentence_endings=1)
+
+    def fill_paragraph(self, lines, width):
+        # FIXME: This one fills indented lines more aggressively than the
+        # dumb refiller.  I'm not sure what it the best thing to do, but
+        # ideally, all refillers should behave more or less the same way.
+        self.wrapper.width = width
+        prefix = ' ' * left_margin_size(lines)
+        self.wrapper.initial_indent = prefix
+        self.wrapper.subsequent_indent = prefix
+        return self.wrapper.wrap(string.join(lines, ' '))
+
+class Refiller_Dumb(Refiller):
+    """\
+No Knuth algorithm, nor even protection for full stops at end of sentences.
+"""
+
+    def fill_paragraph(self, lines, width):
+        margin = left_margin_size(lines)
+        prefix = ' ' * margin
+        new_lines = []
+        new_line = ''
+        for line in lines:
+            counter = len(line) - len(string.lstrip(line))
+            if counter > margin:
+                if new_line:
+                    new_lines.append(prefix + new_line)
+                    new_line = ''
+                indent = ' ' * (counter - margin)
+            else:
+                indent = ''
+            for word in string.split(line):
+                if new_line:
+                    if len(new_line) + 1 + len(word) > width:
+                        new_lines.append(prefix + new_line)
+                        new_line = word
                     else:
-                        new_line = ' ' * indent + word
-                        indent = 0
-            if new_line:
-                new_lines.append(' ' * margin + new_line)
-                new_line = ''
-            if lines[end] is not None:
-                new_lines.append('')
-                start = end + 1
-    return new_lines
+                        new_line = new_line + ' ' + word
+                else:
+                    new_line = indent + word
+                    indent = ''
+        if new_line:
+            new_lines.append(prefix + new_line)
+        return new_lines
+
+## Marking logic.
 
 class Marker:
-
-    ## Heuristic to simulate a marker while reformatting boxes.
+    """\
+Heuristics to simulate a marker while reformatting boxes.
+"""
 
     def save_position(self, text, position, ignorable):
         """\
@@ -702,7 +772,7 @@ If LATEST is true, return the biggest possible value instead of the smallest.
                     if position == self.position:
                         break
         return position + counter
-
+
 ## Template processing.
 
 class Template:
@@ -1001,7 +1071,7 @@ equivalent number of spaces, except for trailing spaces, which get removed.
             start, end = match.span(1 + counter)
             line = line[:start] + ' ' * (end - start) + line[end:]
     return string.rstrip(line)
-
+
 ## Template data.
 
 # Matcher functions for a comment start, indexed by numeric LANGUAGE.
