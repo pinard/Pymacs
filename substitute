@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+# -*- coding: Latin-1 -*-
+# Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
+# François Pinard <pinard@iro.umontreal.ca>, 2001.
+
+"""\
+Substitute `@VARIABLE@' in file.
+
+Usage: substitute FILE [VARIABLE=VALUE]...
+
+FILE gets copied over standard output, with all `@VARIABLE@' substituted.
+Unknown variables are left alone.  Variables `PACKAGE' and `VERSION' are
+automatically preset.  Other variables may be defined on the command line.
+"""
+
+import os, string, sys
+
+sys.path.insert(0, '.')
+from Pymacs import __package__, __version__
+del sys.path[0]
+
+substitutions = {'PACKAGE': __package__, 'VERSION': __version__}
+
+def main(*arguments):
+    # Decode options.
+    import getopt
+    options, arguments = getopt.getopt(arguments, '')
+    for option, value in options:
+        pass
+    assert arguments
+    source = arguments[0]
+    for equation in arguments[1:]:
+        fields = string.split(equation, '=', 1)
+        assert len(fields) == 2, equation
+        substitutions[fields[0]] = fields[1]
+    write = sys.stdout.write
+    produce_at = 0
+    # Copy file with substitutions.
+    for fragment in string.split(open(source).read(), '@'):
+        if produce_at:
+            replacement = substitutions.get(fragment)
+            if replacement is None:
+                write('@')
+                write(fragment)
+            else:
+                write(replacement)
+                produce_at = 0
+        else:
+            write(fragment)
+            produce_at = 1
+
+if __name__ == '__main__':
+    apply(main, sys.argv[1:])

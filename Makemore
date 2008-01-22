@@ -1,0 +1,55 @@
+# Interface between Emacs LISP and Python - GNUmakefile.       -*- Makefile -*-
+# Copyright © 2003 Progiciels Bourbeau-Pinard inc.
+# François Pinard <pinard@iro.umontreal.ca>, 2003.
+
+# This file is for the packager.  Linked to `GNUmakefile' locally, it is
+# distributed as `Makemore', so it is innocuous for Pymacs installers.
+
+xinstall: pymacs.el scripts/allout
+	$(MAKE) install
+
+xall: pymacs.el scripts/allout
+	$(MAKE) all
+
+include Makefile
+lispdir = $(HOME)/share/emacs/lisp
+
+DISTRIBUTION := $(shell ./setup -V)
+
+dist: xall
+	$(MAKE) -C doc pdf ps
+	$(PYSETUP) sdist
+	mv dist/$(DISTRIBUTION).tar.gz .
+	rmdir dist
+	ls -l *.gz
+
+publish: dist
+# Publish the distribution.
+	chmod 644 $(DISTRIBUTION).tar.gz
+	rsync -e ssh -azv $(DISTRIBUTION).tar.gz bor:w/pymacs/
+	rm $(DISTRIBUTION).tar.gz
+	ssh bor rm -vf w/pymacs/Pymacs.tar.gz
+	ssh bor ln -vs $(DISTRIBUTION).tar.gz w/pymacs/Pymacs.tar.gz
+# Publish the `README' file.
+	traiter README.html > index.html
+	chmod 644 index.html
+	rsync -e ssh -auzv index.html bor:w/pymacs/
+	rm index.html
+# Publish the Pymacs manual.
+	$(MAKE) -C doc html
+	find doc/pymacs -follow -type f | xargs chmod 644
+# - `--delete' does not work between `titan' and `bor'?  Strange!
+	rsync -e ssh -auzv --delete doc/pymacs/* bor:w/pymacs/HTML/
+	ssh bor chmod 755 w/pymacs/HTML
+	rm -rf doc/pymacs doc/builddir/pymacs
+# Visually check sizes and permissions.
+	ssh bor ls -Llt w/pymacs
+
+pymacs.el: pymacs.el.in Pymacs/__init__.py
+	@rm -f $@
+	./substitute pymacs.el.in > $@-tmp
+	mv $@-tmp $@
+	@chmod -w $@
+
+scripts/allout: $(HOME)/fpub/allout/scripts/allout
+	cp -p $< $@
