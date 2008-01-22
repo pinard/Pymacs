@@ -3,8 +3,7 @@ PYTHON = python
 p = builddir
 e = $p/.estampille
 
-all: $p/pymacs.ps
-	gv -antialias $<
+all: $p/pymacs.dvi $p/pymacs.info $p/pymacs.pdf
 
 dvi: $p/pymacs.dvi
 	cp $p/pymacs.dvi .
@@ -29,10 +28,6 @@ $p/pymacs.pdf: $p/pymacs.texi
 
 $p/pymacs.ps: $p/pymacs.dvi
 	cd $p && dvips -tletter -o- pymacs.dvi > pymacs.ps
-
-$p/pymacs.texi: pymacs.all $e
-	PYTHONPATH=.. $(PYTHON) ../scripts/allout texi pymacs.all > $@-tmp
-	mv $@-tmp $@
 
 $e:
 	install -d $p
