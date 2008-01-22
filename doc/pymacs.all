@@ -29,18 +29,17 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    Pymacs manual file in HTML form.  The distribution holds the
    documentation sources, as well as PostScript and PDF renderings.  The
    canonical Pymacs distribution is available as
-   @url{http://www.iro.umontreal.ca/~pinard/pymacs/Pymacs.tar.gz}.  Report
-   problems and suggestions to @email{mailto:pinard@@iro.umontreal.ca}.
+   @url{http://www.iro.umontreal.ca/~pinard/pymacs/Pymacs.tar.gz}.  
 
-.. @section Warning to Pymacs users.
+.. @section Warning to Pymacs users
 
    I expect average Pymacs users to have a deeper knowledge of Python than
    Emacs Lisp.  Some examples at the end of this file are meant for Python
    users having a limited experience with the Emacs API.  Currently, there
-   are only contains two examples, one is too small, the other is too big
-   :-).  As there is no dedicated mailing list nor discussion group for
-   Pymacs, let's use @email{python-list@@python.org} for asking questions
-   or discussing Pymacs related matters.
+   are three examples: small, medium and large (like pizzas).  As there is
+   no dedicated mailing list nor discussion group for Pymacs, let's use
+   @email{python-list@@python.org} for asking questions or discussing Pymacs
+   related matters.
 
    This is beta status software: specifications are slightly frozen, yet
    changes may still happen that would require small adaptations in your
@@ -49,15 +48,15 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    making suggestions, please also copy the @email{python-list@@python.org}
    mailing list, to help brain-storming! :-)
 
-.. @section History and references.
+.. @section History and references
 
-   I once starved for a Python-extensible editor, and pondered the idea of
-   dropping Emacs for other avenues, but found nothing much convincing.
-   Moreover, looking at all LISP extensions I wrote for myself, and
-   considering all those superb tools written by others and that became
-   part of my computer life, it would have been a huge undertaking for me
-   to reprogram these all in Python.  So, when I began to see that
-   something like Pymacs was possible, I felt strongly motivated! :-)
+   I once starved for a Python-extensible editor, so much that I pondered
+   the idea of dropping Emacs for other avenues, but found nothing much
+   convincing.  Moreover, looking at all LISP extensions I gave to myself,
+   and considering all those superb tools written by others, all of which
+   are now part of my computer life, it would have been a huge undertaking
+   for me to reprogram these all in Python.  So, when I began to see that
+   something like Pymacs was possible, I felt strongly motivated!  :-)
 
    Pymacs revisits previous Cedric Adjih's works about running Python as a
    process separate from Emacs.  See
@@ -75,16 +74,16 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
 
    Another reference of interest is Doug Bagley's shoot out project, which
    compares the relative speed of many popular languages.  The first URL
-   points to the original, the second points to a newer version  oriented
+   points to the original, the second points to a newer version oriented
    towards Win32 systems:
 . : @example
     @url{http://www.bagley.org/~doug/shootout/}
     @url{http://dada.perl.it/shootout/index.html}
 . :
 
-* @section Installation.
+* @section Installation
 
-.. @section Install the Pymacs proper.
+.. @section Install the Pymacs proper
 
    Currently, there are two installation scripts, and both should be run.
    If you prefer, you may use @samp{make install lispdir=@var{lispdir}},
@@ -130,7 +129,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    To check that both are properly installed, type @samp{rebox </dev/null}
    in a shell; you should not receive any output nor see any error.
 
-.. @section Prepare your @file{.emacs} file.
+.. @section Prepare your @file{.emacs} file
 
    The @file{.emacs} file is not given in the distribution, you likely have
    one already in your home directory.  You need to add these lines:
@@ -163,7 +162,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    current directory in the message buffer, as returned by the
    @code{os.getcwd} Python function.
 
-.. @section Porting Pymacs.
+.. @section Porting Pymacs
 
    Pymacs has been developped on Linux, Python 1.5.2, and Emacs (20 and 21),
    it is expected to work out of the box on most other Unices, newer Python
@@ -183,7 +182,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    There might be Python 2.2 dependencies for the @code{Nn} example, while I
    believe the @code{Rebox} is still 1.5.2 compatible.  This might change.
 
-.. @section Caveats.
+.. @section Caveats
 
    Some later versions of Emacs 20 silently ignore the request for creating
    weak hash tables, they create an ordinary table instead.  Older Emacses
@@ -193,9 +192,9 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    Python side once Emacs is finished with them.  It should not be a
    practical problem in most simple cases.
 
-* @section Emacs Lisp structures and Python objects.
+* @section Emacs Lisp structures and Python objects
 
-.. @section Conversions.
+.. @section Conversions
 
    Whenever Emacs Lisp calls Python functions giving them arguments, these
    arguments are Emacs Lisp structures that should be converted into Python
@@ -216,7 +215,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    Lisp extensions.  One goal for many Pymacs users is taking some distance
    from Emacs Lisp, so Pymacs is not overly pushing users deeper into it.
 
-.. @section Simple objects.
+.. @section Simple objects
 
    Emacs Lisp @code{nil} and the equivalent Emacs Lisp @samp{()} yield
    Python @code{None}.  Python @code{None} and the Python empty list
@@ -248,7 +247,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    with that @var{string} which, of course, should then be a valid Emacs
    Lisp symbol name.
 
-.. @section Sequences.
+.. @section Sequences
 
    The case of strings has been discussed in the previous section.
 
@@ -318,9 +317,9 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    test vectors for their type, or users just like bracketed syntax.  The
    speed of access is hardly an issue then.
 
-.. @section Opaque objects.
+.. @section Opaque objects
 
-. : @section Emacs Lisp handles.
+. : @section Emacs Lisp handles
 
     When a Python function is called from Emacs Lisp, the function
     arguments have already been converted to Python types from Emacs Lisp
@@ -373,7 +372,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
     object which is @code{equal} to the original, but not neccessarily
     @code{eq}.
 
-. : @section Python handles.
+. : @section Python handles
 
     The same as Emacs Lisp handles are useful for handling Emacs Lisp
     objects on the Python side, Python handles are useful for handling
@@ -405,15 +404,15 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
     @code{getattr} as the function, to get a wanted attribute for a Python
     object.
 
-* @section Usage on the Emacs Lisp side.
+* @section Usage on the Emacs Lisp side
 
-.. @section @code{pymacs-eval}.
+.. @section @code{pymacs-eval}
 
    Function @samp{(pymacs-eval @var{text})} gets @var{text} evaluated as a
    Python expression, and returns the value of that expression converted
    back to Emacs Lisp.
 
-.. @section @code{pymacs-call}.
+.. @section @code{pymacs-call}
 
    Function @samp{(pymacs-call @var{function} @var{argument}@dots{})} will
    get Python to apply the given @var{function} over zero or more
@@ -424,7 +423,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    to Python before the function is called.  @code{pymacs-call} returns the
    resulting value of the function call, converted back to Emacs Lisp.
 
-.. @section @code{pymacs-apply}.
+.. @section @code{pymacs-apply}
 
    Function @samp{(pymacs-apply @var{function} @var{arguments})} will get
    Python to apply the given @var{function} over the given @var{arguments}.
@@ -432,7 +431,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    there is none.  Besides arguments being bundled together instead of
    given separately, the function acts pretty much like @code{pymacs-call}.
 
-.. @section @code{pymacs-load}.
+.. @section @code{pymacs-load}
 
    Function @samp{(pymacs-load @var{module} @var{prefix})} imports the
    Python @var{module} into Emacs Lisp space.  @var{module} is the name of
@@ -466,7 +465,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    on the Emacs Lisp side.  Currently, there is no provision for collecting
    keyword arguments in Emacs Lisp.
 
-.. @section Expected usage.
+.. @section Expected usage
 
    We do not expect that @code{pymacs-eval}, @code{pymacs-call} or
    @code{pymacs-apply} will be much used, if ever.  In practice, the Emacs
@@ -478,7 +477,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    These imported functions are usually those which are of interest for the
    user, and the preferred way to call Python services with Pymacs.
 
-.. @section Special Emacs Lisp variables.
+.. @section Special Emacs Lisp variables
 
    Users could alter the inner working of Pymacs through a few variables,
    these are all documented here.  Except for @code{pymacs-load-path},
@@ -573,9 +572,9 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
     variable, which defaults to 2, says how many seconds to wait without
     checking, while expecting a line of the reply after the first.
 
-* @section Usage on the Python side.
+* @section Usage on the Python side
 
-.. @section Python setup.
+.. @section Python setup
 
    Pymacs requires little or no setup in the Python modules which are meant
    to be used from Emacs, for the simple situations where these modules
@@ -586,14 +585,14 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    features, like the @code{Let} class, write @samp{from Pymacs import
    lisp, Let}.
 
-.. @section Response mode.
+.. @section Response mode
 
    When Python receives a request from Emacs in the context of Pymacs, and
    until it returns the reply, Emacs keeps listening to serve Python
    requests.  Emacs is not listening otherwise.  Other Python threads, if
    any, may not call Emacs without @emph{very} careful synchronisation.
 
-.. @section Emacs Lisp symbols.
+.. @section Emacs Lisp symbols
 
    @code{lisp} is a special object which has useful built-in magic.  Its
    attributes do nothing but represent Emacs Lisp symbols, created on the
@@ -632,7 +631,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    following function arguments.  The result of the Emacs Lisp function
    becomes the value of the call, with all due conversions of course.
 
-.. @section Dynamic bindings.
+.. @section Dynamic bindings
 
    As Emacs Lisp uses dynamic bindings, it is common that Emacs Lisp
    programs use @code{let} for temporarily setting new values for some
@@ -732,7 +731,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    The last @samp{del let} might be omitted in a few circumstances, for
    example if the excursion lasts until the end of the Python function.
 
-.. @section Raw Emacs Lisp expressions.
+.. @section Raw Emacs Lisp expressions
 
    Pymacs offers a device for evaluating a raw Emacs Lisp expression, or a
    sequence of such, expressed as a string.  One merely uses @code{lisp} as
@@ -750,7 +749,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    becomes the value of the @code{lisp} call, after conversion back to
    Python.
 
-.. @section User interaction.
+.. @section User interaction
 
    Emacs functions have the concept of user interaction for completing the
    specification of their arguments while being called.  This happens only
@@ -813,7 +812,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    of @code{lisp.interactive} arguments could get arbitrarily complex, it
    would a real challenge un-compiling that evaluation into Emacs Lisp.
 
-.. @section Keybindings.
+.. @section Keybindings
 
    An interactive function may be bound to a key sequence.
 
@@ -845,9 +844,9 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    @samp{[M-f2]} might require some more ingenuity, one may write either
    @samp{(lisp['M-f2'],)} or @samp{(lisp.M_f2,)} on the Python side.
 
-* @section Debugging.
+* @section Debugging
 
-.. @section The @code{*Pymacs*} buffer.
+.. @section The @code{*Pymacs*} buffer
 
    Emacs and Python are two separate processes (well, each may use more than
    one process).  Pymacs implements a simple communication protocol between
@@ -917,7 +916,10 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    and batched together within the next communication having another
    purpose.
 
-.. @section Emacs usual debugging.
+   Variable @code{pymacs-trace-transit} may be modified for controlling how
+   and when the @code{*Pymacs*} buffer, or parts thereof, get erased.
+
+.. @section Emacs usual debugging
 
    If cross-calls between Emacs Lisp and Python nest deeply, an error will
    raise successive exceptions alternatively on both sides as requests
@@ -947,11 +949,21 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    put the cursor on the file name of a Python module from the backtrace,
    and @samp{C-x C-f RET} will quickly open that source for you.
 
-.. @section Auto-reloading on save.
+.. @section Auto-reloading on save
 
    I found useful to automatically @code{pymacs-load} some Python files
-   whenever they get saved from Emacs.  Here is how I do it.  The code below
-   assumes that Python files meant for Pymacs are kept in
+   whenever they get saved from Emacs.  This can be decided on a per-file or
+   per-directory basis.  To get a particular Python file to be reloaded
+   automatically on save, add the following lines at the end:
+
+. : @example
+    # Local Variables:
+    # pymacs-auto-reload: t
+    # End:
+. :
+
+   Here is an example of automatic reloading on a per-directory basis.  The
+   code below assumes that Python files meant for Pymacs are kept in
    @file{~/share/emacs/python}.
 
 . : @example
@@ -962,14 +974,13 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
 		   (string-match "\\.py\\'" buffer-file-name))
 	  (pymacs-load (substring buffer-file-name 0 -3)))))
     (add-hook 'after-save-hook 'fp-maybe-pymacs-reload)
-
 . :
 
-* @section Examples.
+* @section Examples
 
-.. @section Example 1 --- Paul Winkler's.
+.. @section Example 1 --- Paul Winkler's
 
-. : @section Example 1 --- The problem.
+. : @section Example 1 --- The problem
 
     Let's say I have a a module, call it @file{manglers.py}, containing
     this simple python function:
@@ -990,7 +1001,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
     do for the user, that could be displaced towards Emacs Lisp or towards
     Python.
 
-. : @section Example 1 --- Python side.
+. : @section Example 1 --- Python side
 
     Here is a first draft for the Python side of the problem:
 
@@ -1030,7 +1041,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
     functions used here, @samp{start} and @samp{end} may be given in any
     order.
 
-. : @section Example 1 --- Emacs side.
+. : @section Example 1 --- Emacs side
 
     On the Emacs side, one would do:
 
@@ -1039,12 +1050,12 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
      (global-set-key [f7] 'manglers-break-on-whitespace)
 .  ,
 
-.. @section Example 2 --- Yet another Gnus backend.
+.. @section Example 2 --- Yet another Gnus backend
 
    @strong{Note.}  This example is not fully documented yet.  As it stands,
    it is merely a collection of random remarks from other sources.
 
-. : @section Example 2 --- The problem.
+. : @section Example 2 --- The problem
 
     I've been reading, saving and otherwise handling electronic mail from
     within Emacs for a lot of years, even before Gnus existed.  The
@@ -1086,7 +1097,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
     breeze to do, if I only adapted the Python backend to handle Unix
     mailbox files as well as Babyl, transparently.
 
-. : @section Example 2 --- Python side.
+. : @section Example 2 --- Python side
 
     I started by taking the Info nodes of the Gnus manual which were
     describing the back end interface, and turning them all into a long
@@ -1099,15 +1110,15 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
     are still sitting in the module, with their included comments and
     debugging code.
 
-. : @section Example 2 --- Emacs side.
+. : @section Example 2 --- Emacs side
 
     One difficulty is ensuring that @code{Nn} contents (@file{nncourrier.py}
     and @file{folder.py}) have to be on the Python or Pymacs search path.
     The @file{__init__.py} and package nature are not essential.
 
-.. @section Example 3 --- The @code{rebox} tool.
+.. @section Example 3 --- The @code{rebox} tool
 
-. : @section Example 3 --- The problem.
+. : @section Example 3 --- The problem
 
     For comments held within boxes, it is painful to fill paragraphs, while
     stretching or shrinking the surrounding box @emph{by hand}, as needed.
@@ -1121,7 +1132,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
     single boxed comment.  Emacs @code{rebox-comment} is different, as it
     has to chase itself the extent of the surrounding boxed comment.
 
-. : @section Example 3 --- Python side.
+. : @section Example 3 --- Python side
 
     The Python code is too big to be inserted in this documentation: see
     file @file{Pymacs/rebox.py} in the Pymacs distribution.  You will
@@ -1205,7 +1216,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
     @code{fmt} fails, for not being available, say, @code{refill_lines}
     falls back on a dumb refilling algorithm, which is better than none.
 
-. : @section Example 3 --- Emacs side.
+. : @section Example 3 --- Emacs side
 
     The Emacs recipe appears under the @samp{Emacs usage} section, near the
     beginning of @file{Pymacs/rebox.py}, so I do not repeat it here.

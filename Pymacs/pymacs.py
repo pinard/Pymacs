@@ -32,8 +32,8 @@ See the Pymacs documentation (in `README') for more information.
 ## It is probably worth keeping it that way for a good while, still.
 
 import os, string, sys, types
-
-# Python services for Emacs applications.
+
+## Python services for Emacs applications.
 
 def main(*arguments):
     """\
@@ -224,7 +224,7 @@ def doc_string(object):
     if hasattr(object, '__doc__'):
 	return object.__doc__
 
-# Garbage collection matters.
+## Garbage collection matters.
 
 # Many Python types do not have direct Lisp equivalents, and may not be
 # directly returned to Lisp for this reason.  They are rather allocated in
@@ -270,7 +270,7 @@ def zombie(*arguments):
     # such a function from Emacs will trigger a decipherable diagnostic.
     error("Object vanished when helper was killed.")
 
-# Emacs services for Python applications.
+## Emacs services for Python applications.
 
 class Let:
     def __init__(self, **keywords):

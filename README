@@ -1,15 +1,23 @@
-Pymacs is a powerful tool which, once started from Emacs, allows both-way
-communication between Emacs Lisp and Python.  Pymacs aims Python as an
-extension language for Emacs rather than the other way around, and this
-assymetry is reflected in some design choices.  Within Emacs Lisp code, one
-may load and use Python modules.  Python functions may themselves use Emacs
-services, and handle Emacs Lisp objects kept in Emacs Lisp space.
+======================
+README file for Pymacs
+======================
 
-`http://www.iro.umontreal.ca/~pinard/pymacs/' contains a copy of the Pymacs
-manual in HTML form.  The distribution holds the documentation sources, as
-well as PostScript and PDF renderings.  The canonical Pymacs distribution is
-available as `http://www.iro.umontreal.ca/~pinard/pymacs/Pymacs.tar.gz'.
-Report problems and suggestions to `mailto:pinard@iro.umontreal.ca'.
+Pymacs is a powerful tool which, once started from Emacs, allows
+both-way communication between Emacs Lisp and Python.  Pymacs aims
+Python as an extension language for Emacs rather than the other way
+around, and this asymmetry is reflected in some design choices.  Within
+Emacs Lisp code, one may load and use Python modules.  Python functions
+may themselves use Emacs services, and handle Emacs Lisp objects kept in
+Emacs Lisp space.
 
-                                        François Pinard,
-                                        pinard@iro.umontreal.ca
+See http://pymacs.progiciels-bpi.ca for more documentation, including
+the manual in HTML form.  The canonical Pymacs distribution is available
+as http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz.
+You may also get all files, and their history as well, through the command::
+
+    git clone git://pymacs.progiciels-bpi.ca/pymacs
+
+yet beware this is still an experiment, and I may reset branches.
+
+Report problems, comments and suggestions to François Pinard
+mailto:pinard@iro.umontreal.ca .
