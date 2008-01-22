@@ -25,5 +25,5 @@ setup(name=__package__, version=__version__,
       description="Interface between Emacs LISP and Python.",
       author='François Pinard', author_email='pinard@iro.umontreal.ca',
       url='http://www.iro.umontreal.ca/~pinard',
-      scripts=['scripts/pymacs-services'],
+      scripts=['pymacs-services'],
       packages=['Pymacs'])
