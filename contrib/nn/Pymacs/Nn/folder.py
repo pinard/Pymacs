@@ -91,18 +91,17 @@ class Folder:
                 if not self.deleted[counter]:
                     if write is None:
                         write = file(self.file_name, 'w').write
-                        self.write_file_prefix(write)
+                        if self.folder_prefix is not None:
+                            write(self.folder_prefix)
                     self.write_indexed_message(counter, write)
-            if write is not None:
-                self.write_file_suffix(write)
 
-    def error(self, message, index=None):
+    def error(self, diagnostic, index=None):
         if index is None:
-            raise Error, '%s: %s' % (self.file_name, message)
-        raise Error, '%s:%s: %s' % (self.file_name, index+1, message)
+            raise Error, '%s: %s' % (self.file_name, diagnostic)
+        raise Error, '%s:%s: %s' % (self.file_name, index+1, diagnostic)
 
 class Babyl(Folder):
-    prefix = """\
+    folder_prefix = """\
 BABYL OPTIONS: -*- rmail -*-
 Version: 5
 Labels:
@@ -111,33 +110,38 @@ Note:   If you are seeing it in rmail,
 Note:    it means the file has no messages in it.
 \37\
 """
+    article_prefix = """\
+0, unseen,,
+*** EOOH ***
+"""
+    eooh_string = '\n*** EOOH ***\n'
 
     def create_data(self, buffer):
         self.data = buffer.split('\37\f\n')
-        if self.data[0].startswith('BABYL OPTIONS:'):
-            self.prefix = self.data.pop(0)
-        else:
-            self.error("Not starting like a Babyl file.")
         if self.data and self.data[-1].endswith('\37'):
             self.data[-1] = self.data[-1][:-1]
         else:
             self.error("Not ending like a Babyl file.")
+        if self.data[0].startswith('BABYL OPTIONS:'):
+            self.folder_prefix = self.data.pop(0) + '\37'
+        else:
+            self.error("Not starting like a Babyl file.")
 
     def extend_data(self, buffer):
         data = buffer.split('\37\f\n')
-        if data[0].startswith('\f\n'):
-            data[0] = date[0][2:]
-        else:
-            self.error("Not starting like a Babyl article.", len(self.data))
         if data[-1].endswith('\37'):
             data[-1] = data[-1][:-1]
         else:
             self.error("Not ending like a Babyl article.",
                        len(self.data) + len(data) - 1)
+        if data[0].startswith('\f\n'):
+            data[0] = date[0][2:]
+        else:
+            self.error("Not starting like a Babyl article.", len(self.data))
         self.data += data
 
     def append(self, text):
-        self.data.append(text)
+        self.data.append(self.article_prefix + text)
         self.deleted.append(False)
         self.modified = True
 
@@ -149,9 +153,7 @@ Note:    it means the file has no messages in it.
 
     def __setitem__(self, index, text):
         if text != self[index]:
-            self.data[index] = ('0, unseen,,\n'
-                                '*** EOOH ***\n'
-                                + text)
+            self.data[index] = self.article_prefix + text
             self.modified = True
 
     def message_headers(self, index):
@@ -164,30 +166,21 @@ Note:    it means the file has no messages in it.
         except MessageError, diagnostic:
             self.error(diagnostic, index)
 
-    def write_file_prefix(self, write):
-        write(self.prefix)
-
-    def write_file_suffix(self, write):
-        write('\37')
-
     def write_indexed_message(self, index, write):
         (data, head_begin, head_end, body_begin, body_end
          ) = self.find_head_body(index)
-        head = data[head_begin:head_end]
-        body = data[body_begin:body_end]
-        write('\37\f\n'
-              '0, unseen,,\n'
-              '*** EOOH ***\n')
-        write(head)
+        write('\f\n')
+        write(self.article_prefix)
+        write(data[head_begin:head_end])
         write('\n')
-        write(body)
+        write(data[body_begin:body_end])
+        write('\37')
 
     def find_head_body(self, index):
         # Returns (DATA, HEAD_BEGIN, HEAD_END, BODY_BEGIN, BODY_END), the
         # first being a string, all others being positions in that string.
-        eooh_string = '\n*** EOOH ***\n'
         data = self.data[index]
-        eooh = data.find(eooh_string)
+        eooh = data.find(self.eooh_string)
         if eooh < 0:
             self.error("No EOOH within Babyl article.", index)
         double_newline = data.find('\n\n', eooh)
@@ -196,7 +189,7 @@ Note:    it means the file has no messages in it.
         body_begin = double_newline + 2
         body_end = len(data)
         if data.startswith('0'):
-            head_begin = eooh + len(eooh_string)
+            head_begin = eooh + len(self.eooh_string)
             head_end = double_newline + 1
         elif data.startswith('1'):
             newline = data.find('\n', 0, eooh)
@@ -209,6 +202,8 @@ Note:    it means the file has no messages in it.
         return data, head_begin, head_end, body_begin, body_end
 
 class Mbox(Folder):
+    folder_prefix = None
+
     def __init__(self, *arguments):
         self.envelope = []
         Folder.__init__(self, *arguments)
@@ -249,7 +244,7 @@ class Mbox(Folder):
     def append(self, text):
         self.data.append(text)
         import time
-        self.envelope.append('Local.folder %s' % time.ctime(time.time()))
+        self.envelope.append('folder.Mbox %s' % time.ctime(time.time()))
         self.deleted.append(False)
         self.modified = True
 
@@ -272,20 +267,13 @@ class Mbox(Folder):
         except MessageError, diagnostic:
             self.error(diagnostic, index)
 
-    def write_file_prefix(self, write):
-        pass
-
-    def write_file_suffix(self, write):
-        pass
-
     def write_indexed_message(self, index, write):
         write('From %s\n' % self.envelope[index])
         (data, head_begin, head_end, body_begin, body_end
          ) = self.find_head_body(index)
-        head = data[head_begin:head_end]
-        body = data[body_begin:body_end]
-        write(head)
+        write(data[head_begin:head_end])
         write('\n')
+        body = data[body_begin:body_end]
         if body.startswith('From'):
             write('>')
         write(body.replace('\nFrom', '\n>From'))
