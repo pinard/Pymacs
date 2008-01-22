@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: Latin-1 -*-
+# -*- coding: ISO-8859-1 -*-
 
 import sys
 sys.path.insert(0, '.')
@@ -20,9 +20,6 @@ def update_version_texi():
 from distutils.core import setup
 
 update_version_texi()
-
-# If you want `Allout' installed, then add `scripts/allout' to the `scripts'
-# list and `Allout' to the `packages' list.
 
 setup(name=__package__, version=__version__,
       description="Interface between Emacs LISP and Python.",

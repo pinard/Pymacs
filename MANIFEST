@@ -1,8 +1,3 @@
-Allout/__init__.py
-Allout/allout.py
-Allout/list.py
-Allout/main.py
-Allout/texi.py
 ChangeLog
 ChangeLog-rebox
 MANIFEST
@@ -27,7 +22,6 @@ doc/pymacs.ps
 doc/texinfo.tex
 doc/version.texi
 pymacs.el
-scripts/allout
 scripts/pymacs-services
 scripts/rebox
 setup
