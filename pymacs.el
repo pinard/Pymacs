@@ -487,8 +487,8 @@ The timer is used only if `post-gc-hook' is not available.")
 	  (if (and (pymacs-proper-list-p reply)
 		   (= (length reply) 2)
 		   (eq (car reply) 'pymacs-version))
-	      (unless (string-equal (cadr reply) "0.22")
-		(error "Pymacs Lisp version is 0.22, Python is %s."
+	      (unless (string-equal (cadr reply) "0.23")
+		(error "Pymacs Lisp version is 0.23, Python is %s."
 		       (cadr reply)))
 	    (error "Pymacs got an invalid initial reply.")))))
     (setq pymacs-use-hash-tables (and (fboundp 'make-hash-table)

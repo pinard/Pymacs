@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 # Copyright © 2002, 2003 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2002.
 
@@ -27,4 +28,4 @@ from pymacs import Let, lisp
 # Identification of version.
 
 __package__ = 'Pymacs'
-__version__ = '0.22'
+__version__ = '0.23'
