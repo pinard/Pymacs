@@ -25,6 +25,3 @@
 
 .. Internal cleanup.
 . : `(pymacs-eval "dir()")' shows too many things.
-
-.. Nn.
-. : Add specialised Speedbar facilities.

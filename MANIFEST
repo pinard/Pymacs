@@ -1,9 +1,6 @@
 ChangeLog
 MANIFEST
 Makefile
-Pymacs/Nn/__init__.py
-Pymacs/Nn/folder.py
-Pymacs/Nn/nncourriel.py
 Pymacs/__init__.py
 Pymacs/pymacs.py
 README

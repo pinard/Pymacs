@@ -26,4 +26,4 @@ setup(name=__package__, version=__version__,
       author='François Pinard', author_email='pinard@iro.umontreal.ca',
       url='http://www.iro.umontreal.ca/~pinard',
       scripts=['scripts/pymacs-services'],
-      packages=['Pymacs', 'Pymacs.Nn'])
+      packages=['Pymacs'])
