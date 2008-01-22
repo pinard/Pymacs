@@ -148,7 +148,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
    Python, which should be searched prior to the usual Python import search
    path, then uncomment the last two lines (by removing the semi-colons)
    and replace @var{your-pymacs-directory} by the name of your special
-   directory.  If the file @file{$HOME/.emacs} does not exist, merely
+   directory.  If the file @file{~/.emacs} does not exist, merely
    create it with the above lines.  You are now all set to use Pymacs.
 
    To check this, start a fresh Emacs session, and type @samp{M-x
@@ -962,6 +962,7 @@ Author: @value{Francois} Pinard, @email{pinard@@iro.umontreal.ca}
 		   (string-match "\\.py\\'" buffer-file-name))
 	  (pymacs-load (substring buffer-file-name 0 -3)))))
     (add-hook 'after-save-hook 'fp-maybe-pymacs-reload)
+
 . :
 
 * @section Examples.
