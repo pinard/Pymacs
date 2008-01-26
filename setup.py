@@ -6,20 +6,7 @@ sys.path.insert(0, '.')
 from Pymacs import __package__, __version__
 del sys.path[0]
 
-def update_version_texi():
-    import os, stat, time
-    edited = ('%.4d-%.2d-%.2d'
-              % time.localtime(os.stat('doc/pymacs.all')[stat.ST_MTIME])[:3])
-    version_texi = ('@set VERSION %s\n'
-                    '@set EDITION %s\n'
-                    '@set UPDATED %s\n'
-                    % (__version__, edited, edited))
-    if file('doc/version.texi').read() != version_texi:
-        file('doc/version.texi', 'w').write(version_texi)
-
 from distutils.core import setup
-
-update_version_texi()
 
 setup(name=__package__, version=__version__,
       description="Interface between Emacs LISP and Python.",
