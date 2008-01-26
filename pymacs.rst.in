@@ -192,11 +192,6 @@ Syver Enstad reports that Pymacs could be made to work on Windows-2000
 (win2k), he suspects it should equally work with NT and XP.  However,
 little shell stunts may be required, I hope to later document them here.
 
-The distribution also contains a manual in Allout format, and an Allout
-format processor which depends on Python 2.2 features.  However, since
-ready Postscript and PDF renderings of the manual are also provided, you
-should not need Python 2.2 for getting an unaltered manual.
-
 There might be Python 2.2 dependencies for the :code:`Nn` example, while
 I believe the :code:`Rebox` is still 1.5.2 compatible.  This might
 change.
