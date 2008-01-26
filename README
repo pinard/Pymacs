@@ -1,3 +1,5 @@
+.. role:: code(strong)
+
 ======================
 README file for Pymacs
 ======================
@@ -10,14 +12,44 @@ Emacs Lisp code, one may load and use Python modules.  Python functions
 may themselves use Emacs services, and handle Emacs Lisp objects kept in
 Emacs Lisp space.
 
-See http://pymacs.progiciels-bpi.ca for more documentation, including
-the manual in HTML form.  The canonical Pymacs distribution is available
-as http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz.
-You may also get all files, and their history as well, through the command::
+Here are some other Pymacs resources:
+
++ http://pymacs.progiciels-bpi.ca
+
+  This README file (you are likely visiting it right now).
+
++ http://pymacs.progiciels-bpi.ca/pymacs.html
+
+  The Pymacs manual in HTML format.
+
++ http://pymacs.progiciels-bpi.ca/pymacs.pdf
+
+  The Pymacs manual in PDF format.
+
++ http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz
+
+  The latest snapshot of a Pymacs distribution.  Beware that, at
+  least as of today, it might be an in-the-works, unstable version.
+
++ A :code:`git` repository for Pymacs sources and history
+
+  ::
 
     git clone git://pymacs.progiciels-bpi.ca/pymacs
 
-yet beware this is still an experiment, and I may reset branches.
+  should produce your copy of the repository.  However, consider this
+  to be fairly experimental for now.  The server might not even be up
+  (then just tell me!).  This copy gets randomly synchronised with my
+  real work repository, which is itself a sandbox, for which branches
+  may be reset at any time.
 
-Report problems, comments and suggestions to François Pinard
-mailto:pinard@iro.umontreal.ca .
++ http://blog.objectsroot.com/projects/pymacs/
+
+  This is `Giovanni Giorgi`__\ 's Pymacs Web site.
+
+__ http://blog.objectsroot.com/
+
+Please report problems, comments and suggestions to `François Pinard`__
+at ``pinard@iro.umontreal.ca``.
+
+__ mailto:pinard@iro.umontreal.ca
