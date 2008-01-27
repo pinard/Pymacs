@@ -17,6 +17,9 @@ PYSETUP = python setup.py
 all: pymacs.el Pymacs/__init__.py
 	$(PYSETUP) build
 
+check: pymacs.el Pymacs/__init__.py
+	cd tests && ./pytest
+
 install: pymacs.el Pymacs/__init__.py
 	./setup -l '$(lispdir)'
 	$(PYSETUP) install
@@ -41,7 +44,7 @@ Pymacs/__init__.py: __init__.py.in Makefile
 
 # The following goals for the maintainer of the Pymacs Web site.
 
-site: web/pymacs.pdf web/pymacs.rst
+publish: web/pymacs.pdf web/pymacs.rst
 	rm -f web/archives/Pymacs.tar.gz
 	git archive --format=tar --prefix=Pymacs-$(VERSION)/ HEAD . \
 	  | gzip > web/archives/Pymacs-$(VERSION).tar.gz
