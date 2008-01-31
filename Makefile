@@ -18,7 +18,7 @@ all: pymacs.el Pymacs/__init__.py
 	$(PYSETUP) build
 
 check: pymacs.el Pymacs/__init__.py
-	cd tests && ./pytest
+	cd tests && ./pytest $(TEST)
 
 install: pymacs.el Pymacs/__init__.py
 	./setup -l '$(lispdir)'
