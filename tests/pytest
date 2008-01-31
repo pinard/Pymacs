@@ -58,6 +58,12 @@ class Main:
     capture = True
     save = None
 
+    # For handling setup/teardown laziness.
+    delayed_setup_module = None
+    delayed_setup_class = None
+    did_tests_in_module = False
+    did_tests_in_class = False
+
     def main(self, *arguments):
         import getopt
         options, arguments = getopt.getopt(arguments, u'hk:l:no:ps:vx:')
@@ -263,16 +269,20 @@ class Main:
                                    bool(code.co_flags & 32)))
         if not collection:
             return
+        self.delayed_setup_module = None
+        self.did_tests_in_module = False
         if hasattr(module, u'setup_module'):
-            module.setup_module(module)
+            self.delayed_setup_module = module.setup_module, module
         for _, name, objet, generator in sorted(collection):
+            self.delayed_setup_class = None
+            self.did_tests_in_class = False
             if inspect.isclass(objet):
                 if not getattr(object, u'disabled', False):
                     self.handle_class(prefix + u'/' + name, objet)
             else:
                 self.handle_function(prefix + u'/' + name, objet,
                                       generator, None)
-        if hasattr(module, u'teardown_module'):
+        if self.did_tests_in_module and hasattr(module, u'teardown_module'):
             module.teardown_module(module)
 
     def handle_class(self, prefix, classe):
@@ -286,11 +296,11 @@ class Main:
             return
         instance = classe()
         if hasattr(instance, u'setup_class'):
-            instance.setup_class(classe)
+            self.delayed_setup_module = module.setup_class, classe
         for _, name, method, generator in sorted(collection):
             self.handle_function(prefix + u'/' + name, getattr(instance, name),
                                   generator, instance)
-        if hasattr(instance, u'teardown_class'):
+        if self.did_tests_in_class and hasattr(instance, u'teardown_class'):
             instance.teardown_class(classe)
 
     def handle_function(self, prefix, function, generator, instance):
@@ -309,6 +319,12 @@ class Main:
             self.mark_progression(prefix, None)
             return
         # This test should definitely be executed.
+        if self.delayed_setup_module is not None:
+            self.delayed_setup_module[0](self.delayed_setup_module[1])
+            self.delayed_setup_module = None
+        if self.delayed_setup_class is not None:
+            self.delayed_setup_class[0](self.delayed_setup_class[1])
+            self.delayed_setup_class = None
         if instance is not None and hasattr(instance, u'setup_method'):
             instance.setup_method(function)
         if self.capture:
@@ -350,6 +366,8 @@ class Main:
                          stdout, stderr, str(tracing.getvalue())))
             if instance is not None and hasattr(instance, u'teardown_method'):
                 instance.teardown_method(function)
+            self.did_tests_in_class = True
+            self.did_tests_in_module = True
         if exception is not None and len(self.failures) == self.limit:
             raise Limit_Reached
 
