@@ -4,6 +4,22 @@
 README file for Pymacs
 ======================
 
+  **Some news!**  I recently decided to resume Pymacs maintenance.
+  I've been unable, for quite a while now, to reach the official
+  maintainer, who replaced me.  As I'm using Emacs only sporadically,
+  I'll have to much rely on current Pymacs users for pretesting!
+
+  Nothing much new for the next release!  The manual now uses Docutils.
+  There is the skeleton of a validation suite.  (It needed Emacs as a
+  slave of Python, rather than the other way around, but this would
+  need much improvment before being usable outside testing.)  I have
+  no pending bug reports here (maybe I transmitted them all years ago?
+  -- I do not remember), not much suggestions either.  But I got a few
+  contributions to sort out, and also, nice, kind, warm letters from
+  enthusiastic kind users :-).
+
+  François, 2008-01-30
+
 Pymacs is a powerful tool which, once started from Emacs, allows
 both-way communication between Emacs Lisp and Python.  Pymacs aims
 Python as an extension language for Emacs rather than the other way
