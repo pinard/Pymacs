@@ -181,8 +181,8 @@
 	* : Release 0.14.
 
 	* pymacs.py: Set various __repr__() to yield Python code,
-	containing the corresponding expanded LISP expression.
-	Set various __str__() to yield mutable LISP code.
+	containing the corresponding expanded Lisp expression.
+	Set various __str__() to yield mutable Lisp code.
 
 	* pymacs.py (Let): Point markers to nowhere once done with them.
 
@@ -307,7 +307,7 @@
 	* pymacs.py (Symbol.set): Make things simpler when value is None.
 
 	* pymacs.el (pymacs-print-for-eval): Use Python lists to represent
-	LISP proper lists and Python tuples to represent LISP vectors,
+	Lisp proper lists and Python tuples to represent Lisp vectors,
 	instead of the other way around.
 	* pymacs.py (pymacs_load_helper, print_lisp): Similar changes.
 	Reported by John Wiegley.
@@ -359,9 +359,9 @@
 	(pymacs-defuns): Use pymacs-defun.
 	* pymacs.py (print_lisp): Use the above.
 
-	* pymacs.py (Server): Free all accumulated LISP indices, while
+	* pymacs.py (Server): Free all accumulated Lisp indices, while
 	replying for another reason.  This should decrease overhead.
-	(Lisp.__del__): Delay freeing LISP, do not free one index at a time.
+	(Lisp.__del__): Delay freeing Lisp, do not free one index at a time.
 	* pymacs.el (pymacs-free-lisp): Free many indices at once.
 
 	* pymacs.el (pymacs-start-services, pymacs-round-trip): Recognise
@@ -375,7 +375,7 @@
 	* pymacs.py (zombie): New, so to get a clear diagnostic.
 	(zombie_python): Link objects to the above function.
 	* pymacs.el (pymacs-terminate-services): Ask for confirmation if
-	any object in LISP space is still in use on the Python side.
+	any object in Lisp space is still in use on the Python side.
 	* pymacs-test.el (try-lisp): Do not terminate the helper.
 
 	* pymacs.py (Buffer): New class, yet empty for now.
@@ -410,7 +410,7 @@
 	* pymacs.el (pymacs-proper-list-p): New function.  Use it
 	everywhere instead of listp, which is not what I thought it was!
 
-	* pymacs.el (pymacs-serve-until-reply): In case of LISP error,
+	* pymacs.el (pymacs-serve-until-reply): In case of Lisp error,
 	transmit a list of one argument, instead of the argument itself,
 	to print-for-apply.  This was preventing proper diagnostic.
 	Correct a similar error for when expansion is requested.

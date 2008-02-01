@@ -3,7 +3,7 @@
 .. Protocol details.
 . : Implement pseudo-primitives for indexing.
 . : Allow iterating over vectors.
-. : Relate LISP hash tables to Python dicts.  Maybe?
+. : Relate Lisp hash tables to Python dicts.  Maybe?
 
 .. Documentation.
 . : Attempt HTML rendering through `makeinfo'.

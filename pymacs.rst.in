@@ -67,7 +67,7 @@ History and references
 
 I once starved for a Python-extensible editor, so much that I pondered
 the idea of dropping Emacs for other avenues, but found nothing much
-convincing.  Moreover, looking at all LISP extensions I gave to myself,
+convincing.  Moreover, looking at all Lisp extensions I gave to myself,
 and considering all those superb tools written by others, all of which
 are now part of my computer life, it would have been a huge undertaking
 for me to reprogram these all in Python.  So, when I began to see that

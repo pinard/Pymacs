@@ -1,4 +1,4 @@
-# Interface between Emacs LISP and Python - Makefile.
+# Interface between Emacs Lisp and Python - Makefile.
 # Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
@@ -6,7 +6,7 @@
 
 ### Start of customisation.
 #
-# Somewhere on your Emacs LISP load-path.
+# Somewhere on your Emacs Lisp load-path.
 lispdir =
 #
 ### End of customisation.

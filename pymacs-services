@@ -18,7 +18,7 @@
 # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 """\
-Interface between Emacs LISP and Python - Python process starter.
+Interface between Emacs Lisp and Python - Python process starter.
 
 This small bootstrap is so Pymacs modules can be kept in compiled form.
 """

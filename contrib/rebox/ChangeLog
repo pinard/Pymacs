@@ -28,7 +28,7 @@
 	* Pymacs/rebox.py (engine): Moved out of Rebox class.
 	* Pymacs/rebox.py (Rebox, Batch_Rebox): Deleted, as they got empty.
 
-	* Pymacs/rebox.py (Emacs_Rebox.clean_undo_after): Rewrite in LISP.
+	* Pymacs/rebox.py (Emacs_Rebox.clean_undo_after): Rewrite in Lisp.
 
 2002-01-06  François Pinard  <pinard@iro.umontreal.ca>
 

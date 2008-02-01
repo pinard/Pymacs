@@ -9,7 +9,7 @@ del sys.path[0]
 from distutils.core import setup
 
 setup(name=__package__, version=__version__,
-      description="Interface between Emacs LISP and Python.",
+      description="Interface between Emacs Lisp and Python.",
       author='Giovanni Giorgi', author_email='jj@objectsroot.com',
       url='http://blog.objectsroot.com/projects/pymacs',
       packages=['Pymacs'])

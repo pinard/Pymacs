@@ -54,7 +54,7 @@ which is the simplest attribute, is ultimately taken if the parsing fails.
 A programming language is associated with comment delimiters.  Values are
 100 for none or unknown, 200 for `/*' and `*/' as in plain C, 300 for `//'
 as in C++, 400 for `#' as in most scripting languages, 500 for `;' as in
-LISP or assembler and 600 for `%' as in TeX or PostScript.
+Lisp or assembler and 600 for `%' as in TeX or PostScript.
 
 Box quality differs according to language. For unknown languages (100) or
 for the C language (200), values are 10 for simple, 20 for rounded, and
@@ -130,7 +130,7 @@ prefixes, the commands may deduce the current box style from the comment
 itself so the style is preserved.
 
 The default style initial value is nil or 0.  It may be preset to another
-value through calling `rebox-set-default-style' from Emacs LISP, or changed
+value through calling `rebox-set-default-style' from Emacs Lisp, or changed
 to anything else though using a negative value for a prefix, in which case
 the default style is set to the absolute value of the prefix.
 
@@ -477,7 +477,7 @@ Return all characters between point and end of line in Emacs buffer.
         """\
 Remove all intermediate boundaries from the Undo list since CHECKPOINT.
 """
-        # Declare some LISP functions.
+        # Declare some Lisp functions.
         car = lisp.car
         cdr = lisp.cdr
         eq = lisp.eq
@@ -1095,7 +1095,7 @@ all using the same WEIGHT.  Replace `?' in LINES accordingly.
 """
     for language, character in ((300, '/'),  # C++ style comments
                                 (400, '#'),  # scripting languages
-                                (500, ';'),  # LISP and assembler
+                                (500, ';'),  # Lisp and assembler
                                 (600, '%')): # TeX and PostScript
         new_style = language + style
         if 310 < new_style <= 319:

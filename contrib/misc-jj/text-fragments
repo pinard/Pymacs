@@ -135,7 +135,7 @@ Python mode 1.0 is located at:
 http://sourceforge.net/projects/python-mode/
 
 Last released version is dated at the end of 2005, so it seems to
-me quite frozen.  For an usage example execute the Emacs LISP function
+me quite frozen.  For an usage example execute the Emacs Lisp function
 "pycomplete-test"
 
 Emacs Server as XMLRPC
