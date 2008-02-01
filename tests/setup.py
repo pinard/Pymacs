@@ -19,12 +19,11 @@ from Pymacs import lisp, pymacs
 
 class Emacs:
     # Requests towards Emacs are written to file "_request", while
-    # replies from Emacs are read from file "_reply".  Here, we
-    # erase "_reply" as a way to call Emacs attention.  Emacs erases
-    # "_request" as a way to call our attention.  This set of rules
-    # ensures that no file written by one side is ever read prematurely
-    # or partially by the other side.  And if both files disappear at
-    # once, Emacs reacts by terminating gracefully.
+    # replies from Emacs are read from file "_reply".  We call Emacs
+    # attention by erasing "_reply", and Emacs calls our attention by
+    # erasing "_request".  These rules guarantee that no file is ever
+    # read by one side before it has been fully written by the other.
+    # Busy waiting, with built-in delays, is used on both sides.
 
     popen = None
 
@@ -40,6 +39,7 @@ class Emacs:
                 import signal
                 os.kill(self.popen.pid, signal.SIGINT)
                 os.waitpid(self.popen.pid, 0)
+            self.popen = None
         if os.path.exists('_request'):
             os.remove('_request')
         if os.path.exists('_reply'):
@@ -51,6 +51,8 @@ class Emacs:
             self.popen.poll()
             assert self.popen.returncode is None, self.popen.returncode
             time.sleep(0.01)
+        self.popen.poll()
+        assert self.popen.returncode is None, self.popen.returncode
         return file('_reply').read()
 
     def send(self, text):
@@ -73,8 +75,7 @@ def stop_emacs():
 
 def ask_emacs(text):
     Emacs.services.send(text)
-    r = Emacs.services.receive()
-    return r
+    return Emacs.services.receive()
 
 class Python:
 
@@ -115,43 +116,46 @@ def ask_python(text):
     return Python.services.receive()
 
 def each_equivalence():
-    # Repeatedly return QUOTABLE, PYTHON, LISP.
-    yield False, 'None', 'nil'
-    yield False, '3', '3'
-    yield False, '0', '0'
-    yield False, '-3', '-3'
-    yield False, '3.0', '3.0'
-    yield False, '0.0', '0.0'
-    yield False, '-3.0', '-3.0'
-    yield False, '""', '""'
-    yield False, '"a"', '"a"'
-    yield False, '"abc"', '"abc"'
-    yield False, r'"a\"c"', r'"a\"c"'
-    yield False, '"a\'bc"', '"a\'bc"'
-    yield False, r'"a\\bc"', r'"a\\bc"'
-    yield False, r'"a\bc"', r'"a\bc"'
-    yield False, r'"a\fc"', r'"a\fc"'
-    yield False, r'"a\nc"', r'"a\nc"'
-    yield False, r'"a\tc"', r'"a\tc"'
-    yield False, r'"a\033c"', r'"a\033c"'
-    yield False, '()', '[]'
-    yield False, '(0,)', '[0]'
-    yield False, '(0.0,)', '[0.0]'
-    yield False, '("a",)', '["a"]'
-    yield False, '(0, 0.0, "a")', '[0 0.0 "a"]'
-    yield True, '[]', 'nil'
-    yield True, '[0]', '(0)'
-    yield True, '[0.0]', '(0.0)'
-    yield True, '["a"]', '("a")'
-    yield True, '[0, 0.0, "a"]', '(0 0.0 "a")'
+    # Repeatedly return (SELFEVAL, PYTHON, LISP) for many objects.
+    # SELFEVAL is True whenever in Lisp, (equal (eval OBJECT) OBJECT).
+    # PYTHON is a Python string describing the value of repr(OBJECT).
+    # LISP is a Python string describing Lisp output for prin1(OBJECT).
+    yield True, 'None', 'nil'
+    yield True, '3', '3'
+    yield True, '0', '0'
+    yield True, '-3', '-3'
+    yield True, '3.0', '3.0'
+    yield True, '0.0', '0.0'
+    yield True, '-3.0', '-3.0'
+    yield True, '""', '""'
+    yield True, '"a"', '"a"'
+    yield True, '"byz"', '"byz"'
+    yield True, '"c\'bz"', '"c\'bz"'
+    yield True, r'"d\"z"', r'"d\"z"'
+    yield True, r'"e\\bz"', r'"e\\bz"'
+    yield True, r'"f\x08z"', '"f\bz"'
+    yield True, r'"g\x0cz"', '"g\fz"'
+    yield True, r'"h\nz"', '"h\nz"'
+    yield True, r'"i\tz"', '"i\tz"'
+    yield True, r'"j\x1bz"', '"j\x1bz"'
+    yield True, '()', '[]'
+    yield True, '(0,)', '[0]'
+    yield True, '(0.0,)', '[0.0]'
+    yield True, '("a",)', '["a"]'
+    yield True, '(0, 0.0, "a")', '[0 0.0 "a"]'
+    yield False, '[]', 'nil'
+    yield False, '[0]', '(0)'
+    yield False, '[0.0]', '(0.0)'
+    yield False, '["a"]', '("a")'
+    yield False, '[0, 0.0, "a"]', '(0 0.0 "a")'
     #TODO: Lisp and derivatives
-    yield False, 'lisp["nil"]', 'nil'
-    yield True, 'lisp["t"]', 't'
-    yield True, 'lisp["ab_cd"]', 'ab_cd'
-    yield True, 'lisp["ab-cd"]', 'ab-cd'
-    yield False, 'lisp.nil', 'nil'
-    yield True, 'lisp.t', 't'
-    yield True, 'lisp.ab_cd', 'ab-cd'
+    yield True, 'lisp["nil"]', 'nil'
+    yield False, 'lisp["t"]', 't'
+    yield False, 'lisp["ab_cd"]', 'ab_cd'
+    yield False, 'lisp["ab-cd"]', 'ab-cd'
+    yield True, 'lisp.nil', 'nil'
+    yield False, 'lisp.t', 't'
+    yield False, 'lisp.ab_cd', 'ab-cd'
     yield False, 'ord', '(pymacs-defun 0)'
     yield False, 'object()', '(pymacs-python 0)'
 

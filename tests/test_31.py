@@ -13,13 +13,25 @@ def teardown_module(module):
 def test_1():
 
     def validate(input, expected):
+        output = setup.ask_emacs(input)
+        assert output == expected, (output, expected)
+
+    for selfeval, python, emacs in setup.each_equivalence():
+        if selfeval:
+            yield validate, '(prin1 %s)' % emacs, emacs
+        else:
+            yield validate, '(prin1 \'%s)' % emacs, emacs
+
+def notest_2():
+
+    def validate(input, expected):
         import re
         output = re.sub(r'\(pymacs-(defun|python) [0-9]*\)',
                         r'(pymacs-\1 0)',
                         setup.ask_emacs(input))
         assert output == expected, (output, expected)
 
-    for quotable, python, emacs in setup.each_equivalence():
+    for selfeval, python, emacs in setup.each_equivalence():
         yield (validate,
                '(pymacs-print-for-eval %s)' % emacs,
                #('(let ((pymacs-forget-mutability t)\n'
@@ -27,7 +39,7 @@ def test_1():
                # % emacs),
                python)
 
-def notest_2():
+def notest_3():
     value = setup.ask_emacs('nil\n')
     assert value == '8', repr(value)
 

@@ -9,7 +9,7 @@ from Pymacs import lisp, pymacs
 
 def test_print_lisp():
 
-    def validate(quoted, input, expected):
+    def validate(input, quoted, expected):
         fragments = []
         pymacs.print_lisp(input, fragments.append, quoted)
         output = re.sub(r'\(pymacs-(defun|python) [0-9]*\)',
@@ -17,9 +17,10 @@ def test_print_lisp():
                         ''.join(fragments))
         assert output == expected, (output, expected)
 
-    for quotable, python, emacs in setup.each_equivalence():
-        yield validate, False, eval(python), emacs
-        if quotable:
-            yield validate, True, eval(python), '\'' + emacs
+    for selfeval, python, emacs in setup.each_equivalence():
+        python = eval(python)
+        yield validate, python, False, emacs
+        if selfeval:
+            yield validate, python, True, emacs
         else:
-            yield validate, True, eval(python), emacs
+            yield validate, python, True, '\'' + emacs

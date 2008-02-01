@@ -19,11 +19,11 @@ def test_1():
                         setup.ask_python(input))
         assert output == expected, (output, expected)
 
-    for quotable, python, emacs in setup.each_equivalence():
-        if quotable:
-            yield validate, python, '(pymacs-reply \'%s)\n' % emacs
-        else:
+    for selfeval, python, emacs in setup.each_equivalence():
+        if selfeval:
             yield validate, python, '(pymacs-reply %s)\n' % emacs
+        else:
+            yield validate, python, '(pymacs-reply \'%s)\n' % emacs
 
 def test_2():
     value = setup.ask_python('3 + 5\n')
