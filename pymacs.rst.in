@@ -87,6 +87,12 @@ chose :code:`pymacs` as a name.  Brian paid good attention to complex
 details that escaped my courage, so his help and collaboration have been
 beneficial.  You may reach Brian at mailto:brianmce@crosswinds.net.
 
+The initial throw at Pymacs has been written on 2001-09-05, and
+releases in the 0.x series followed in a rapid pace for a few months,
+to stabilize it.  Since then, it did not need to move much, as there is
+practically no bug report.  Yet, in my opinion, there are some missing
+features which should be addressed before we dare some 1.0 release.
+
 Another reference of interest is Doug Bagley's shoot out project, which
 compares the relative speed of many popular languages.  The first URL
 points to the original, the second points to a newer version oriented
