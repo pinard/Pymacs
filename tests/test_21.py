@@ -4,6 +4,7 @@
 
 import re
 import setup
+from Pymacs import lisp
 
 def setup_module(module):
     setup.start_python()
@@ -19,27 +20,54 @@ def test_1():
                         setup.ask_python(input))
         assert output == expected, (output, expected)
 
-    for selfeval, python, emacs in setup.each_equivalence():
-        if selfeval:
-            yield validate, python, '(pymacs-reply %s)\n' % emacs
+    for quotable, input, output in (
+            (False, None, 'nil'),
+            (False, 3, '3'),
+            (False, 0, '0'),
+            (False, -3, '-3'),
+            (False, 3., '3.0'),
+            (False, 0., '0.0'),
+            (False, -3., '-3.0'),
+            (False, '', '""'),
+            (False, 'a', '"a"'),
+            (False, 'byz', '"byz"'),
+            (False, 'c\'bz', '"c\'bz"'),
+            (False, 'd"z', r'"d\"z"'),
+            (False, 'e\\bz', r'"e\\bz"'),
+            (False, 'f\bz', r'"f\bz"'),
+            (False, 'g\fz', r'"g\fz"'),
+            (False, 'h\nz', r'"h\nz"'),
+            (False, 'i\tz', r'"i\tz"'),
+            (False, 'j\x1bz', r'"j\033z"'),
+            (False, (), '[]'),
+            (False, (0,), '[0]'),
+            (False, (0.0,), '[0.0]'),
+            (False, ('a',), '["a"]'),
+            (False, (0, 0.0, "a"), '[0 0.0 "a"]'),
+            (True, [], 'nil'),
+            (True, [0], '(0)'),
+            (True, [0.0], '(0.0)'),
+            (True, ['a'], '("a")'),
+            (True, [0, 0.0, "a"], '(0 0.0 "a")'),
+            (False, lisp['nil'], 'nil'),
+            (True, lisp['t'], 't'),
+            (True, lisp['ab_cd'], 'ab_cd'),
+            (True, lisp['ab-cd'], 'ab-cd'),
+            (False, lisp.nil, 'nil'),
+            (True, lisp.t, 't'),
+            (True, lisp.ab_cd, 'ab-cd'),
+            # TODO: Lisp and derivatives
+            ):
+        if quotable:
+            yield validate, repr(input), '(pymacs-reply \'%s)\n' % output
         else:
-            yield validate, python, '(pymacs-reply \'%s)\n' % emacs
+            yield validate, repr(input), '(pymacs-reply %s)\n' % output
+    for input, output in (
+            ('ord', '(pymacs-defun 0)'),
+            ('object()', '(pymacs-python 0)'),
+            ):
+        yield validate, input, '(pymacs-reply %s)\n' % output
 
 def test_2():
     value = setup.ask_python('3 + 5\n')
     assert value == '(pymacs-reply 8)\n', repr(value)
-
-#def test_pymacs_print_for_eval():
-#    yield emacs, '3 + 5', '3 + 5'
-#
-#def test_pymacs_eval():
-#    yield emacs_eval, '3 + 5', 8
-#    yield emacs_eval, '`3 + 5`', '8'
-
-def emacs(input, output):
-    value = setup.emacs(input)
-    assert output == value, (output, value)
-
-def emacs_eval(input, output):
-    value = setup.emacs_eval(input)
-    assert output == value, (output, value)
