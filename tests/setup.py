@@ -73,7 +73,9 @@ def start_emacs():
 def stop_emacs():
     Emacs.services.cleanup()
 
-def ask_emacs(text):
+def ask_emacs(text, printer=None):
+    if printer is not None:
+        text = '(%s %s)' % (printer, text)
     Emacs.services.send(text)
     return Emacs.services.receive()
 

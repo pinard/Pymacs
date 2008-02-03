@@ -17,7 +17,7 @@ def test_1():
     def validate(input, expected):
         output = re.sub(r'\(pymacs-(defun|python) [0-9]*\)',
                         r'(pymacs-\1 0)',
-                        setup.ask_emacs(input))
+                        setup.ask_emacs(input, 'prin1'))
         assert output == expected, (output, expected)
 
     for quotable, input, output in (
@@ -60,14 +60,14 @@ def test_1():
             ):
         fragments = []
         pymacs.print_lisp(input, fragments.append, quotable)
-        yield validate, '(prin1 %s)' % ''.join(fragments), output
+        yield validate, ''.join(fragments), output
     for input, output in (
             (ord, '(pymacs-defun 0)'),
             (object(), '(pymacs-python 0)'),
             ):
         fragments = []
         pymacs.print_lisp(input, fragments.append, True)
-        yield validate, '(prin1 \'%s)' % ''.join(fragments), output
+        yield validate, '\'' + ''.join(fragments), output
 
 def notest_2():
 
@@ -75,11 +75,11 @@ def notest_2():
         import re
         output = re.sub(r'\(pymacs-(defun|python) [0-9]*\)',
                         r'(pymacs-\1 0)',
-                        setup.ask_emacs(input))
+                        setup.ask_emacs(input, 'pymacs-print-for-eval'))
         assert output == expected, (output, expected)
 
-    for quotable, input, ouptut in (
-            (False, None, 'nil'),
+    for quotable, input, output in (
+            (False, None, 'None'),
             (False, 3, '3'),
             (False, 0, '0'),
             (False, -3, '-3'),
@@ -92,9 +92,9 @@ def notest_2():
             (False, 'c\'bz', '"c\'bz"'),
             (False, 'd"z', r'"d\"z"'),
             (False, 'e\\bz', r'"e\\bz"'),
-            (False, 'f\bz', '"f\bz"'),
-            (False, 'g\fz', '"g\fz"'),
-            (False, 'h\nz', '"h\nz"'),
+            (False, 'f\bz', '"f\x08z"'),
+            (False, 'g\fz', '"g\x0cz"'),
+            (False, 'h\nz', r'"h\nz"'),
             (False, 'i\tz', '"i\tz"'),
             (False, 'j\x1bz', '"j\x1bz"'),
             (False, (), '[]'),
@@ -119,23 +119,20 @@ def notest_2():
         fragments = []
         pymacs.print_lisp(input, fragments.append, quotable)
         yield (validate,
-               '(pymacs-print-for-eval %s)' % ''.join(fragments),
+               ('(let ((pymacs-forget-mutability t)\n'
+                '   (pymacs-print-for-eval %s)))\n'
+                % ''.join(fragments)),
                output)
-    #('(let ((pymacs-forget-mutability t)\n'
-    # '   (pymacs-print-for-eval %s)))\n'
-    # % output),
     for input, output in (
             (ord, '(pymacs-defun 0)'),
             (object(), '(pymacs-python 0)'),
             ):
         fragments = []
         pymacs.print_lisp(input, fragments.append, True)
-        yield (validate,
-               '(pymacs-print-for-eval \'%s)' % ''.join(fragments),
-               output)
+        yield validate, '\'' + ''.join(fragments), output
 
 def notest_3():
-    value = setup.ask_emacs('nil\n')
+    value = setup.ask_emacs('nil\n', 'prin1')
     assert value == '8', repr(value)
 
 #def test_pymacs_print_for_eval():

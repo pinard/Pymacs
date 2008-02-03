@@ -14,18 +14,21 @@ def teardown_module(module):
 def test_1():
 
     def validate(input, expected):
-        output = setup.ask_emacs(input)
+        output = setup.ask_emacs(input, 'prin1')
         assert output == expected, (output, expected)
 
-    validate('(princ (pymacs-eval "3 + 5"))', '8')
+    validate('(pymacs-eval "3 + 5")', '8')
 
-def notest_1():
+def notest_2():
     # 2006-06-20 Sebastian Waschik <sebastian.waschik@gmx.de>
 
-    def action():
-        lisp.insert("Test")
+    def validate(input, expected):
+        output = setup.ask_emacs(input, 'prin1')
+        assert output == expected, (output, expected)
 
-    return
-    lisp.apply(action, None)
-
-#pymacs_test.interaction = ''
+    setup.ask_emacs('(pymacs-exec "import os\nimport sys")')
+#
+#    % '''\
+#def action(): lisp.insert('Test')
+#lisp.apply(action, None)
+#''')
