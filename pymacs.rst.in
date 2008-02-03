@@ -174,6 +174,30 @@ get transmitted to Emacs, as these objects will not be reclaimed on
 the Python side once Emacs is finished with them.  It should not be a
 practical problem in most simple cases.
 
+Validation suite
+----------------
+
+There is now a working ``make check``, which does not require prior
+installation.  I did not base it on Junit (the Python unit testing
+framework is a re-implementation of it), but on Codespeak's pylib
+:file:`py.test`, which is much simpler, and still very powerful.  The
+:code:`pylib` project is driven by Holge Kregel, but attracted some
+Python brains, like Armin Rigo (known for Psyco, among other things --
+I think his :code:`lsprof` has also been added to Python 2.5 under the
+name :code:`cProfile`).  The gang addresses overdone/heavy methods in
+Python, and do them better.  Even :file:`py.test` is a bit more complex
+that I would want, and has (or at least had) flaws on the Unicode side,
+so I rewrote my own, as a simple single file.  I merely translated it
+from French to English, to make it more distributable within Pymacs.
+
+I first tried using Emacs stdin and stdout for communicating expressions
+to evaluate and getting back results from within the validation suite,
+but after some fight, I reluctantly had to put that avenue aside, and
+try something else.  Currently, the suite writes problems in files,
+for Emacs to read, and Emacs writes replies in files, for the suite to
+check.  Busy waiting (with small sleep added in the loops) is used on
+both sides.  This is all heavy and slows down the suite.
+
 Emacs Lisp structures and Python objects
 ========================================
 
@@ -1300,13 +1324,18 @@ they told me), I detailed my feelings on these matters.
 
 __ http://pinard.progiciels-bpi.ca/opinions/editors.html
 
-It was not reasonable keeping up with Pymacs maintenance while not being
-an active Emacs user, so I transmitted the duties to Syver Enstad,
-who was then an enthusiastic and competent user, who made Pymacs work
-under Windows.  Syver then became unavailable, to the point I could
-not contact him in years, and that's why I decided to resume Pymacs
-maintenance, and moderate Emacs usage with it.  I'm now using both Emacs
-and Vim, still learning how to efficiently context switch between both.
+It was not reasonable keeping up with Pymacs maintenance while not
+being an active Emacs user, so I transmitted the duties to Syver Enstad
+(2003-10), who was then an enthusiastic and competent user, who made
+Pymacs work under Windows.  Syver then became unavailable and I could
+not contact him in years.  I would loathe to see myself interfering
+with an official maintainer, but when I decided to return to moderate
+Emacs usage, and because of the silence, I considered resuming Pymacs
+maintenance (2007-11).  Then, I dived into it for real (2008-01).
+
+Giovanni Giorgi once (2007-03) wanted to expand on Pymacs and publish it
+on his own, and later felt like maintaining it whole (late 2007-12).
+I rather suggested an attempt at collaborative maintenance.
 
 Pymacs vs Vim
 -------------
@@ -1333,6 +1362,26 @@ Python for me is the legibility, which builds deeper roots on the clean
 side than on the elegant side.  All in all, despite I know how debatable
 it can be, I guess I now have a prejudice towards Python in Vim.
 
+I figured out a simple way to have the same Python source usable both
+within Pymacs or Vim.  However, Emacs is byte oriented, while Vim is
+line oriented.  In a few Pymacs applications of mine, I internally
+toggle between line orientation and byte orientation, keeping both for
+speed most probably, while I see things would be a bit simpler (and
+maybe slower) if I was pushing myself on the line-oriented side.
+
+The idea traversed me to convert all the few Pymacs examples so they
+work both for Pymacs and Vim, and through the documentation, publicise
+how people writing Python extensions could write them for both editors
+at once.  Yet, while doing so, one has to stretch either towards Emacs
+or Vim, and I guess I would favour Vim over Emacs when the time comes to
+evaluate efficiency-related choices.  This might be dangerous a bit :-).
+
+I also thought about writing a Pymacs module for running Python scripts
+already written for Vim, by offering a compatibility layer.  The
+complexity of this might be unbounded however, I should study actual
+Python scripts for Vim before knowing better if this is thinkable or
+not.  Until then, I'm prone to making questionable decisions, who knows.
+
 Projects using Pymacs
 ---------------------
 
@@ -1357,11 +1406,23 @@ towards Win32 systems, the third is more recent but Debian-oriented:
 Pymacs future
 -------------
 
-For one, before I would have felt that Pymacs is fully finished, I
-would have worked a bit more at integrating it more seamlessly with
-all :file:`.el` files, with transparent standard :code:`autoload` and
-such things.  My little tries in that direction were not satisfying so
-far.  On the Python side, there are probably bits to write so Pymacs
-fit better with iterators.  One or two useful faked primitives (like
-:code:`getindex` and :code:`putindex`) might sometimes be useful.  I'm
-not fully sure.
+Some people suggested important internal Pymacs changes.  In my opinion,
+new bigger features are better implemented in a careful way, first as
+examples or contributions, and moved closer to internal integration
+depending on how users use or appreciate them.  For now, Pymacs should
+concentrate at doing its own humble job well, and resist bloat.
+
+There is much to do, in my opinion, before one seriously dares to speak
+about Pymacs closing to some version 1.0.  Specifications are still
+incomplete (for example, there is no link between Emacs Mule/MULE and
+Python unicode, and that's a capital sin), many worth user suggestions
+of elementary nature are still not addressed, porting considerations
+are currently naive or not well documented.  There is no test suite,
+examples are not appropriate, the distribution already have too much
+clutter -- my fault, which I should repair.  Also, Pymacs should
+integrate more seamlessly with all :file:`.el` files, with transparent
+standard :code:`autoload` and such things.  My little tries in that
+direction were not satisfying so far.  On the Python side, there are
+likely bits to write so Pymacs fit better with iterators.  One or two
+useful faked primitives (like :code:`getindex` and :code:`putindex`)
+*might* (I'm not fully sure) be useful sometimes.
