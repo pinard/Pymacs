@@ -23,8 +23,8 @@ Presentation
 What is Pymacs?
 ---------------
 
-Pymacs is a powerful tool which, once started from Emacs, allows
-both-way communication between Emacs Lisp and Python.  Pymacs aims
+Pymacs is a powerful tool which, once started from Emacs, allows two-way
+communication between Emacs Lisp and Python.  Pymacs aims to employ
 Python as an extension language for Emacs rather than the other way
 around, and this asymmetry is reflected in some design choices.  Within
 Emacs Lisp code, one may load and use Python modules.  Python functions
@@ -40,7 +40,7 @@ and Pymacs implements a communication protocol between both processes.
 
 http://www.iro.umontreal.ca/~pinard/pymacs/ contains a copy
 of the Pymacs manual file in HTML form.  The distribution
-holds the documentation sources, as well as PostScript and PDF
+contains the documentation sources, as well as PostScript and PDF
 renderings.  The canonical Pymacs distribution is available as
 http://www.iro.umontreal.ca/~pinard/pymacs/Pymacs.tar.gz .
 
@@ -55,51 +55,12 @@ no dedicated mailing list nor discussion group for Pymacs, let's use
 mailto:python-list@python.org for asking questions or discussing Pymacs
 related matters.
 
-This is beta status software: specifications are slightly
+This is beta-status software: specifications are slightly
 frozen, yet changes may still happen that would require small
 adaptations in your code.  Report problems to François Pinard at
 mailto:pinard@iro.umontreal.ca . For discussing specifications or making
 suggestions, please also copy the mailto:python-list@python.org mailing
 list, to help brain-storming! :-)
-
-History and references
-----------------------
-
-I once starved for a Python-extensible editor, so much that I pondered
-the idea of dropping Emacs for other avenues, but found nothing much
-convincing.  Moreover, looking at all Lisp extensions I gave to myself,
-and considering all those superb tools written by others, all of which
-are now part of my computer life, it would have been a huge undertaking
-for me to reprogram these all in Python.  So, when I began to see that
-something like Pymacs was possible, I felt strongly motivated! :-)
-
-Pymacs revisits previous Cedric Adjih's works about running Python as a
-process separate from Emacs.  See http://www.crepuscule.com/pyemacs/,
-or write Cedric at mailto:adjih-pam@crepuscule.com.  Cedric presented
-:code:`pyemacs` to me as a proof of concept.  As I simplified that
-concept a bit, I dropped the ``e`` in ``pyemacs`` :-). Cedric also
-previously wrote patches for linking Python right into XEmacs, but
-abandoned the idea.
-
-Brian McErlean independently and simultaneously wrote a tool similar to
-this one, we decided to join our projects.  Amusing coincidence, he even
-chose :code:`pymacs` as a name.  Brian paid good attention to complex
-details that escaped my courage, so his help and collaboration have been
-beneficial.  You may reach Brian at mailto:brianmce@crosswinds.net.
-
-The initial throw at Pymacs has been written on 2001-09-05, and
-releases in the 0.x series followed in a rapid pace for a few months,
-to stabilize it.  Since then, it did not need to move much, as there is
-practically no bug report.  Yet, in my opinion, there are some missing
-features which should be addressed before we dare some 1.0 release.
-
-Another reference of interest is Doug Bagley's shoot out project, which
-compares the relative speed of many popular languages.  The first URL
-points to the original, the second points to a newer version oriented
-towards Win32 systems:
-
-  http://www.bagley.org/~doug/shootout/
-  http://dada.perl.it/shootout/index.html
 
 Installation
 ============
@@ -1251,3 +1212,62 @@ Emacs side
 
 The Emacs recipe appears under the ``Emacs usage`` section, near the
 beginning of :file:`Pymacs/rebox.py`, so I do not repeat it here.
+
+About and around Pymacs
+=======================
+
+History
+-------
+
+I once hungered for a Python-extensible editor, so much so that I
+pondered the idea of dropping Emacs for other avenues, but found nothing
+much convincing.  Moreover, looking at all Lisp extensions I'd made
+for myself, and considering all those superb tools written by others,
+all of which are now part of my computer life, it would have been a
+huge undertaking for me to reprogram these all in Python.  So, when I
+began to see that something like Pymacs was possible, I felt strongly
+motivated! :-)
+
+Pymacs draws on previous work of Cedric Adjih that enabled
+the running of Python as a process separate from Emacs.  See
+http://www.crepuscule.com/pyemacs/, or write Cedric at
+mailto:adjih-pam@crepuscule.com.  Cedric presented :code:`pyemacs` to me
+as a proof of concept.  As I simplified that concept a bit, I dropped
+the ``e`` in ``pyemacs`` :-). Cedric also previously wrote patches for
+linking Python right into XEmacs, but abandoned the idea.
+
+As Brian McErlean independently and simultaneously wrote a tool
+similar to this one, we decided to merge our projects.  In an amusing
+coincidence, he even chose :code:`pymacs` as a name.  Brian paid
+good attention to complex details that escaped my courage, so his
+help and collaboration have been beneficial.  You may reach Brian at
+mailto:brianmce@crosswinds.net.
+
+The initial throw at Pymacs has been written on 2001-09-05, and releases
+in the 0.x series followed in a rapid pace for a few months, and Pymacs
+became stable.  Since then, it did not need to move much, as bugs are
+not found often.  Yet, in my opinion, some missing features should be
+addressed before we dare some 1.0 release.
+
+Projects using Pymacs
+---------------------
+
+A few projects using Pymacs have been brought to my attention:
+
+  + :code:`pymdev` -- A Python Emacs Development Module
+
+    http://www.toolness.com/pymdev/
+
+
+
+Other references
+----------------
+
+Doug Bagley's shoot out project compares the relative speed of many
+popular languages, and this might interest Pymacs users.  The first URL
+points to the original, the second points to a newer version oriented
+towards Win32 systems, the third is more recent but Debian-oriented:
+
+  + http://www.bagley.org/~doug/shootout/
+  + http://dada.perl.it/shootout/index.html
+  + http://shootout.alioth.debian.org/
