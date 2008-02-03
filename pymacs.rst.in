@@ -836,6 +836,32 @@ require some more ingenuity, one may write either ``(lisp['M-f2'],)`` or
 Debugging
 =========
 
+On the communication protocol
+-----------------------------
+
+There is not much to say about the protocol.  A comment in the source
+describes it shortly, and there is not much besides it.  All the rest is
+some recursion trickery over the protocol, but the trickery itself is
+not part of the protocol, which is rather simple deep down:
+
+  + messages are exchanged in strictly alternating directions, the first
+    being sent by :code:`pymacs-services`,
+
+  + Python-originated messages are nothing but Lisp expressions,
+
+  + Emacs-originated messages are nothing but Python expressions, if
+    we except the case of :code:`exec` requests which introduce Python
+    statements, and these requests are handled separately, first,
+
+  + expressions (or execs) are evaluated on arrival, both sides.
+
+It helps to know that some expressions (like for :code:`reply` and
+:code:`error`) are kludged to trigger exceptions, which are expected and
+caught, then transmitted to the other side.  Memory management concerns
+are merely piggy-backed over the protocol, just abusing a bit of the
+*evaluation on arrival* machinery, so seamlessly that the protocol did
+not even have to be modified.
+
 The :code:`*Pymacs*` buffer
 ---------------------------
 
@@ -964,6 +990,15 @@ The code below assumes that Python files meant for Pymacs are kept in
 
 Examples
 ========
+
+People have widely varying approaches in writing :file:`.emacs` files.
+My feeling is that people can go and write almost no Emacs Lisp, yet a
+bit is still necessary for establishing a few loading hooks.  On the
+other hand, people cannot really escape knowing the Emacs Lisp API
+to some extent, because they should be programming-wise familiarity
+with what is a buffer, a point, a mark, etc. and what are the allowed
+operations on those.  For many simple needs, one can do a lot without
+having to learn much.  See the following examples!
 
 Example 1 --- Paul Winkler's
 ----------------------------
@@ -1249,6 +1284,55 @@ became stable.  Since then, it did not need to move much, as bugs are
 not found often.  Yet, in my opinion, some missing features should be
 addressed before we dare some 1.0 release.
 
+Me and Pymacs
+-------------
+
+Pymacs has been fairly stable since the early versions.  I surely used
+it a great deal, constantly, magically, in my daily works, to the point
+of forgetting that was it there all the time.  It was fairly complete,
+at least for my own needs, and did not move much anymore.
+
+Some time later, someone begged me to consider Vim, and not only Emacs,
+for some tools I was then writing.  Looking at Vim more closely, I
+discovered that it is a worth editor, with Python nicely integrated,
+enough for me to switch.  In a `Web article`__ (which many enjoyed, as
+they told me), I detailed my feelings on these matters.
+
+__ http://pinard.progiciels-bpi.ca/opinions/editors.html
+
+It was not reasonable keeping up with Pymacs maintenance while not being
+an active Emacs user, so I transmitted the duties to Syver Enstad,
+who was then an enthusiastic and competent user, who made Pymacs work
+under Windows.  Syver then became unavailable, to the point I could
+not contact him in years, and that's why I decided to resume Pymacs
+maintenance, and moderate Emacs usage with it.  I'm now using both Emacs
+and Vim, still learning how to efficiently context switch between both.
+
+Pymacs vs Vim
+-------------
+
+Emacs Lisp is deeply soldered into Emacs internals.  Vim has its own
+language, which people sometimes call Vimscript, similarly tightened
+into Vim.  My feeling is that Emacs Lisp allows for a more intimate
+handling of edit buffers and external processes than Vimscript does, yet
+this intimacy has a price in complexity, so all totalled, they may be
+perceived as comparable for most practical purposes.
+
+Pymacs allows customising Emacs with Python instead of Emacs Lisp, and
+then runs Python as a process external to Emacs, with a communication
+protocol between both processes.  Python may be built into Vim, and then
+both Python and Vim use a single process.  The same as Pymacs gives
+access to almost all of Emacs Lisp, Python within Vim gives access to
+almost all of Vimscript, but with a smaller overhead than Pymacs.
+
+Pymacs is not Emacs Lisp, and Python in Vim is not Vimscript either,
+tweaks are needed in both cases for accessing some of the underlying
+scripting facilities.  Pymacs is rather elegant, Python in Vim is rather
+clean.  Python itself is both elegant and clean, but one strong point of
+Python for me is the legibility, which builds deeper roots on the clean
+side than on the elegant side.  All in all, despite I know how debatable
+it can be, I guess I now have a prejudice towards Python in Vim.
+
 Projects using Pymacs
 ---------------------
 
@@ -1257,8 +1341,6 @@ A few projects using Pymacs have been brought to my attention:
   + :code:`pymdev` -- A Python Emacs Development Module
 
     http://www.toolness.com/pymdev/
-
-
 
 Other references
 ----------------
@@ -1271,3 +1353,15 @@ towards Win32 systems, the third is more recent but Debian-oriented:
   + http://www.bagley.org/~doug/shootout/
   + http://dada.perl.it/shootout/index.html
   + http://shootout.alioth.debian.org/
+
+Pymacs future
+-------------
+
+For one, before I would have felt that Pymacs is fully finished, I
+would have worked a bit more at integrating it more seamlessly with
+all :file:`.el` files, with transparent standard :code:`autoload` and
+such things.  My little tries in that direction were not satisfying so
+far.  On the Python side, there are probably bits to write so Pymacs
+fit better with iterators.  One or two useful faked primitives (like
+:code:`getindex` and :code:`putindex`) might sometimes be useful.  I'm
+not fully sure.
