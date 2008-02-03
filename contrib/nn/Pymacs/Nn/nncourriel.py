@@ -41,8 +41,8 @@ Here is how I get it all in motion from `.emacs'.
 
 (defun fp-courriel-find-file-routine ()
   (when (and buffer-file-name
-	     (or (string-match "/courriel/" buffer-file-name)
-		 (string-match "/COURRIEL" buffer-file-name)))
+             (or (string-match "/courriel/" buffer-file-name)
+                 (string-match "/COURRIEL" buffer-file-name)))
     (let ((file-name buffer-file-name))
       (kill-buffer nil)
       (fp-courriel-display-file-with-gnus file-name))))
@@ -59,11 +59,11 @@ Here is how I get it all in motion from `.emacs'.
     (pymacs-load "Pymacs.Nn.nncourriel"))
   (if (gnus-group-read-ephemeral-group
        (concat "nncourriel:"
-	       (fp-string-replace
-		(fp-string-replace
-		 (substring (expand-file-name file-name) 1)
-		 "." "@")
-		"/" "."))
+               (fp-string-replace
+                (fp-string-replace
+                 (substring (expand-file-name file-name) 1)
+                 "." "@")
+                "/" "."))
        '(nncourriel "")
        t
        (cons (current-buffer) (current-window-configuration)))
@@ -72,14 +72,14 @@ Here is how I get it all in motion from `.emacs'.
 
 (defun fp-string-replace (string before after)
   (let ((new-string (make-string (length string) ? ))
-	(before (aref before 0))
-	(after (aref after 0))
-	(index 0))
+        (before (aref before 0))
+        (after (aref after 0))
+        (index 0))
     (while (< index (length string))
       (let ((byte (aref string index)))
-	(when (= byte after)
-	  (error "`%s' already within `%s'" after string))
-	(aset new-string index (if (= byte before) after byte)))
+        (when (= byte after)
+          (error "`%s' already within `%s'" after string))
+        (aset new-string index (if (= byte before) after byte)))
       (setq index (1+ index)))
     new-string))
 """                                     # '

@@ -91,21 +91,21 @@ class Python:
         assert text == '(pymacs-version "%s")\n' % __version__, text
 
     def receive(self):
-	# Receive a Lisp expression from pymacs-services.
-	text = self.output.read(3)
-	if not text or text[0] != '<':
-	    raise Protocol.ProtocolError, "`>' expected."
-	while text[-1] != '\t':
-	    text = text + self.output.read(1)
-	return self.output.read(int(text[1:-1]))
+        # Receive a Lisp expression from pymacs-services.
+        text = self.output.read(3)
+        if not text or text[0] != '<':
+            raise Protocol.ProtocolError, "`>' expected."
+        while text[-1] != '\t':
+            text = text + self.output.read(1)
+        return self.output.read(int(text[1:-1]))
 
     def send(self, text):
-	# Send TEXT, a Python expression, to pymacs-services.
-	if text[-1] == '\n':
-	    self.input.write('>%d\t%s' % (len(text), text))
-	else:
-	    self.input.write('>%d\t%s\n' % (len(text) + 1, text))
-	self.input.flush()
+        # Send TEXT, a Python expression, to pymacs-services.
+        if text[-1] == '\n':
+            self.input.write('>%d\t%s' % (len(text), text))
+        else:
+            self.input.write('>%d\t%s\n' % (len(text) + 1, text))
+        self.input.flush()
 
 def start_python():
     Python.services = Python()

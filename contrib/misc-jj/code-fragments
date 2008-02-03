@@ -5,7 +5,7 @@
         f.write(str(type(inst))+"\n")
         f.write(str(inst)+"\n")
         f.close()
-	#return None
+        #return None
         raise
 
 # [GG] Added support for save excursion and in future for some speed ups
@@ -19,7 +19,7 @@ class SmartLisp_Interface(Lisp_Interface):
             f()
         finally:
             l.pop_excursion()
-        
+
 
 # lisp = Lisp_Interface()
 lisp = SmartLisp_Interface()
