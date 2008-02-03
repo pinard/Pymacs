@@ -1,4 +1,5 @@
 .. role:: code(strong)
+.. role:: file(emphasis)
 
 ======================
 README file for Pymacs
@@ -29,40 +30,35 @@ Emacs Lisp space.
 
 Here are some other Pymacs resources:
 
-+ http://pymacs.progiciels-bpi.ca
++ This README file (you are likely visiting it right now):
 
-  This README file (you are likely visiting it right now).
+  + http://pymacs.progiciels-bpi.ca
 
-+ http://pymacs.progiciels-bpi.ca/pymacs.html
++ The Pymacs manual, both in PDF and in HTML formats:
 
-  The Pymacs manual in HTML format.
+  + http://pymacs.progiciels-bpi.ca/pymacs.pdf
+  + http://pymacs.progiciels-bpi.ca/pymacs.html
 
-+ http://pymacs.progiciels-bpi.ca/pymacs.pdf
++ A directory with Pymacs archives.  :file:`Pymacs.tar.gz` holds the
+  official one, yet it does not work with Python 2.5.  Others are either
+  older, or beta versions:
 
-  The Pymacs manual in PDF format.
+  + http://pymacs.progiciels-bpi.ca/archives/
 
-+ http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz
-
-  The latest snapshot of a Pymacs distribution.  Beware that, at
-  least as of today, it might be an in-the-works, unstable version.
-
-+ A :code:`git` repository for Pymacs sources and history
-
-  ::
++ A repository for Pymacs sources and history, which you get with::
 
     git clone git://pymacs.progiciels-bpi.ca/pymacs
 
-  should produce your copy of the repository.  However, consider this
-  to be fairly experimental for now.  The server might not even be up
-  (then just tell me!).  This copy gets randomly synchronised with my
-  real work repository, which is itself a sandbox, for which branches
-  may be reset at any time.
+  This is fairly experimental.  The server might not even be up (then
+  just tell me!).  This copy gets randomly synchronised with my real
+  work repository, itself a sandbox, and for which branches may be reset
+  at any time.
 
-+ http://blog.objectsroot.com/projects/pymacs/
++ `Giovanni Giorgi`__ also has a Pymacs Web site:
 
-  This is `Giovanni Giorgi`__\ 's Pymacs Web site.
+  + http://blog.objectsroot.com/projects/pymacs/
 
-__ http://blog.objectsroot.com/
+  __ http://blog.objectsroot.com/
 
 Please report problems, comments and suggestions to `François Pinard`__
 at ``pinard@iro.umontreal.ca``.

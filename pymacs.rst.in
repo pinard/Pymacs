@@ -1338,9 +1338,9 @@ Projects using Pymacs
 
 A few projects using Pymacs have been brought to my attention:
 
-  + :code:`pymdev` -- A Python Emacs Development Module
+  + :code:`pymdev` -- A Python Emacs Development Module:
 
-    http://www.toolness.com/pymdev/
+    + http://www.toolness.com/pymdev/
 
 Other references
 ----------------
