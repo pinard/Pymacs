@@ -11,7 +11,7 @@ lispdir =
 #
 ### End of customisation.
 
-VERSION = 0.23-beta1
+VERSION = 0.23-beta2
 PYSETUP = python setup.py
 
 all: pymacs.el Pymacs/__init__.py
@@ -44,11 +44,13 @@ Pymacs/__init__.py: __init__.py.in Makefile
 
 # The following goals for the maintainer of the Pymacs Web site.
 
+official: publish
+	ln -s Pymacs-$(VERSION).tar.gz web/archives/Pymacs.tar.gz
+
 publish: web/pymacs.pdf web/pymacs.rst
 	rm -f web/archives/Pymacs.tar.gz
 	git archive --format=tar --prefix=Pymacs-$(VERSION)/ HEAD . \
 	  | gzip > web/archives/Pymacs-$(VERSION).tar.gz
-	ln -s Pymacs-$(VERSION).tar.gz web/archives/Pymacs.tar.gz
 
 web/pymacs.pdf: web/pymacs.rst
 	rm -rf tmp-pdf
