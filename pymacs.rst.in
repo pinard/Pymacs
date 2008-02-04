@@ -62,6 +62,30 @@ mailto:pinard@iro.umontreal.ca . For discussing specifications or making
 suggestions, please also copy the mailto:python-list@python.org mailing
 list, to help brain-storming! :-)
 
+Pymacs sites and archives
+-------------------------
+
+The main Pymacs site conveys the Pymacs documentation (you are reading
+its Pymacs manual right now) and distributions:
+
+  + http://pymacs.progiciels-bpi.ca
+
+There is a :file:`contrib/` directory in the Pymacs distribution,
+meant to be documented here:
+
+  + http://pymacs.progiciels-bpi.ca/contrib.html
+
+There are other Web sites specifically about Pymacs. `Giovanni Giorgi`__
+has one of them:
+
+  + http://blog.objectsroot.com/projects/pymacs/
+
+__ http://blog.objectsroot.com/
+
+There is also `revised pymacs`, part of the Ropemacs project:
+
+  + http://rope.sourceforge.net/ropemacs.html
+
 Installation
 ============
 
@@ -1007,20 +1031,47 @@ The code below assumes that Python files meant for Pymacs are kept in
         (pymacs-load (substring buffer-file-name 0 -3)))))
   (add-hook 'after-save-hook 'fp-maybe-pymacs-reload)
 
-Examples
-========
+Pymacs examples
+===============
 
-People have widely varying approaches in writing :file:`.emacs` files.
-My feeling is that people can go and write almost no Emacs Lisp, yet a
-bit is still necessary for establishing a few loading hooks.  On the
-other hand, people cannot really escape knowing the Emacs Lisp API
-to some extent, because they should be programming-wise familiarity
-with what is a buffer, a point, a mark, etc. and what are the allowed
-operations on those.  For many simple needs, one can do a lot without
-having to learn much.  See the following examples!
+People have widely varying approaches in writing :file:`.emacs` files,
+as far as Pymacs is concerned.
 
-Example 1 --- Paul Winkler's
-----------------------------
+  + Some can go and write almost no Emacs Lisp, yet a bit is still
+    necessary for establishing a few loading hooks.  For many simple
+    needs, one can do a lot without having to learn much.
+
+  + On the other hand, for more sophisticated usages, people cannot
+    really escape knowing the Emacs Lisp API to some extent, because they
+    should be programming-wise familiarity with what is a buffer, a point,
+    a mark, etc. and what are the allowed operations on those.
+
+Projects using Pymacs
+---------------------
+
+One good approach to learning comes from the contemplation and study of
+others' nice works.  A few projects using Pymacs have been brought to my
+attention:
+
+  + :code:`pymdev` -- A Python Emacs Development Module:
+
+    + http://www.toolness.com/pymdev/
+
+  + Ropemacs -- Features like refactoring and code-assists:
+
+    + http://rope.sf.net/
+    + http://rope.sf.net/hg/rpymacs
+
+  + Bicycle Repair Man -- A Refactoring Tool for Python:
+
+    + http://bicyclerepair.sourceforge.net/
+
+  + Emacs Freex -- A personal wiki on steroids:
+
+    + http://www.princeton.edu/%7Egdetre/software/freex/docs/index.html
+
+Paul Winkler's example
+----------------------
 
 The problem
 ,,,,,,,,,,,
@@ -1085,8 +1136,8 @@ On the Emacs side, one would do::
   (pymacs-load "manglers")
   (global-set-key [f7] 'manglers-break-on-whitespace)
 
-Example 2 --- Yet another Gnus back end
----------------------------------------
+Yet another Gnus back end
+-------------------------
 
   **Note.**  This example is not fully documented yet.  As it stands, it
   is merely a collection of random remarks from other sources.
@@ -1157,8 +1208,8 @@ One difficulty is ensuring that :code:`Nn` contents
 or Pymacs search path.  The :file:`__init__.py` and package nature are
 not essential.
 
-Example 3 --- The :code:`rebox` tool
-------------------------------------
+The :code:`rebox` tool
+----------------------
 
 The problem
 ,,,,,,,,,,,,
@@ -1303,8 +1354,8 @@ became stable.  Since then, it did not need to move much, as bugs are
 not found often.  Yet, in my opinion, some missing features should be
 addressed before we dare some 1.0 release.
 
-Me and Pymacs
--------------
+Pymacs and me!
+--------------
 
 Pymacs has been fairly stable since the early versions.  I surely used
 it a great deal, constantly, magically, in my daily works, to the point
@@ -1339,8 +1390,8 @@ it on his own, and later felt like maintaining it whole (late 2007-12).
 I rather suggested an attempt at collaborative maintenance, and this
 experiment is still going on...
 
-Pymacs vs Vim
--------------
+Pymacs and Vim
+--------------
 
 Emacs Lisp is deeply soldered into Emacs internals.  Vim has its own
 language, which people sometimes call Vimscript, similarly tightened
@@ -1403,26 +1454,8 @@ development team wrote again (2002-01) asking information about how to
 integrate Pymacs.  It was easy to write a good summary, after all the
 discussions with Richard.  And that's it.  Nothing more happened! :-)
 
-Projects using Pymacs
----------------------
-
-A few projects using Pymacs have been brought to my attention:
-
-  + :code:`pymdev` -- A Python Emacs Development Module:
-
-    + http://www.toolness.com/pymdev/
-
-  + Ropemacs -- To provide features like refactoring and code-assists:
-
-    + http://rope.sf.net/
-    + http://rope.sf.net/hg/rpymacs
-
-  + Bicycle Repair Man -- A Refactoring Tool for Python:
-
-    + http://bicyclerepair.sourceforge.net/
-
-The speed of Python
--------------------
+Pymacs and speed
+----------------
 
 Doug Bagley's shoot out project compares the relative speed of many
 popular languages, and this might interest Pymacs users.  The first URL
@@ -1433,8 +1466,8 @@ towards Win32 systems, the third is more recent but Debian-oriented:
   + http://dada.perl.it/shootout/index.html
   + http://shootout.alioth.debian.org/
 
-Pymacs future
--------------
+Pymacs and the future
+---------------------
 
 Some people suggested important internal Pymacs changes.  In my opinion,
 new bigger features are better implemented in a careful way, first as

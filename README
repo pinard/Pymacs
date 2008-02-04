@@ -10,13 +10,11 @@ README file for Pymacs
   maintainer, who replaced me.  As I'm using Emacs only sporadically,
   I'll have to much rely on current Pymacs users for pretesting!
 
-  Nothing much new for the next release so far!  The manual now uses
-  Docutils.  There is the start of a validation suite (which itself
-  needs Emacs as a slave of Python rather than the other way around,
-  but this feature would require much improvement before being usable
-  outside testing.)  Still pending here: a few bug reports to solve,
-  some suggestions to ponder, other contributions to sort out.  But
-  also, nice, kind, warm letters from enthusiastic users :-).
+  Nothing so much new in the incoming release!  The manual now uses
+  Docutils.  There is the start of a validation suite.  Still pending
+  here: a few bug reports to solve, some suggestions to ponder, other
+  contributions to sort out.  But also, nice, kind, warm letters from
+  enthusiastic users :-).
 
   François, 2008-02-01
 
@@ -28,39 +26,32 @@ Emacs Lisp code, one may load and use Python modules.  Python functions
 may themselves use Emacs services, and handle Emacs Lisp objects kept in
 Emacs Lisp space.
 
-Here are some other Pymacs resources:
-
-+ This README file (you are reading it right now), and also the README
-  file of the :file:`contrib/` directory of the Pymacs distribution:
-
-  + http://pymacs.progiciels-bpi.ca
-  + http://pymacs.progiciels-bpi.ca/contrib.html
-
-+ The Pymacs manual, both in PDF and in HTML formats:
+The Pymacs manual offers the installation instructions, detailed
+description of the API usage, examples, and also pointers to other
+Pymacs sites or projects.  Both PDF and HTML formats may be found here:
 
   + http://pymacs.progiciels-bpi.ca/pymacs.pdf
   + http://pymacs.progiciels-bpi.ca/pymacs.html
 
-+ A directory with Pymacs archives.  :file:`Pymacs.tar.gz` holds the
-  official one, yet it does not work with Python 2.5.  Others are either
-  older, or beta versions:
+The latest *official* Pymacs distribution does not currently work with
+Python 2.5.  This should be solved with the next release to replace it,
+now due soon.  This official distribution may be fetched from:
+
+  + http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz
+
+Other distributions, either older than the official one, or beta versions for
+the next incoming release, are available in this directory:
 
   + http://pymacs.progiciels-bpi.ca/archives/
 
-+ A repository for Pymacs sources and history, which you get with::
+I would not like seeing people bleed because they scratched themselves
+on edges :-). Yet, if you feel in a play mood, there is a :code:`git`
+repository for Pymacs, a copy of which is publicly reachable.  This is
+really my own sandbox for experiments, for which branches may be reset
+at any time.  The server might not even be up (then just tell me!).  To
+get your own copy, try::
 
     git clone git://pymacs.progiciels-bpi.ca/pymacs
-
-  This is fairly experimental.  The server might not even be up (then
-  just tell me!).  This copy gets randomly synchronised with my real
-  work repository, itself a sandbox, and for which branches may be reset
-  at any time.
-
-+ `Giovanni Giorgi`__ also has a Pymacs Web site:
-
-  + http://blog.objectsroot.com/projects/pymacs/
-
-  __ http://blog.objectsroot.com/
 
 Please report problems, comments and suggestions to `François Pinard`__
 at ``pinard@iro.umontreal.ca``.
