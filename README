@@ -30,9 +30,11 @@ Emacs Lisp space.
 
 Here are some other Pymacs resources:
 
-+ This README file (you are likely visiting it right now):
++ This README file (you are reading it right now), and also the README
+  file of the :file:`contrib/` directory of the Pymacs distribution:
 
   + http://pymacs.progiciels-bpi.ca
+  + http://pymacs.progiciels-bpi.ca/contrib.html
 
 + The Pymacs manual, both in PDF and in HTML formats:
 

@@ -1,0 +1,34 @@
+============================
+Contents of Pymacs' contrib/
+============================
+
+  **This file is under construction.**
+
+.. contents::
+.. sectnum::
+
+
+misc-jj
+=======
+
+This directory contains miscellaneous files contributed by Giovanni
+Giorgi, most of them waiting to be sorted, documented or deleted, or at
+least pondered in one way or another.
+
+python-mode.diffs
+-----------------
+
+These diffs are relative to :file:`python-mode-1.0.tar.gz` as found at:
+
+  http://sourceforge.net/projects/python-mode/
+
+nn
+==
+
+This is a helper tool for handling ephemeral email groups under Gnus.
+
+rebox
+=====
+
+This tool helps the programmer at maintaining boxes around comments,
+while refilling them, for many styles and programming languages.

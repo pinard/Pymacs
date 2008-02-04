@@ -1,8 +1,0 @@
-(defun python-test
- (interactive)
- (
-
-
-
-
-)
