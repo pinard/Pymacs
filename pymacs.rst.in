@@ -167,6 +167,8 @@ Syver Enstad reports that Pymacs could be made to work on Windows-2000
 (win2k), he suspects it should equally work with NT and XP.  However,
 little shell stunts may be required, I hope to later document them here.
 
+Jiva DeVoe reports that Pymacs seems to work fine on Mac OSX.
+
 Validation suite
 ----------------
 
@@ -1317,18 +1319,25 @@ they told me), I detailed my feelings on these matters.
 
 __ http://pinard.progiciels-bpi.ca/opinions/editors.html
 
-It was not reasonable keeping up with Pymacs maintenance while not
-being an active Emacs user, so I transmitted the duties to Syver Enstad
-(2003-10), who was then an enthusiastic and competent user, who made
-Pymacs work under Windows.  Syver then became unavailable and I could
-not contact him in years.  I would loathe to see myself interfering
-with an official maintainer, but when I decided to return to moderate
-Emacs usage, and because of the silence, I considered resuming Pymacs
-maintenance (2007-11).  Then, I dived into it for real (2008-01).
+My viewpoint is that Pymacs, maybe after an initial flurry of a bit more
+than a dozen releases, soon became stable in its history.  Reported
+bugs or suggestions were minor, there was not enough new material to
+warrant other releases.  Nevertheless, when I switched from Emacs to
+Vim in my day-to-day habits, I felt that Pymacs needed a more credible
+maintainer than me.  Syver Enstad, who was an enthusiastic user and
+competent contributor, was kind enough to accept the duty (2003-10).
+Some more bugs and suggestions flowed in since then, but Syver did not
+elect to make any new release, and this did not bother me.  Syver then
+became unavailable, to the point I could not contact him in years.  I
+would loathe to see myself interfering with an official maintainer,
+but when I decided to return to some moderate Emacs usage, and because
+of the long silence, I considered resuming Pymacs maintenance as well
+(2007-11).  Then, I dived into it for real (2008-01).
 
-Giovanni Giorgi once (2007-03) wanted to expand on Pymacs and publish it
-on his own, and later felt like maintaining it whole (late 2007-12).
-I rather suggested an attempt at collaborative maintenance.
+Giovanni Giorgi once (2007-03) wanted to expand on Pymacs and publish
+it on his own, and later felt like maintaining it whole (late 2007-12).
+I rather suggested an attempt at collaborative maintenance, and this
+experiment is still going on...
 
 Pymacs vs Vim
 -------------
@@ -1375,6 +1384,25 @@ complexity of this might be unbounded however, I should study actual
 Python scripts for Vim before knowing better if this is thinkable or
 not.  Until then, I'm prone to making questionable decisions, who knows.
 
+Pymacs and the FSF
+------------------
+
+Gerd Möllman, who was maintaining Emacs at the time of Pymacs birth and
+development, retrofitted the idea of a :code:`post-gc-hook` from XEmacs,
+as a way to facilitate memory management within Pymacs.
+
+Richard Stallman once suggested (2001-10) that Pymacs be distributed
+within Emacs, and while discussing the details of this, I underlined
+small technical difficulties about Emacs installing the Python parts,
+and the need of a convention about where to install Python files meant
+for Pymacs.  As Richard felt, at the time, very overwhelmed with other
+duties, no decision was taken and the integration went nowhere.
+
+After Gerd resigned as an Emacs maintainer, someone from the Emacs
+development team wrote again (2002-01) asking information about how to
+integrate Pymacs.  It was easy to write a good summary, after all the
+discussions with Richard.  And that's it.  Nothing more happened! :-)
+
 Projects using Pymacs
 ---------------------
 
@@ -1384,8 +1412,17 @@ A few projects using Pymacs have been brought to my attention:
 
     + http://www.toolness.com/pymdev/
 
-Other references
-----------------
+  + Ropemacs -- To provide features like refactoring and code-assists:
+
+    + http://rope.sf.net/
+    + http://rope.sf.net/hg/rpymacs
+
+  + Bicycle Repair Man -- A Refactoring Tool for Python:
+
+    + http://bicyclerepair.sourceforge.net/
+
+The speed of Python
+-------------------
 
 Doug Bagley's shoot out project compares the relative speed of many
 popular languages, and this might interest Pymacs users.  The first URL
