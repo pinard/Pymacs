@@ -161,11 +161,11 @@ style could be implemented by using this script instead of `rebox':
 
     #!/usr/bin/env python
     import sys
-    from Pymacs import rebox
+    from Pymacs.Rebox import rebox
     rebox.Template(226, 325, ('//-----+',
                               '// box  ',
                               '//-----+'))
-    apply(rebox.main, tuple(sys.argv[1:]))
+    rebox.main(*sys.argv[1:])
 
 In all cases, NNN is the style three-digit number, with no zero digit.
 Pick any free style number, you are safe with 911 and up.  MMM is the
@@ -213,15 +213,16 @@ into `rebox.py', and added the facility to use it as a batch script.
 
 ## Note: a double hash comment introduces a group of functions or methods.
 
-import re, string, sys
+__metatype__ = type
+import re, sys
 
 ## Batch specific features.
 
 def main(*arguments):
-    refill = 1
+    refill = True
     style = None
-    tabify = 0
-    verbose = 0
+    tabify = False
+    verbose = False
     width = 79
     import getopt
     options, arguments = getopt.getopt(arguments, 'ns:tvw:', ['help'])
@@ -230,13 +231,13 @@ def main(*arguments):
             sys.stdout.write(__doc__)
             sys.exit(0)
         elif option == '-n':
-            refill = 0
+            refill = False
         elif option == '-s':
             style = int(value)
         elif option == '-t':
-            tabify = 1
+            tabify = True
         elif option == '-v':
-            verbose = 1
+            verbose = True
         elif option == '-w':
             width = int(value)
     if len(arguments) == 0:
@@ -305,25 +306,25 @@ of the boxed comment.
         if flag == lisp['-']:
             flag = self.ask_for_style()
         # If FLAG is zero or negative, only change default box style.
-        if type(flag) is type(0) and flag <= 0:
+        if isinstance(flag, int) and flag <= 0:
             self.default_style = -flag
             lisp.message("Default style set to %d" % -flag)
             return
         # Decide box style and refilling.
         if flag is None:
             style = self.default_style
-            refill = 1
-        elif type(flag) == type(0):
+            refill = True
+        elif isinstance(flag, int):
             if self.default_style is None:
                 style = flag
             else:
                 style = merge_styles(self.default_style, flag)
-            refill = 1
+            refill = True
         else:
             flag = flag.copy()
-            if type(flag) == type([]):
+            if isinstance(flag, list):
                 style = self.default_style
-                refill = 0
+                refill = False
             else:
                 lisp.error("Unexpected flag value %s" % flag)
         # Prepare for reboxing.
@@ -512,7 +513,8 @@ Remove all intermediate boundaries from the Undo list since CHECKPOINT.
 
 ## Reboxing main control.
 
-def engine(text, style=None, width=79, refill=1, tabify=0, position=None):
+def engine(text, style=None, width=79, refill=True, tabify=False,
+           position=None):
     """\
 Add, delete or adjust a boxed comment held in TEXT, according to STYLE.
 STYLE values are explained at beginning of this file.  Any zero attribute
@@ -529,7 +531,7 @@ style does not exist.
     last_line_complete = text and text[-1] == '\n'
     if last_line_complete:
         text = text[:-1]
-    lines = string.split(string.expandtabs(text), '\n')
+    lines = text.expandtabs().split('\n')
     # Decide about refilling and the box style to use.
     new_style = 111
     old_template = guess_template(lines)
@@ -560,7 +562,7 @@ style does not exist.
             tabs = len(re.match(' *', lines[counter]).group()) / 8
             lines[counter] = '\t' * tabs + lines[counter][8*tabs:]
     # Restore the point position.
-    text = string.join(lines, '\n')
+    text = '\n'.join(lines)
     if last_line_complete:
         text = text + '\n'
     if position is not None:
@@ -630,7 +632,7 @@ Refill LINES, trying to not produce lines having more than WIDTH columns.
     return cached_refiller[0].fill(lines, width)
 
 class Refiller:
-    available = 1
+    available = True
 
     def fill(self, lines, width):
         if self.available:
@@ -660,12 +662,12 @@ Use both Knuth algorithm and protection for full stops at end of sentences.
         if self.available:
             import tempfile, os
             name = tempfile.mktemp()
-            open(name, 'w').write(string.join(lines, '\n') + '\n')
+            open(name, 'w').write('\n'.join(lines) + '\n')
             process = os.popen('fmt -cuw %d %s' % (width, name))
             text = process.read()
             os.remove(name)
             if process.close() is None:
-                return map(string.expandtabs, string.split(text, '\n')[:-1])
+                return [line.expandtabs() for line in text.split('\n')[:-1])]
 
 class Refiller_Textwrap(Refiller):
     """\
@@ -675,7 +677,7 @@ No Knuth algorithm, but protection for full stops at end of sentences.
         try:
             from textwrap import TextWrapper
         except ImportError:
-            self.available = 0
+            self.available = False
         else:
             self.wrapper = TextWrapper(fix_sentence_endings=1)
 
@@ -687,7 +689,7 @@ No Knuth algorithm, but protection for full stops at end of sentences.
         prefix = ' ' * left_margin_size(lines)
         self.wrapper.initial_indent = prefix
         self.wrapper.subsequent_indent = prefix
-        return self.wrapper.wrap(string.join(lines, ' '))
+        return self.wrapper.wrap(' '.join(lines))
 
 class Refiller_Dumb(Refiller):
     """\
@@ -700,7 +702,7 @@ No Knuth algorithm, nor even protection for full stops at end of sentences.
         new_lines = []
         new_line = ''
         for line in lines:
-            counter = len(line) - len(string.lstrip(line))
+            counter = len(line) - len(line.lstrip())
             if counter > margin:
                 if new_line:
                     new_lines.append(prefix + new_line)
@@ -708,7 +710,7 @@ No Knuth algorithm, nor even protection for full stops at end of sentences.
                 indent = ' ' * (counter - margin)
             else:
                 indent = ''
-            for word in string.split(line):
+            for word in line.split():
                 if new_line:
                     if len(new_line) + 1 + len(word) > width:
                         new_lines.append(prefix + new_line)
@@ -799,7 +801,7 @@ refilled with it.
         self.style = style
         self.weight = weight
         # Make it exactly three lines, with `box' in the middle.
-        start = string.find(lines[0], 'box')
+        start = lines[0].find('box')
         if start >= 0:
             line1 = None
             line2 = lines[0]
@@ -808,7 +810,7 @@ refilled with it.
             else:
                 line3 = None
         else:
-            start = string.find(lines[1], 'box')
+            start = lines[1].find('box')
             if start >= 0:
                 line1 = lines[0]
                 line2 = lines[1]
@@ -838,7 +840,7 @@ refilled with it.
             else:
                 self.nn = None
             if end < len(line1):
-                self.ne = string.rstrip(line1[end:])
+                self.ne = line1[end:].rstrip()
             else:
                 self.ne = None
         if start > 0:
@@ -853,7 +855,7 @@ refilled with it.
             self.sw = self.ss = self.se = None
         elif self.merge_se:
             self.sw = self.ss = None
-            self.se = string.rstrip(line3)
+            self.se = line3.rstrip()
         else:
             if start > 0:
                 self.sw = line3[:start]
@@ -864,7 +866,7 @@ refilled with it.
             else:
                 self.ss = None
             if end < len(line3):
-                self.se = string.rstrip(line3[end:])
+                self.se = line3[end:].rstrip()
             else:
                 self.se = None
         # Define parsing regexps.
@@ -1009,7 +1011,7 @@ and the total size of each line should ideally not go over WIDTH.
                 line = self.nw + line
             if self.ne:
                 line = line + self.ne
-            lines.insert(0, string.rstrip(' ' * margin + line))
+            lines.insert(0, (' ' * margin + line).rstrip())
             start = 1
         else:
             start = 0
@@ -1021,7 +1023,7 @@ and the total size of each line should ideally not go over WIDTH.
                 line = self.ww + line
             if self.ee:
                 line = line + self.ee
-            lines[counter] = string.rstrip(' ' * margin + line)
+            lines[counter] = (' ' * margin + line).rstrip()
         # Construct the bottom line.
         if self.sw or self.ss or self.se and not self.merge_se:
             if self.ss:
@@ -1032,7 +1034,7 @@ and the total size of each line should ideally not go over WIDTH.
                 line = self.sw + line
             if self.se and not self.merge_se:
                 line = line + self.se
-            lines.append(string.rstrip(' ' * margin + line))
+            lines.append((' ' * margin + line).rstrip())
         return lines
 
 def regexp_quote(text):
@@ -1045,7 +1047,7 @@ Unless spaces, the text is nested within a regexp parenthetical group.
         return ''
     if text == ' ' * len(text):
         return ' *'
-    return '(' + re.escape(string.strip(text)) + ') *'
+    return '(' + re.escape(text.strip()) + ') *'
 
 def regexp_ruler(character):
     """\
@@ -1070,7 +1072,7 @@ equivalent number of spaces, except for trailing spaces, which get removed.
         if groups[counter] is not None:
             start, end = match.span(1 + counter)
             line = line[:start] + ' ' * (end - start) + line[end:]
-    return string.rstrip(line)
+    return line.rstrip()
 
 ## Template data.
 
@@ -1103,7 +1105,7 @@ all using the same WEIGHT.  Replace `?' in LINES accordingly.
             continue
         new_lines = []
         for line in lines:
-            new_lines.append(string.replace(line, '?', character))
+            new_lines.append(line.replace('?', character))
         Template(new_style, weight, new_lines)
 
 # Generic programming language templates.
@@ -1302,4 +1304,4 @@ Template(251, 158, ('/* ',
                     ' */   '))
 
 if __name__ == '__main__':
-    apply(main, sys.argv[1:])
+    main(*sys.argv[1:])

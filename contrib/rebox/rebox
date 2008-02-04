@@ -9,4 +9,4 @@ Handling of boxed comments in various box styles.
 
 import sys
 from Pymacs.Rebox import rebox
-apply(rebox.main, tuple(sys.argv[1:]))
+rebox.main(*sys.argv[1:])

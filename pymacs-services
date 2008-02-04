@@ -25,4 +25,4 @@ This small bootstrap is so Pymacs modules can be kept in compiled form.
 
 import sys
 from Pymacs import pymacs
-apply(pymacs.main, sys.argv[1:])
+pymacs.main(*sys.argv[1:])

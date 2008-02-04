@@ -28,10 +28,8 @@ This module may also be usefully imported by those other Python modules.
 See the Pymacs documentation (in `README') for more information.
 """
 
-## Note: This code is currently compatible down to Python version 1.5.2.
-## It is probably worth keeping it that way for a good while, still.
-
-import os, string, sys, types
+__metaclass__ = type
+import os, sys
 
 ## Python services for Emacs applications.
 
@@ -84,7 +82,7 @@ class Protocol:
         # that the reply has been transmitted, or that an error occurred.
         # A reply notification from Emacs interrupts the loop: the result
         # of this function is then the value returned from Emacs.
-        while 1:
+        while True:
             try:
                 text = self.receive()
                 if text[:5] == 'exec ':
@@ -133,13 +131,13 @@ class Protocol:
             if self.freed:
                 write(')')
                 self.freed = []
-            self.send(string.join(fragments, ''))
+            self.send(''.join(fragments))
 
     def receive(self):
         # Receive a Python expression from Emacs, return its text unevaluated.
         text = sys.stdin.read(3)
         if not text or text[0] != '>':
-            raise Protocol.ProtocolError, "`>' expected."
+            raise Protocol.ProtocolError("`>' expected.")
         while text[-1] != '\t':
             text = text + sys.stdin.read(1)
         return sys.stdin.read(int(text[1:-1]))
@@ -155,13 +153,13 @@ class Protocol:
 def reply(value):
     # This function implements the `reply' pseudo-function.  It is only
     # used from within `pymacs-serve-until-reply' on the Emacs side.
-    raise Protocol.ReplyException, value
+    raise Protocol.ReplyException(value)
 
 def error(message):
     # This function implements the `error' pseudo-function.  It is merely
     # used from within `pymacs-serve-until-reply' on the Emacs side.
     # It is also used by the catch-all `zombie' function, below.
-    raise Protocol.ErrorException, "Emacs: %s" % message
+    raise Protocol.ErrorException("Emacs: %s" % message)
 
 def pymacs_load_helper(file_without_extension, prefix):
     # This function imports a Python module, then returns a Lisp expression
@@ -174,9 +172,9 @@ def pymacs_load_helper(file_without_extension, prefix):
     # turned into dashes.  If PREFIX is None, it then defaults to the base
     # name of MODULE with underlines turned to dashes, followed by a dash.
     directory, module_name = os.path.split(file_without_extension)
-    module_components = string.split(module_name, '.')
+    module_components = module_name.split('.')
     if prefix is None:
-        prefix = string.replace(module_components[-1], '_', '-') + '-'
+        prefix = module_components[-1].replace('_', '-') + '-'
     try:
         object = sys.modules.get(module_name)
         if object:
@@ -199,13 +197,13 @@ def pymacs_load_helper(file_without_extension, prefix):
     if load_hook:
         load_hook()
     interactions = object.__dict__.get('interactions', {})
-    if type(interactions) != types.DictType:
+    if not isinstance(interactions, dict):
         interactions = {}
     arguments = []
     for name, value in object.__dict__.items():
         if callable(value) and value is not lisp:
             arguments.append(allocate_python(value))
-            arguments.append(lisp[prefix + string.replace(name, '_', '-')])
+            arguments.append(lisp[prefix + name.replace('_', '-')])
             try:
                 interaction = value.interaction
             except AttributeError:
@@ -236,7 +234,7 @@ python = []
 freed_list = []
 
 def allocate_python(value):
-    assert type(value) != type(''), (type(value), `value`)
+    assert not isinstance(value, str), (type(value), `value`)
     # Allocate some handle to hold VALUE, return its index.
     if freed_list:
         index = freed_list[-1]
@@ -275,7 +273,7 @@ def zombie(*arguments):
 class Let:
     def __init__(self, **keywords):
         self.stack = []
-        apply(self.push, (), keywords)
+        self.push(**keywords)
 
     def __del__(self):
         while self.stack:
@@ -397,7 +395,7 @@ class Symbol:
             write('(progn (setq %s ' % self.text)
             print_lisp(value, write, quoted=1)
             write(') nil)')
-            lisp(string.join(fragments, ''))
+            lisp(''.join(fragments))
 
     def __call__(self, *arguments):
         fragments = []
@@ -407,7 +405,7 @@ class Symbol:
             write(' ')
             print_lisp(argument, write, quoted=1)
         write(')')
-        return lisp(string.join(fragments, ''))
+        return lisp(''.join(fragments))
 
 class Lisp:
     def __init__(self, index):
@@ -449,7 +447,7 @@ class List(Lisp):
             write(' ')
             print_lisp(argument, write, quoted=1)
         write(')')
-        return lisp(string.join(fragments, ''))
+        return lisp(''.join(fragments))
 
     def __len__(self):
         return lisp('(length %s)' % self)
@@ -457,7 +455,7 @@ class List(Lisp):
     def __getitem__(self, key):
         value = lisp('(nth %d %s)' % (key, self))
         if value is None and key >= len(self):
-            raise IndexError, key
+            raise IndexError(key)
         return value
 
     def __setitem__(self, key, value):
@@ -466,7 +464,7 @@ class List(Lisp):
         write('(setcar (nthcdr %d %s) ' % (key, self))
         print_lisp(value, write, quoted=1)
         write(')')
-        lisp(string.join(fragments, ''))
+        lisp(''.join(fragments))
 
 class Table(Lisp):
 
@@ -476,7 +474,7 @@ class Table(Lisp):
         write('(gethash ')
         print_lisp(key, write, quoted=1)
         write(' %s)' % self)
-        return lisp(string.join(fragments, ''))
+        return lisp(''.join(fragments))
 
     def __setitem__(self, key, value):
         fragments = []
@@ -486,7 +484,7 @@ class Table(Lisp):
         write(' ')
         print_lisp(value, write, quoted=1)
         write(' %s)' % self)
-        lisp(string.join(fragments, ''))
+        lisp(''.join(fragments))
 
 class Vector(Lisp):
 
@@ -502,7 +500,7 @@ class Vector(Lisp):
         write('(aset %s %d ' % (self, key))
         print_lisp(value, write, quoted=1)
         write(')')
-        lisp(string.join(fragments, ''))
+        lisp(''.join(fragments))
 
 class Lisp_Interface:
     def __init__(self):
@@ -515,13 +513,13 @@ class Lisp_Interface:
 
     def __getattr__(self, name):
         if name[0] == '_':
-            raise AttributeError, name
-        return self[string.replace(name, '_', '-')]
+            raise AttributeError(name)
+        return self[name.replace('_', '-')]
 
     def __setattr__(self, name, value):
         if name[0] == '_':
-            raise AttributeError, name
-        self[string.replace(name, '_', '-')] = value
+            raise AttributeError(name)
+        self[name.replace('_', '-')] = value
 
     def __getitem__(self, name):
         try:
@@ -545,11 +543,11 @@ print_lisp_quoted_specials = {'"': '\\"', '\\': '\\\\', '\b': '\\b',
 def print_lisp(value, write, quoted=0):
     if value is None:
         write('nil')
-    elif type(value) == types.IntType:
+    elif isinstance(value, int):
         write(repr(value))
-    elif type(value) == types.FloatType:
+    elif isinstance(value, float):
         write(repr(value))
-    elif type(value) == types.StringType:
+    elif isinstance(value, str):
         write('"')
         for character in value:
             special = print_lisp_quoted_specials.get(character)
@@ -560,7 +558,7 @@ def print_lisp(value, write, quoted=0):
             else:
                 write('\\%.3o' % ord(character))
         write('"')
-    elif type(value) == types.ListType:
+    elif isinstance(value, list):
         if quoted:
             write("'")
         if len(value) == 0:
@@ -575,7 +573,7 @@ def print_lisp(value, write, quoted=0):
                 write(' ')
                 print_lisp(sub_value, write)
             write(')')
-    elif type(value) == types.TupleType:
+    elif isinstance(value, tuple):
         write('[')
         if len(value) > 0:
             print_lisp(value[0], write)
@@ -595,4 +593,4 @@ def print_lisp(value, write, quoted=0):
         write('(pymacs-python %d)' % allocate_python(value))
 
 if __name__ == '__main__':
-    apply(main, sys.argv[1:])
+    main(*sys.argv[1:])

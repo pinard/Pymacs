@@ -146,25 +146,14 @@ Emacs.  Typing ``M-: (os-getcwd)`` should echo the current directory
 in the message buffer, as returned by the :code:`os.getcwd` Python
 function.
 
-Porting Pymacs
---------------
+Porting and caveats
+-------------------
 
-Pymacs has been developed on Linux, Python 1.5.2, and Emacs (20 and 21),
-it is expected to work out of the box on most other Unices, newer Python
-and Emacs releases, and also with XEmacs.  While I tried to maintain
-Python 1.5.2 compatibility for the Pymacs proper, I am not testing it
-anymore, and now rely on testers for reporting portability bugs, if any.
-
-Syver Enstad reports that Pymacs could be made to work on Windows-2000
-(win2k), he suspects it should equally work with NT and XP.  However,
-little shell stunts may be required, I hope to later document them here.
-
-There might be Python 2.2 dependencies for the :code:`Nn` example, while
-I believe the :code:`Rebox` is still 1.5.2 compatible.  This might
-change.
-
-Caveats
--------
+Pymacs has been developed on Linux, Python 1.5.2, and Emacs (20 and 21).
+It is expected to work out of the box on most other Unices, newer Python
+and Emacs releases, and also with XEmacs.  However, from Pymacs 0.23 and
+upwards, Python 2.2 or better is likely needed.  I now use Python 2.5
+and Emacs 22, so I rely on testers or users for portability issues.
 
 Some later versions of Emacs 20 silently ignore the request for creating
 weak hash tables, they create an ordinary table instead.  Older Emacses
@@ -173,6 +162,10 @@ these, memory will leak on the Python side whenever complex objects
 get transmitted to Emacs, as these objects will not be reclaimed on
 the Python side once Emacs is finished with them.  It should not be a
 practical problem in most simple cases.
+
+Syver Enstad reports that Pymacs could be made to work on Windows-2000
+(win2k), he suspects it should equally work with NT and XP.  However,
+little shell stunts may be required, I hope to later document them here.
 
 Validation suite
 ----------------
