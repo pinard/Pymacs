@@ -52,6 +52,10 @@ publish: web/pymacs.pdf web/pymacs.rst
 	git archive --format=tar --prefix=Pymacs-$(VERSION)/ HEAD . \
 	  | gzip > web/archives/Pymacs-$(VERSION).tar.gz
 
+synchro: web/pymacs.pdf web/pymacs.rst
+	ajuster-web web
+	synchro -PD alcyon entretien
+
 web/pymacs.pdf: web/pymacs.rst
 	rm -rf tmp-pdf
 	mkdir tmp-pdf
