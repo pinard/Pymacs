@@ -234,7 +234,7 @@ python = []
 freed_list = []
 
 def allocate_python(value):
-    assert not isinstance(value, str), (type(value), `value`)
+    assert not isinstance(value, str), (type(value), repr(value))
     # Allocate some handle to hold VALUE, return its index.
     if freed_list:
         index = freed_list[-1]
