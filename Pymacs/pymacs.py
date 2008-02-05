@@ -271,6 +271,7 @@ def zombie(*arguments):
 ## Emacs services for Python applications.
 
 class Let:
+
     def __init__(self, **keywords):
         self.stack = []
         self.push(**keywords)
@@ -371,6 +372,7 @@ class Let:
         lisp.set_window_configuration(current_window_configuration)
 
 class Symbol:
+
     def __init__(self, text):
         self.text = text
 
@@ -408,6 +410,7 @@ class Symbol:
         return lisp(''.join(fragments))
 
 class Lisp:
+
     def __init__(self, index):
         self.index = index
 
@@ -503,6 +506,7 @@ class Vector(Lisp):
         lisp(''.join(fragments))
 
 class Lisp_Interface:
+
     def __init__(self):
         self.__dict__['_cache'] = {'nil': None}
         self.__dict__['_protocol'] = Protocol()
