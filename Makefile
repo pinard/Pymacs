@@ -54,6 +54,8 @@ publish: web/pymacs.pdf web/pymacs.rst
 
 synchro: web/pymacs.pdf web/pymacs.rst
 	ajuster-web web
+	git gc --prune
+	find -name '*~' | xargs rm -fv
 	synchro -PD alcyon entretien
 
 web/pymacs.pdf: web/pymacs.rst
