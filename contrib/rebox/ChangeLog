@@ -1,3 +1,10 @@
+2008-01-21  François Pinard  <pinard@iro.umontreal.ca>
+
+	* rebox.py: Support module textwrap.
+	(Refiller, Refiller_Gnu_Fmt, Refiller_Textwrap and Refiller_Dumb):
+	New classes.
+	(refill_lines): Function split to use the above.
+
 2002-01-29  François Pinard  <pinard@iro.umontreal.ca>
 
 	* Pymacs/rebox.py: Use an interactions map instead of the

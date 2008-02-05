@@ -1,3 +1,38 @@
+2008-02-03  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs-services: Deleted.  Use "python -c" instead.
+	Reported by Ali Gholami Rudi.
+
+2008-01-17  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Pymacs now under git control.  Some generic changes are reported
+	below all at once, instead of using lots of ChangeLog entries.
+
+	* COPYING: New, this is the latest GPLv2.
+
+	* README, pymacs.rst.in: Documentation rewritten using reST, and
+	extended.  PDF and PostScript files no longer distributed (only
+	available through the Web site).
+	* doc/: Removed.  Everything Allout also removed.
+
+	* scripts/: Removed.
+
+	* : Drop compatibility with Python 1.5.2.  Aim 2.2 and upwards.
+	* : Add or adjust Python coding cookies.
+	* : All files converted from ISO Latin-1 to UTF-8.
+	* : Stick to spaces.  Tabs only for Makefiles and ChangeLogs.
+
+	* contrib/misc-jj/: New.
+	Contributed by Giovanni Giorgi.
+
+	* contrib/nn, contrib/rebox: New place for old examples.
+
+	* Makefile: Ajusted, and extended.  The version number is now
+	propagated from the Makefile instead of from Pymacs/__init__.py.
+	* emacs.el.in: New name for emacs.el.
+
+	* tests/: New validation suite, or some start of it.
+
 2003-06-30  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.22.
@@ -479,4 +514,3 @@
 	* : Release 0.2, including ideas and suggestions from others.
 	Reported by Brian McErlean, Carel Fellinger, Cedric Adjih,
 	Marcin Qrczak Kowalczyk, Paul Winkler and Steffen Ries.
-

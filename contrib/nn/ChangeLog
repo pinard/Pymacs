@@ -1,0 +1,4 @@
+2008-01-21  François Pinard  <pinard@iro.umontreal.ca>
+
+	* nnfolder.py: Bug corrected, and cleanup.
+	Correct a double delimiter bug at creation time.
