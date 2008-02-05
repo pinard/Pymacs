@@ -24,6 +24,9 @@
   "List of additional directories to search for Python modules.
 The directories listed will be searched first, in the order given.")
 
+(defvar pymacs-python-executable "python"
+  "The name of the executable that starts python.")
+
 (defvar pymacs-trace-transit '(5000 . 30000)
   "Keep the communication buffer growing, for debugging.
 When this variable is nil, the `*Pymacs*' communication buffer gets erased
@@ -44,16 +47,16 @@ Python side thus has no way for modifying the original Lisp strings.
 This variable is ignored whenever `forget-mutability' is set.")
 
 (defvar pymacs-timeout-at-start 30
-  "Maximum reasonable time, in seconds, for starting `pymacs-services'.
+  "Maximum reasonable time, in seconds, for starting the Pymacs server.
 A machine should be pretty loaded before one needs to increment this.")
 
 (defvar pymacs-timeout-at-reply 5
   "Expected maximum time, in seconds, to get the first line of a reply.
-The status of `pymacs-services' is checked at every such timeout.")
+The status of the Pymacs server is checked at every such timeout.")
 
 (defvar pymacs-timeout-at-line 2
   "Expected maximum time, in seconds, to get another line of a reply.
-The status of `pymacs-services' is checked at every such timeout.")
+The status of the Pymacs server is checked at every such timeout.")
 
 (defun pymacs-load (module &optional prefix noerror)
   "Import the Python module named MODULE into Emacs.
@@ -465,8 +468,13 @@ The timer is used only if `post-gc-hook' is not available.")
       (buffer-disable-undo)
       (save-match-data
         ;; Launch the Python helper.
-        (let ((process (apply 'start-process "pymacs" buffer "pymacs-services"
-                              (mapcar 'expand-file-name pymacs-load-path))))
+        (let ((process
+	       (apply 'start-process "pymacs" buffer
+		      pymacs-python-executable "-c"
+		      (concat "import sys;"
+			      " from Pymacs.pymacs import main;"
+			      " main(*sys.argv[1:])")
+		      (mapcar 'expand-file-name pymacs-load-path))))
           (process-kill-without-query process)
           ;; Receive the synchronising reply.
           (while (progn

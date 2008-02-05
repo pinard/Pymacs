@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-# Checking if pymacs.el works (pymacs-services unused).
+# Checking if pymacs.el works (the Pymacs server is not used).
 
 import re
 import setup

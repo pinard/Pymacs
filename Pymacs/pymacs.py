@@ -264,7 +264,7 @@ def zombie_python(*indices):
 
 def zombie(*arguments):
     # This catch-all function is set as the value for any function which
-    # disappeared with a previous `pymacs-services' process, so calling
+    # disappeared with a previous Pymacs server process, so calling
     # such a function from Emacs will trigger a decipherable diagnostic.
     error("Object vanished when helper was killed.")
 

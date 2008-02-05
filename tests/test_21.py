@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-# Checking if pymacs-services works.
+# Checking if the Pymacs server works.
 
 import re
 import setup

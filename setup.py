@@ -12,5 +12,4 @@ setup(name=__package__, version=__version__,
       description="Interface between Emacs Lisp and Python.",
       author='François Pinard', author_email='pinard@iro.umontreal.ca',
       url='http://pymacs.progiciels-bpi.ca',
-      scripts=['pymacs-services'],
       packages=['Pymacs'])

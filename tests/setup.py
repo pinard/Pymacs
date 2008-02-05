@@ -2,22 +2,30 @@
 
 # Python side of the testing protocol.
 
-# Make sure the ../pymacs-services script will be found.
+__metaclass__ = type
 import os
-value = os.getenv('PATH')
-if value is None:
-    os.putenv('PATH', '..')
-elif '..' not in value.split(':'):
-    os.putenv('PATH', '..:' + value)
 
-# Make sure the ../Pymacs module will be found.
+# Make sure that ../Pymacs will be found within this process.
 import sys
 if '..' not in sys.path:
     sys.path.insert(0, '..')
 
 from Pymacs import lisp, pymacs
 
-class Emacs:
+class Launch:
+    # Make sure that ../Pymacs will be found in external processes.
+
+    def __init__(self):
+        self.pythonpath_saved = os.environ.get('PYTHONPATH')
+        os.environ['PYTHONPATH'] = '..'
+
+    def __del__(self):
+        if self.pythonpath_saved is None:
+            del os.environ['PYTHONPATH']
+        else:
+            os.environ['PYTHONPATH'] = self.pythonpath_saved
+
+class Emacs(Launch):
     # Requests towards Emacs are written to file "_request", while
     # replies from Emacs are read from file "_reply".  We call Emacs
     # attention by erasing "_reply", and Emacs calls our attention by
@@ -28,6 +36,7 @@ class Emacs:
     popen = None
 
     def __init__(self):
+        Launch.__init__(self)
         self.cleanup()
         import atexit
         atexit.register(self.cleanup)
@@ -79,11 +88,12 @@ def ask_emacs(text, printer=None):
     Emacs.services.send(text)
     return Emacs.services.receive()
 
-class Python:
+class Python(Launch):
 
     def __init__(self):
-        # Start subprocess to execute Python code.
-        command = 'pymacs-services ..'
+        Launch.__init__(self)
+        # Start a server subprocess for executing Python code.
+        command = 'python -c "from Pymacs.pymacs import main; main(\'..\')"'
         import popen2
         self.output, self.input = popen2.popen4(command)
         text = self.receive()
@@ -91,7 +101,7 @@ class Python:
         assert text == '(pymacs-version "%s")\n' % __version__, text
 
     def receive(self):
-        # Receive a Lisp expression from pymacs-services.
+        # Receive a Lisp expression from the Pymacs server.
         text = self.output.read(3)
         if not text or text[0] != '<':
             raise Protocol.ProtocolError, "`>' expected."
@@ -100,7 +110,7 @@ class Python:
         return self.output.read(int(text[1:-1]))
 
     def send(self, text):
-        # Send TEXT, a Python expression, to pymacs-services.
+        # Send TEXT, a Python expression, to the Pymacs server.
         if text[-1] == '\n':
             self.input.write('>%d\t%s' % (len(text), text))
         else:

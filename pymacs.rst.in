@@ -115,22 +115,11 @@ known about the guess without proceeding to the actual installation.
 ``./setup -E xemacs ...`` may be useful to XEmacs lovers.  See ``./setup
 -H`` for all options.
 
-About Win32 systems, Syver Enstad says:
-
-  `For Pymacs to operate correctly, one should create a batch file
-  with` :file:`pymacs-services.bat` `as a name, which runs the`
-  :file:`pymacs-services` `script.  The` :file:`.bat` `file could be
-  placed along with` :file:`pymacs-services`\ `, wherever that maybe.`.
-
 To check that :file:`pymacs.el` is properly installed, start Emacs
 and give it the command ``M-x load-library RET pymacs``: you should
 not receive any error.  To check that :file:`pymacs.py` is properly
 installed, start an interactive Python session and type ``from Pymacs
-import lisp``: you should not receive any error.  To check that
-:file:`pymacs-services` is properly installed, type ``pymacs-services
-</dev/null`` in a shell; you should then get a line ending with
-``(pymacs-version VERSION)``, and another saying:  ``Protocol error:``
-\`\ ``>' expected.`` .
+import lisp``: you should not receive any error.
 
 Currently, there is only one installed Pymacs example, which comes in
 two parts: a batch script :file:`rebox` and a :code:`Pymacs.rebox`
@@ -514,9 +503,10 @@ Special Emacs Lisp variables
 ----------------------------
 
 Users could alter the inner working of Pymacs through a few variables,
-these are all documented here.  Except for :code:`pymacs-load-path`,
-which should be set before calling any Pymacs function, the value of
-these variables can be changed at any time.
+these are all documented here.  Except for :code:`pymacs-load-path` and
+:code:`pymacs-python-executable`, which should be set before calling
+any Pymacs function, the value of these variables can be changed at any
+time.
 
 pymacs-load-path
 ,,,,,,,,,,,,,,,,
@@ -527,11 +517,21 @@ preset :code:`pymacs-load-path`, :code:`nil` by default, to a list of
 these directory names.  (Tilde expansions and such occur automatically.)
 
 Here is how it works.  The first time Pymacs is needed from Emacs,
-:code:`pymacs-services` is called, and given as arguments all strings
-in the :code:`pymacs-load-path` list.  These arguments are added at the
-beginning of :code:`sys.path`, or moved at the beginning if they were
-already on :code:`sys.path`.  So in practice, nothing is removed from
-:code:`sys.path`.
+a Pymacs server is automatically started as an Emacs subprocess, and
+given as arguments all strings in the :code:`pymacs-load-path` list.
+These arguments are added at the beginning of :code:`sys.path`,
+or moved at the beginning if they were already on :code:`sys.path`.
+So in practice, nothing is removed from :code:`sys.path`.
+
+pymacs-python-executable
+,,,,,,,,,,,,,,,,,,,,,,,,
+
+This variable, which value is ``"python"`` by default, names the Python
+interpreter program to be called for starting the Pymacs server.  It may
+be changed to give the full path of the executable if the Python program
+exists at some location outside the program search path.  It may also be
+given when the interpreter name is different, this happens in particular
+when the Python version is part of the program name.
 
 pymacs-trace-transit
 ,,,,,,,,,,,,,,,,,,,,
@@ -888,7 +888,7 @@ some recursion trickery over the protocol, but the trickery itself is
 not part of the protocol, which is rather simple deep down:
 
   + messages are exchanged in strictly alternating directions, the first
-    being sent by :code:`pymacs-services`,
+    being sent by the Pymacs server just after it started,
 
   + Python-originated messages are nothing but Lisp expressions,
 

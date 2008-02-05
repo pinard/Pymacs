@@ -28,7 +28,7 @@ tags:
 	(find bin -type f; find -name '*.py') | grep -v '~$$' | etags -
 
 clean:
-	rm -rf build*
+	rm -rf build* Pymacs/*.pyc tests/*.pyc
 
 pymacs.el: pymacs.el.in Makefile
 	rm -f $@
