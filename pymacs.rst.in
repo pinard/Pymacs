@@ -164,9 +164,12 @@ Porting and caveats
 
 Pymacs has been developed on Linux, Python 1.5.2, and Emacs (20 and 21).
 It is expected to work out of the box on most other Unices, newer Python
-and Emacs releases, and also with XEmacs.  However, from Pymacs 0.23 and
-upwards, Python 2.2 or better is likely needed.  I now use Python 2.5
-and Emacs 22, so I rely on testers or users for portability issues.
+and Emacs releases, and also with XEmacs.  However, from Pymacs 0.23
+and upwards, Python 2.2 or better is likely needed.  I now use Python
+2.5 and Emacs 22, so I rely on testers or users for portability issues
+within the Pymacs proper.  Yet for the validation suite (and only it), I
+do know it would not run on Python versions earlier than 2.4, and I'll
+leave it that way unless someone contribute the back porting.
 
 Some later versions of Emacs 20 silently ignore the request for creating
 weak hash tables, they create an ordinary table instead.  Older Emacses
