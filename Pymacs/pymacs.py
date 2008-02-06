@@ -49,23 +49,28 @@ The program arguments are additional search paths for Python modules.
     lisp._protocol.send('(pymacs-version "%s")' % __version__)
     lisp._protocol.loop()
 
+# The few following declarations are logically inside to the Protocol class.
+# Having them outside has the slight inconvenience of polluting the global
+# name space, but it has the advantage of making the remainder of the code
+# a bit easier to write and read.  Not a big deal! :-)
+
+ProtocolError = 'ProtocolError'
+ReplyException = 'ReplyException'
+ErrorException = 'ErrorException'
+
+# FIXME: The following should work, but does not:
+#
+# * pymacs.py (Protocol): Declare exceptions as classes, not strings.
+#
+#class ProtocolError(Exception): pass
+#class ReplyException(Exception): pass
+#class ErrorException(Exception): pass
+#
+# I get:
+#    (pymacs-eval "lisp('\"abc\"').__class__.__name__")
+#    "ReplyException"
+
 class Protocol:
-
-    # FIXME: The following should work, but does not:
-    #
-    # * pymacs.py (Protocol): Declare exceptions as classes, not strings.
-    #
-    #class ProtocolError(Exception): pass
-    #class ReplyException(Exception): pass
-    #class ErrorException(Exception): pass
-    #
-    # I get:
-    #    (pymacs-eval "lisp('\"abc\"').__class__.__name__")
-    #    "ReplyException"
-
-    ProtocolError = 'ProtocolError'
-    ReplyException = 'ReplyException'
-    ErrorException = 'ErrorException'
 
     def __init__(self):
         self.freed = []
@@ -92,12 +97,12 @@ class Protocol:
                 else:
                     action = 'pymacs-reply'
                     argument = eval(text)
-            except Protocol.ReplyException, value:
+            except ReplyException, value:
                 return value
-            except Protocol.ErrorException, message:
+            except ErrorException, message:
                 action = 'pymacs-error'
                 argument = message
-            #except Protocol.ErrorException, message:
+            #except ErrorException, message:
             #    import StringIO, traceback
             #    if message and message[-1] != '\n':
             #        message = message + '\n'
@@ -105,7 +110,7 @@ class Protocol:
             #    traceback.print_exc(file=buffer)
             #    action = 'pymacs-error'
             #    argument = buffer.getvalue()
-            except Protocol.ProtocolError, message:
+            except ProtocolError, message:
                 sys.stderr.write("Protocol error: %s\n" % message)
                 sys.exit(1)
             except KeyboardInterrupt:
@@ -137,7 +142,7 @@ class Protocol:
         # Receive a Python expression from Emacs, return its text unevaluated.
         text = sys.stdin.read(3)
         if not text or text[0] != '>':
-            raise Protocol.ProtocolError("`>' expected.")
+            raise ProtocolError("`>' expected.")
         while text[-1] != '\t':
             text = text + sys.stdin.read(1)
         return sys.stdin.read(int(text[1:-1]))
@@ -153,13 +158,13 @@ class Protocol:
 def reply(value):
     # This function implements the `reply' pseudo-function.  It is only
     # used from within `pymacs-serve-until-reply' on the Emacs side.
-    raise Protocol.ReplyException(value)
+    raise ReplyException(value)
 
 def error(message):
     # This function implements the `error' pseudo-function.  It is merely
     # used from within `pymacs-serve-until-reply' on the Emacs side.
     # It is also used by the catch-all `zombie' function, below.
-    raise Protocol.ErrorException("Emacs: %s" % message)
+    raise ErrorException("Emacs: %s" % message)
 
 def pymacs_load_helper(file_without_extension, prefix):
     # This function imports a Python module, then returns a Lisp expression
