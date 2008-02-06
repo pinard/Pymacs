@@ -599,7 +599,7 @@ def print_lisp(value, write, quoted=0):
             write("'")
         write(value.text)
     elif callable(value):
-        write('(pymacs-defun %d)' % allocate_python(value))
+        write('(pymacs-defun %d nil)' % allocate_python(value))
     else:
         write('(pymacs-python %d)' % allocate_python(value))
 

@@ -78,7 +78,17 @@ def test_2():
     yield validate, '(pymacs-eval "3 + 5")', '8'
 
 def notest_3():
-    # 2006-06-20 Sebastian Waschik <sebastian.waschik@gmx.de>
+
+    def validate(input, expected):
+        output = setup.ask_emacs(input, 'prin1')
+        assert output == expected, (output, expected)
+
+    yield (validate,
+           ('(progn (pymacs-exec "def f(): lisp.insert(\'Test\')")\n'
+            '       (pymacs-eval "lisp.apply(f, None)"))\n'),
+           'nil')
+
+def notest_4():
 
     def validate(input, expected):
         output = setup.ask_emacs(input, 'prin1')

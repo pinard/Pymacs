@@ -2,8 +2,6 @@
 
 .. Actual bugs
 
-. : Lisp symbols clashing as Python keywords
-. : Interactive argument to be made optional
 . : Work around multi-byte and Unicode
 . : DOS line endings problem
 . : pystring-join problem

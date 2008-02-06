@@ -4,6 +4,10 @@
 	Python keyword.
 	Reported by Lukasz Pankowski.
 
+	* : pymacs-defun always need a second argument.
+	Reported by Marco Gidde, Nirmal J. Patel, Sebastian Waschik,
+	Stéphane Rollandin and Syver Enstad.
+
 2008-02-05  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Support bool constants.
