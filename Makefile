@@ -29,6 +29,7 @@ tags:
 
 clean:
 	rm -rf build* Pymacs/*.pyc tests/*.pyc
+	rm -f pymacs.el Pymacs/__init__.py
 
 pymacs.el: pymacs.el.in Makefile
 	rm -f $@
