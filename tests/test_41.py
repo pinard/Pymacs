@@ -2,6 +2,7 @@
 
 # Checking if the whole Pymacs works together.
 
+import re
 import setup
 from Pymacs import lisp, pymacs
 
@@ -14,7 +15,9 @@ def teardown_module(module):
 def test_1():
 
     def validate(input, expected):
-        output = setup.ask_emacs('(pymacs-eval %s)' % input, 'prin1')
+        output = re.sub(r'\(pymacs-(defun|python) \. [0-9]*\)',
+                        r'(pymacs-\1 . 0)',
+                        setup.ask_emacs('(pymacs-eval %s)' % input, 'prin1'))
         assert output == expected, (output, expected)
 
     for quotable, input, output in (
@@ -61,13 +64,14 @@ def test_1():
         fragments = []
         pymacs.print_lisp(repr(input), fragments.append, quotable)
         yield validate, ''.join(fragments), output
-    #for input, output in (
-    #        (ord, '(pymacs-defun 0)'),
-    #        (object(), '(pymacs-python 0)'),
-    #        ):
-    #    fragments = []
-    #    pymacs.print_lisp(input, fragments.append, True)
-    #    yield validate, '\'' + ''.join(fragments), output
+    for input, output in (
+            ('ord', ('(lambda (&rest arguments)'
+                     ' (pymacs-apply (quote (pymacs-python . 0)) arguments))')),
+            ('object()', '(pymacs-python . 0)'),
+            ):
+        fragments = []
+        pymacs.print_lisp(input, fragments.append, True)
+        yield validate, '\'' + ''.join(fragments), output
 
 def test_2():
 
