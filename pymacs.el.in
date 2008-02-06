@@ -484,7 +484,10 @@ The timer is used only if `post-gc-hook' is not available.")
                               " from Pymacs.pymacs import main;"
                               " main(*sys.argv[1:])")
                       (mapcar 'expand-file-name pymacs-load-path))))
-          (process-kill-without-query process)
+          (cond ((fboundp 'set-process-query-on-exit-flag)
+                 (set-process-query-on-exit-flag process nil))
+                ((fboundp 'process-kill-without-query-process)
+                 (process-kill-without-query process)))
           ;; Receive the synchronising reply.
           (while (progn
                    (goto-char (point-min))
