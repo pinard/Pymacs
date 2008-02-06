@@ -55,6 +55,7 @@ def test_1():
             (True, lisp['t'], 't'),
             (True, lisp['ab_cd'], 'ab_cd'),
             (True, lisp['ab-cd'], 'ab-cd'),
+            (True, lisp['lambda'], 'lambda'),
             (False, lisp.nil, 'nil'),
             (True, lisp.t, 't'),
             (True, lisp.ab_cd, 'ab-cd'),

@@ -58,6 +58,12 @@ The status of the Pymacs server is checked at every such timeout.")
   "Expected maximum time, in seconds, to get another line of a reply.
 The status of the Pymacs server is checked at every such timeout.")
 
+(defvar pymacs-use-hash-tables nil
+  "Automatically set to t if hash tables are available.")
+
+(defvar pymacs-python-keywords nil
+  "Will get either a list of Python keywords, or a hash table of those.")
+
 (defun pymacs-load (module &optional prefix noerror)
   "Import the Python module named MODULE into Emacs.
 Each function in the Python module is made available as an Emacs function.
@@ -211,9 +217,6 @@ equivalents, other structures are converted into Lisp handles."
 ;; the value to use on the Lisp side for it.  Whenever Lisp does not need a
 ;; Python object anymore, it should be freed on the Python side.  The
 ;; following variables and functions are meant to fill this duty.
-
-(defvar pymacs-use-hash-tables nil
-  "Automatically set to t if hash tables are available.")
 
 (defvar pymacs-used-ids nil
   "List of received IDs, currently allocated on the Python side.")
@@ -372,9 +375,9 @@ The timer is used only if `post-gc-hook' is not available.")
     (cond ((not expression)
            (princ "None")
            (setq done t))
-	  ((eq expression t)
-	   (princ "True")
-	   (setq done t))
+          ((eq expression t)
+           (princ "True")
+           (setq done t))
           ((numberp expression)
            (princ expression)
            (setq done t))
@@ -392,8 +395,11 @@ The timer is used only if `post-gc-hook' is not available.")
              ;; The symbol can only be transmitted when in the main oblist.
              (when (eq expression (intern-soft name))
                (cond
-                ((save-match-data
-                   (string-match "^[A-Za-z][-A-Za-z0-9]*$" name))
+                ((and (save-match-data
+                        (string-match "^[A-Za-z][-A-Za-z0-9]*$" name))
+                      (not (if pymacs-use-hash-tables
+                               (gethash name pymacs-python-keywords)
+                             (member name pymacs-python-keywords))))
                  (princ "lisp.")
                  (princ (mapconcat 'identity (split-string name "-") "_")))
                 (t (princ "lisp[")
@@ -472,12 +478,12 @@ The timer is used only if `post-gc-hook' is not available.")
       (save-match-data
         ;; Launch the Python helper.
         (let ((process
-	       (apply 'start-process "pymacs" buffer
-		      pymacs-python-executable "-c"
-		      (concat "import sys;"
-			      " from Pymacs.pymacs import main;"
-			      " main(*sys.argv[1:])")
-		      (mapcar 'expand-file-name pymacs-load-path))))
+               (apply 'start-process "pymacs" buffer
+                      pymacs-python-executable "-c"
+                      (concat "import sys;"
+                              " from Pymacs.pymacs import main;"
+                              " main(*sys.argv[1:])")
+                      (mapcar 'expand-file-name pymacs-load-path))))
           (process-kill-without-query process)
           ;; Receive the synchronising reply.
           (while (progn
@@ -505,6 +511,17 @@ The timer is used only if `post-gc-hook' is not available.")
     (setq pymacs-use-hash-tables (and (fboundp 'make-hash-table)
                                       (fboundp 'gethash)
                                       (fboundp 'puthash)))
+    (setq pymacs-python-keywords
+          (let ((keywords '("and" "assert" "break" "class" "continue" "def"
+                            "del" "elif" "else" "else" "except" "exec"
+                            "finally" "for" "from" "global" "if" "import"
+                            "in" "is" "lambda" "not" "or" "pass" "print"
+                            "raise" "return" "try" "with" "while" "yield")))
+            (if pymacs-use-hash-tables
+                (let ((table (make-hash-table :test 'equal)))
+                  (mapc (lambda (keyword) (puthash keyword t table)) keywords)
+                  table)
+              python-keywords)))
     (when pymacs-use-hash-tables
       (if pymacs-weak-hash
           ;; A previous Pymacs session occurred in *this* Emacs session.  Some
