@@ -552,6 +552,8 @@ print_lisp_quoted_specials = {'"': '\\"', '\\': '\\\\', '\b': '\\b',
 def print_lisp(value, write, quoted=0):
     if value is None:
         write('nil')
+    elif isinstance(value, bool):
+        write(('nil', 't')[value])
     elif isinstance(value, int):
         write(repr(value))
     elif isinstance(value, float):

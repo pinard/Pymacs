@@ -22,6 +22,8 @@ def test_1():
 
     for quotable, input, output in (
             (False, None, 'nil'),
+            (False, False, 'nil'),
+            (False, True, 't'),
             (False, 3, '3'),
             (False, 0, '0'),
             (False, -3, '-3'),
@@ -80,6 +82,8 @@ def notest_2():
 
     for quotable, input, output in (
             (False, None, 'None'),
+            (False, False, 'None'),
+            (False, True, 'True'),
             (False, 3, '3'),
             (False, 0, '0'),
             (False, -3, '-3'),

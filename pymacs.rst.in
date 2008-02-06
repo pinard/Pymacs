@@ -238,8 +238,14 @@ Simple objects
 --------------
 
 Emacs Lisp :code:`nil` and the equivalent Emacs Lisp ``()`` yield Python
-:code:`None`.  Python :code:`None` and the Python empty list ``[]`` are
-returned as :code:`nil` in Emacs Lisp.
+:code:`None`.  Python :code:`None`, Python :code:`False` and the Python
+empty list ``[]`` are returned as :code:`nil` in Emacs Lisp.  Notice
+the assymetry, in that three different Python objects are mapped into
+a single Emacs Lisp object.  Consequently, automatic conversions from
+Emacs Lisp to Python will not produce :code:`False` or ``[]``.
+
+Emacs Lisp :code:`t` yields Python :code:`True`.  Python :code:`True` is
+returned as :code:`t` in Emacs Lisp.
 
 Emacs Lisp numbers, either integer or floating, are converted in
 equivalent Python numbers.  Emacs Lisp characters are really numbers
@@ -642,15 +648,16 @@ Emacs Lisp symbols
 attributes do nothing but represent Emacs Lisp symbols, created on the
 fly as needed (symbols also have their built-in magic).
 
-Except for ``lisp.nil`` or ``lisp["nil"]``, which are the same as
-:code:`None`, both ``lisp.SYMBOL`` and ``lisp[STRING]`` yield objects
-of the internal :code:`Symbol` type.  These are genuine Python objects,
-that could be referred to by simple Python variables.  One may write
-``quote = lisp.quote``, for example, and use ``quote`` afterwards to
-mean that Emacs Lisp symbol.  If a Python function received an Emacs
-Lisp symbol as an argument, it can check with ``==`` if that argument is
-``lisp.never`` or ``lisp.ask``, say.  A Python function may well choose
-to return ``lisp.t``.
+As special cases, ``lisp.nil`` or ``lisp["nil"]`` are the same
+as :code:`None`, and ``lisp.t`` or ``lisp["t"]`` are the same as
+:code:`True`.  Otherwise, both ``lisp.SYMBOL`` and ``lisp[STRING]``
+yield objects of the internal :code:`Symbol` type.  These are genuine
+Python objects, that could be referred to by simple Python variables.
+One may write ``quote = lisp.quote``, for example, and use ``quote``
+afterwards to mean that Emacs Lisp symbol.  If a Python function
+received an Emacs Lisp symbol as an argument, it can check with ``==``
+if that argument is ``lisp.never`` or ``lisp.ask``, say.  A Python
+function may well choose to return some symbol, like ``lisp.always``.
 
 In Python, writing ``lisp.SYMBOL = VALUE`` or ``lisp[STRING] = VALUE``
 does assign :var:`VALUE` to the corresponding symbol in Emacs Lisp
@@ -685,7 +692,7 @@ if an error occurs which interrupts the normal flow of execution.
 Pymacs has a :code:`Let` class to represent such temporary
 settings.  Suppose for example that you want to recover the value of
 ``lisp.mark()`` when the transient mark mode is active on the Emacs Lisp
-side.  One could surely use ``lisp.mark(lisp.t)`` to *force* reading the
+side.  One could surely use ``lisp.mark(True)`` to *force* reading the
 mark in such cases, but for the sake of illustration, let's ignore that,
 and temporarily deactivate transient mark mode instead.  This could be
 done this way::
@@ -1104,7 +1111,7 @@ Here is a first draft for the Python side of the problem::
 
   def break_on_whitespace():
       start = lisp.point()
-      end = lisp.mark(lisp.t)
+      end = lisp.mark(True)
       if start > end:
           start, end = end, start
       text = lisp.buffer_substring(start, end)
@@ -1121,7 +1128,7 @@ For various stylistic reasons, this could be rewritten into::
   interactions = {}
 
   def break_on_whitespace():
-      start, end = lisp.point(), lisp.mark(lisp.t)
+      start, end = lisp.point(), lisp.mark(True)
       words = lisp.buffer_substring(start, end).split()
       lisp.delete_region(start, end)
       lisp.insert('\n'.join(words))

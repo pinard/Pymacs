@@ -18,6 +18,8 @@ def test_print_lisp():
 
     for quotable, input, output in (
             (False, None, 'nil'),
+            (False, False, 'nil'),
+            (False, True, 't'),
             (False, 3, '3'),
             (False, 0, '0'),
             (False, -3, '-3'),
