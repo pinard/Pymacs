@@ -1,3 +1,8 @@
+2008-02-05  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Support bool constants.
+	Reported by Ali Gholami Rudi.
+
 2008-02-03  François Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs-services: Deleted.  Use "python -c" instead.
