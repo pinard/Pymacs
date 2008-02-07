@@ -15,8 +15,8 @@ def teardown_module(module):
 def test_1():
 
     def validate(input, expected):
-        output = re.sub(r'\(pymacs-(defun|python) [0-9]*\)',
-                        r'(pymacs-\1 0)',
+        output = re.sub(r'\(pymacs-(defun|python) [0-9]*',
+                        r'(pymacs-\1 0',
                         setup.ask_emacs(input, 'prin1'))
         assert output == expected, (output, expected)
 
@@ -65,7 +65,7 @@ def test_1():
         pymacs.print_lisp(input, fragments.append, quotable)
         yield validate, ''.join(fragments), output
     for input, output in (
-            (ord, '(pymacs-defun 0)'),
+            (ord, '(pymacs-defun 0 nil)'),
             (object(), '(pymacs-python 0)'),
             ):
         fragments = []
@@ -76,8 +76,8 @@ def notest_2():
 
     def validate(input, expected):
         import re
-        output = re.sub(r'\(pymacs-(defun|python) [0-9]*\)',
-                        r'(pymacs-\1 0)',
+        output = re.sub(r'\(pymacs-(defun|python) [0-9]*',
+                        r'(pymacs-\1 0',
                         setup.ask_emacs(input, 'pymacs-print-for-eval'))
         assert output == expected, (output, expected)
 
@@ -130,7 +130,7 @@ def notest_2():
                 % ''.join(fragments)),
                output)
     for input, output in (
-            (ord, '(pymacs-defun 0)'),
+            (ord, '(pymacs-defun 0 nil)'),
             (object(), '(pymacs-python 0)'),
             ):
         fragments = []

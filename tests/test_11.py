@@ -11,8 +11,8 @@ def test_print_lisp():
     def validate(input, quoted, expected):
         fragments = []
         pymacs.print_lisp(input, fragments.append, quoted)
-        output = re.sub(r'\(pymacs-(defun|python) [0-9]*\)',
-                        r'(pymacs-\1 0)',
+        output = re.sub(r'\(pymacs-(defun|python) [0-9]*',
+                        r'(pymacs-\1 0',
                         ''.join(fragments))
         assert output == expected, (output, expected)
 
@@ -56,7 +56,7 @@ def test_print_lisp():
             (True, lisp.t, 't'),
             (True, lisp.ab_cd, 'ab-cd'),
             # TODO: Lisp and derivatives
-            (False, ord, '(pymacs-defun 0)'),
+            (False, ord, '(pymacs-defun 0 nil)'),
             (False, object(), '(pymacs-python 0)'),
             ):
         yield validate, input, False, output

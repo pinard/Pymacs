@@ -15,8 +15,8 @@ def teardown_module(module):
 def test_1():
 
     def validate(input, expected):
-        output = re.sub(r'\(pymacs-(defun|python) [0-9]*\)',
-                        r'(pymacs-\1 0)',
+        output = re.sub(r'\(pymacs-(defun|python) [0-9]*',
+                        r'(pymacs-\1 0',
                         setup.ask_python(input))
         assert output == expected, (output, expected)
 
@@ -66,7 +66,7 @@ def test_1():
         else:
             yield validate, repr(input), '(pymacs-reply %s)\n' % output
     for input, output in (
-            ('ord', '(pymacs-defun 0)'),
+            ('ord', '(pymacs-defun 0 nil)'),
             ('object()', '(pymacs-python 0)'),
             ):
         yield validate, input, '(pymacs-reply %s)\n' % output
