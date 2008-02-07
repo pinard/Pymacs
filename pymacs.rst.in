@@ -107,34 +107,33 @@ If you want to do it all by hand, change ``@VER``\ ``SION@`` strings in
 the sources in some consistent way, and run the installation scripts *by
 hand*.
 
-The first installation script installs the Python package, including the
-Pymacs examples, using the Python standard Distutils tool.  Merely
-``cd`` into the Pymacs distribution, then execute ``python
-setup.py install``.  To get an option reminder, do ``python setup.py
-install --help``.  Check the Distutils documentation if you need more
-information about this.
+The first installation script installs the Python package using
+the Python standard Distutils tool.  Merely ``cd`` into the Pymacs
+distribution, then execute ``python setup.py install``.  To get an
+option reminder, do ``python setup.py install --help``.  Check the
+Distutils documentation if you need more information about this.
 
 The second installation script installs the Emacs Lisp part only.  It's
 a lot of fuzz for little: if you are able to copy :file:`pymacs.el`
-somewhere Emacs will find it, that's very sufficient, and forget this
-second script.  Merely ``cd`` into the Pymacs distribution, then run
-``python setup -ie``.  This will invite you to interactively confirm
-which Lisp installation directory, *if* the script discovers more
-than one reasonable possibility for it.  Without ``-ie``, the Lisp
+somewhere Emacs will find it, that's more than enough, just forget this
+second script.  Otherwise, merely ``cd`` into the Pymacs distribution,
+then run ``python setup -ie``.  This will invite you to interactively
+confirm which Lisp installation directory, *if* the script discovers
+more than one reasonable possibility for it.  Without ``-ie``, the Lisp
 part of Pymacs will be installed in some automatically guessed place.
 Use ``-n`` to known about the guess without proceeding to the actual
 installation. ``./setup -E xemacs ...`` may be useful to XEmacs lovers.
 See ``./setup -H`` for all options.
 
 To check that :file:`pymacs.el` is properly installed, start Emacs
-and give it the command ``M-x load-library RET pymacs``: you should
+and give it the command ``M-x load-library RET pymacs RET``: you should
 not receive any error.  To check that :file:`pymacs.py` is properly
 installed, start an interactive Python session and type ``from Pymacs
 import lisp``: you should not receive any error.
 
 Some previous Pymacs releases installed examples automatically,
 but this is not done anymore.  You may browse the contents of the
-:file:`contrib/` directory to see what's available.
+:file:`contrib/` directory to learn about available examples.
 
 Prepare your :file:`.emacs` file
 --------------------------------
@@ -157,28 +156,28 @@ directory.  If the file :file:`~/.emacs` does not exist, merely create
 it with the above lines.  You are now all set to use Pymacs.
 
 To check this, start a fresh Emacs session, and type ``M-x
-pymacs-eval``.  Emacs should prompt you for a Python expression.
-Try \`\ ``2L**111``\` (type the internal back quotes, but
-not the external quotes).  The mini buffer should display
-`"2596148429267413814265248164610048L"`. ``M-x pymacs-load`` should
-prompt you for a Python module name.  Reply ``os``.  After Emacs prompts
-you for a prefix, merely hit Enter to accept the default prefix.  This
-should have the effect of importing the Python :code:`os` module within
-Emacs.  Typing ``M-: (os-getcwd)`` should echo the current directory
-in the message buffer, as returned by the :code:`os.getcwd` Python
-function.
+pymacs-eval RET``.  Emacs should prompt you for a Python expression.
+Try ``repr(2L**111) RET``.  The mini buffer should display
+`"2596148429267413814265248164610048L"`. ``M-x pymacs-load RET`` should
+prompt you for a Python module name.  Reply ``os RET``.  After Emacs
+prompts you for a prefix, merely hit Enter to accept the default prefix.
+This should have the effect of importing the Python :code:`os` module
+within Emacs.  Typing ``M-: (os-getcwd) RET`` should echo the current
+directory in the message buffer, as returned by the :code:`os.getcwd`
+Python function.
 
 Porting and caveats
 -------------------
 
 Pymacs has been developed on Linux, Python 1.5.2, and Emacs (20 and 21).
 It is expected to work out of the box on most other Unices, newer Python
-and Emacs releases, and also with XEmacs.  However, from Pymacs 0.23
-and upwards, Python 2.2 or better is likely needed.  I now use Python
-2.5 and Emacs 22, so I rely on testers or users for portability issues
-within the Pymacs proper.  Yet for the validation suite (and only it), I
-do know it would not run on Python versions earlier than 2.4, and I'll
-leave it that way unless someone contribute the back porting.
+and Emacs releases, and also with XEmacs.  However, from Pymacs 0.23 and
+upwards, Python 2.2 or better is likely needed.  I now use Python 2.5
+and Emacs 22, so I rely on testers or users for portability issues for
+older Python and Emacs versions.  This applies for the Pymacs proper,
+the validation suite is different.  For the validation suite (and only
+it) Python 2.4 or better is needed, and I'll leave it that way unless
+someone contributes the back porting.
 
 Some later versions of Emacs 20 silently ignore the request for creating
 weak hash tables, they create an ordinary table instead.  Older Emacses
@@ -189,8 +188,8 @@ the Python side once Emacs is finished with them.  It should not be a
 practical problem in most simple cases.
 
 Syver Enstad reports that Pymacs could be made to work on Windows-2000
-(win2k), he suspects it should equally work with NT and XP.  However,
-little shell stunts may be required, I hope to later document them here.
+(win2k), he suspects it should equally work with NT and XP.  The little
+shell stunts which were once needed should not be anymore.
 
 Jiva DeVoe reports that Pymacs seems to work fine on Mac OSX.
 
@@ -271,15 +270,15 @@ strings, except Unicode, are always converted into Emacs Lisp strings.
 
 Emacs Lisp symbols yield the special ``lisp.SYMBOL`` or ``lisp[STRING]``
 notations on the Python side.  The first notation is used when the Emacs
-Lisp symbol starts with a letter, and contains only letters, digits
-and hyphens, in which case Emacs Lisp hyphens get replaced by Python
-underscores.  This convention is welcome, as Emacs Lisp programmers
-commonly prefer using dashes, where Python programmers use underlines.
-Otherwise, the second notation is used.  Conversely, ``lisp.SYMBOL`` on
-the Python side yields an Emacs Lisp symbol with underscores replaced
-with hyphens, while ``lisp[STRING]`` corresponds to an Emacs Lisp symbol
-printed with that :var:`STRING` which, of course, should then be a valid
-Emacs Lisp symbol name.
+Lisp symbol, while not naming a Python keyword, starts with a letter,
+and contains only letters, digits and hyphens, in which case Emacs Lisp
+hyphens get replaced by Python underscores.  This convention is welcome,
+as Emacs Lisp programmers commonly prefer using dashes, where Python
+programmers use underlines.  Otherwise, the second notation is used.
+Conversely, ``lisp.SYMBOL`` on the Python side yields an Emacs Lisp
+symbol with underscores replaced with hyphens.  As for ``lisp[STRING]``,
+it corresponds to an Emacs Lisp symbol printed with that :var:`STRING`
+which, of course, should then be a valid Emacs Lisp symbol name.
 
 Sequences
 ---------

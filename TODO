@@ -50,3 +50,4 @@
 .  , Highlight
 . : Python shell link to helper
 . : Python traceback on Lisp generated errors
+. : Have tests/pytest use cProfile if available
