@@ -54,21 +54,16 @@ The program arguments are additional search paths for Python modules.
 # name space, but it has the advantage of making the remainder of the code
 # a bit easier to write and read.  Not a big deal! :-)
 
-ProtocolError = 'ProtocolError'
-ReplyException = 'ReplyException'
-ErrorException = 'ErrorException'
+old_style_exception = not isinstance(Exception, type)
 
-# FIXME: The following should work, but does not:
-#
-# * pymacs.py (Protocol): Declare exceptions as classes, not strings.
-#
-#class ProtocolError(Exception): pass
-#class ReplyException(Exception): pass
-#class ErrorException(Exception): pass
-#
-# I get:
-#    (pymacs-eval "lisp('\"abc\"').__class__.__name__")
-#    "ReplyException"
+if old_style_exception:
+    ProtocolError = 'ProtocolError'
+    ReplyException = 'ReplyException'
+    ErrorException = 'ErrorException'
+else:
+    class ProtocolError(Exception): pass
+    class ReplyException(Exception): pass
+    class ErrorException(Exception): pass
 
 class Protocol:
 
@@ -97,21 +92,15 @@ class Protocol:
                 else:
                     action = 'pymacs-reply'
                     argument = eval(text)
-            except ReplyException, value:
-                return value
-            except ErrorException, message:
+            except ReplyException, exception:
+                if old_style_exception:
+                    return exception
+                return exception.args[0]
+            except ErrorException, exception:
                 action = 'pymacs-error'
-                argument = message
-            #except ErrorException, message:
-            #    import StringIO, traceback
-            #    if message and message[-1] != '\n':
-            #        message = message + '\n'
-            #    buffer = StringIO.StringIO(message)
-            #    traceback.print_exc(file=buffer)
-            #    action = 'pymacs-error'
-            #    argument = buffer.getvalue()
-            except ProtocolError, message:
-                sys.stderr.write("Protocol error: %s\n" % message)
+                argument = str(exception)
+            except ProtocolError, exception:
+                sys.stderr.write("Protocol error: %s\n" % exception)
                 sys.exit(1)
             except KeyboardInterrupt:
                 raise
@@ -142,6 +131,8 @@ class Protocol:
         # Receive a Python expression from Emacs, return its text unevaluated.
         text = sys.stdin.read(3)
         if not text or text[0] != '>':
+            if old_style_exception:
+                raise ProtocolError, "`>' expected."
             raise ProtocolError("`>' expected.")
         while text[-1] != '\t':
             text = text + sys.stdin.read(1)
@@ -158,12 +149,16 @@ class Protocol:
 def reply(value):
     # This function implements the `reply' pseudo-function.  It is only
     # used from within `pymacs-serve-until-reply' on the Emacs side.
+    if old_style_exception:
+        raise ReplyException, value
     raise ReplyException(value)
 
 def error(message):
     # This function implements the `error' pseudo-function.  It is merely
     # used from within `pymacs-serve-until-reply' on the Emacs side.
     # It is also used by the catch-all `zombie' function, below.
+    if old_style_exception:
+        raise ErrorException, "Emacs: %s" % message
     raise ErrorException("Emacs: %s" % message)
 
 def pymacs_load_helper(file_without_extension, prefix):
@@ -463,6 +458,8 @@ class List(Lisp):
     def __getitem__(self, key):
         value = lisp('(nth %d %s)' % (key, self))
         if value is None and key >= len(self):
+            if old_style_exception:
+                raise IndexError, key
             raise IndexError(key)
         return value
 
@@ -522,11 +519,15 @@ class Lisp_Interface:
 
     def __getattr__(self, name):
         if name[0] == '_':
+            if old_style_exception:
+                raise AttributeError, name
             raise AttributeError(name)
         return self[name.replace('_', '-')]
 
     def __setattr__(self, name, value):
         if name[0] == '_':
+            if old_style_exception:
+                raise AttributeError, name
             raise AttributeError(name)
         self[name.replace('_', '-')] = value
 

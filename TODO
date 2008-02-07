@@ -10,7 +10,6 @@
 
 .. Internal problems
 
-. : Exception auto-configuration
 . : User interrupts on the Emacs side
 . : Usability of Emacs hooks
 . : Remaining rpymacs solutions
