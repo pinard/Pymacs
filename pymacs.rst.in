@@ -44,23 +44,9 @@ contains the documentation sources, as well as PostScript and PDF
 renderings.  The canonical Pymacs distribution is available as
 http://www.iro.umontreal.ca/~pinard/pymacs/Pymacs.tar.gz .
 
-Warning to Pymacs users
------------------------
-
-I expect average Pymacs users to have a deeper knowledge of Python than
-Emacs Lisp.  Some examples at the end of this file are meant for Python
-users having a limited experience with the Emacs API.  Currently, there
-are three examples: small, medium and large (like pizzas).  As there is
-no dedicated mailing list nor discussion group for Pymacs, let's use
-mailto:python-list@python.org for asking questions or discussing Pymacs
-related matters.
-
-This is beta-status software: specifications are slightly
-frozen, yet changes may still happen that would require small
-adaptations in your code.  Report problems to François Pinard at
-mailto:pinard@iro.umontreal.ca . For discussing specifications or making
-suggestions, please also copy the mailto:python-list@python.org mailing
-list, to help brain-storming! :-)
+Beware that this is beta-status software: while specifications are a bit
+frozen, changes may still happen that would require small adaptations in
+your code.
 
 Pymacs sites and archives
 -------------------------
@@ -86,16 +72,40 @@ There is also `revised pymacs`, part of the Ropemacs project:
 
   + http://rope.sourceforge.net/ropemacs.html
 
+Questions, problems, suggestions
+--------------------------------
+
+I expect average Pymacs users to have a deeper knowledge of Python than
+Emacs Lisp.  Some examples, later in this manual, are meant for Python
+users having a limited experience with the Emacs API.  Examples, like
+pizzas, come in three varieties: small, medium and large (one of each!).
+
+Report problems, documentation flaws, or suggestions to François Pinard
+at mailto:pinard@iro.umontreal.ca; or if you so prefer, you're welcome
+to the mailto:pymacs-devel@googlegroups.com mailing list where there are
+a few more people around likely to give you feedback.  If you have no
+fear of wider crowds, there still is mailto:python-list@python.org :-).
+
 Installation
 ============
 
 Install the Pymacs proper
 -------------------------
 
-Currently, there are two installation scripts, and both should be run.
-If you prefer, you may use ``make install lispdir=LISPDIR``, where
-:var:`LISPDIR` is some directory along the list kept in your Emacs
-:code:`load-path`.
+Pymacs is a very small package.  If we put the documentation aside,
+there is one Emacs Lisp file and one Python file.
+
+The simplest way (as of now!) to install is through the command::
+
+  make install lispdir=LISPDIR
+
+where :var:`LISPDIR` is some directory along the list kept in your Emacs
+:code:`load-path`.  This internally does some substitutions to propagate
+the version information, and runs two installation scripts.
+
+If you want to do it all by hand, change ``@VER``\ ``SION@`` strings in
+the sources in some consistent way, and run the installation scripts *by
+hand*.
 
 The first installation script installs the Python package, including the
 Pymacs examples, using the Python standard Distutils tool.  Merely
@@ -104,16 +114,17 @@ setup.py install``.  To get an option reminder, do ``python setup.py
 install --help``.  Check the Distutils documentation if you need more
 information about this.
 
-The second installation script installs the Emacs Lisp part only.  (It
-used to do everything, but is now doomed to disappear completely.)
-Merely ``cd`` into the Pymacs distribution, then run ``python setup
--ie``.  This will invite you to interactively confirm which Lisp
-installation directory, *if* the script discovers more than one
-reasonable possibility for it.  Without ``-ie``, the Lisp part of Pymacs
-will be installed in some automatically guessed place.  Use ``-n`` to
-known about the guess without proceeding to the actual installation.
-``./setup -E xemacs ...`` may be useful to XEmacs lovers.  See ``./setup
--H`` for all options.
+The second installation script installs the Emacs Lisp part only.  It's
+a lot of fuzz for little: if you are able to copy :file:`pymacs.el`
+somewhere Emacs will find it, that's very sufficient, and forget this
+second script.  Merely ``cd`` into the Pymacs distribution, then run
+``python setup -ie``.  This will invite you to interactively confirm
+which Lisp installation directory, *if* the script discovers more
+than one reasonable possibility for it.  Without ``-ie``, the Lisp
+part of Pymacs will be installed in some automatically guessed place.
+Use ``-n`` to known about the guess without proceeding to the actual
+installation. ``./setup -E xemacs ...`` may be useful to XEmacs lovers.
+See ``./setup -H`` for all options.
 
 To check that :file:`pymacs.el` is properly installed, start Emacs
 and give it the command ``M-x load-library RET pymacs``: you should
@@ -121,11 +132,9 @@ not receive any error.  To check that :file:`pymacs.py` is properly
 installed, start an interactive Python session and type ``from Pymacs
 import lisp``: you should not receive any error.
 
-Currently, there is only one installed Pymacs example, which comes in
-two parts: a batch script :file:`rebox` and a :code:`Pymacs.rebox`
-module.  To check that both are properly installed, type ``rebox
-</dev/null`` in a shell; you should not receive any output nor see any
-error.
+Some previous Pymacs releases installed examples automatically,
+but this is not done anymore.  You may browse the contents of the
+:file:`contrib/` directory to see what's available.
 
 Prepare your :file:`.emacs` file
 --------------------------------
@@ -241,8 +250,8 @@ Emacs Lisp :code:`nil` and the equivalent Emacs Lisp ``()`` yield Python
 :code:`None`.  Python :code:`None`, Python :code:`False` and the Python
 empty list ``[]`` are returned as :code:`nil` in Emacs Lisp.  Notice
 the assymetry, in that three different Python objects are mapped into
-a single Emacs Lisp object.  Consequently, automatic conversions from
-Emacs Lisp to Python will not produce :code:`False` or ``[]``.
+a single Emacs Lisp object.  So, neither :code:`False` nor ``[]`` are
+likely produced by automatic conversions from Emacs Lisp to Python.
 
 Emacs Lisp :code:`t` yields Python :code:`True`.  Python :code:`True` is
 returned as :code:`t` in Emacs Lisp.
@@ -1220,6 +1229,12 @@ not essential.
 
 The :code:`rebox` tool
 ----------------------
+
+This example tool comes in two parts: a batch script :file:`rebox` and a
+:code:`Pymacs.rebox` module.  Go to the :file:`contrib/rebox/` directory
+of the distribution and use ``python setup.py install`` there.  To check
+that both are properly installed, type ``rebox </dev/null`` in a shell;
+you should not receive any output nor see any error.
 
 The problem
 ,,,,,,,,,,,,
