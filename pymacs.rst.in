@@ -268,17 +268,16 @@ these are not reflected.  This may be changed by setting the
 :code:`nil`, Emacs Lisp strings are then transmitted opaquely.  Python
 strings, except Unicode, are always converted into Emacs Lisp strings.
 
-Emacs Lisp symbols yield the special ``lisp.SYMBOL`` or ``lisp[STRING]``
-notations on the Python side.  The first notation is used when the Emacs
-Lisp symbol, while not naming a Python keyword, starts with a letter,
-and contains only letters, digits and hyphens, in which case Emacs Lisp
-hyphens get replaced by Python underscores.  This convention is welcome,
-as Emacs Lisp programmers commonly prefer using dashes, where Python
-programmers use underlines.  Otherwise, the second notation is used.
-Conversely, ``lisp.SYMBOL`` on the Python side yields an Emacs Lisp
-symbol with underscores replaced with hyphens.  As for ``lisp[STRING]``,
-it corresponds to an Emacs Lisp symbol printed with that :var:`STRING`
-which, of course, should then be a valid Emacs Lisp symbol name.
+Emacs Lisp symbols yield ``lisp[STRING]`` notations on the Python
+side, where :var:`STRING` names the symbol.  In the other direction,
+Python ``lisp[STRING]`` corresponds to an Emacs Lisp symbol printed
+with that :var:`STRING` which, of course, should then be a valid Emacs
+Lisp symbol name.  As a convenience, ``lisp.SYMBOL`` on the Python side
+yields an Emacs Lisp symbol with underscores replaced with hyphens;
+this convention is welcome, as Emacs Lisp programmers commonly prefer
+using dashes, where Python programmers use underlines.  Of course, this
+``lisp.SYMBOL`` notation is only usable when the :var:`SYMBOL` is a
+valid Python identifier, while not being a Python keyword.
 
 Sequences
 ---------

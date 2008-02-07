@@ -1,8 +1,8 @@
 2008-02-06  François Pinard  <pinard@iro.umontreal.ca>
 
-	* : Generate lisp["KEYWORD"] instead of lisp.KEYWORD for any
-	Python keyword.
-	Reported by Lukasz Pankowski.
+	* : Generate lisp["SYMBOL"] always, never lisp.SYMBOL.
+	This solves the case when SYMBOL is a Python keyword.
+	Reported by Ali Gholami Rudi and Lukasz Pankowski.
 
 	* : pymacs-defun always need a second argument.
 	Reported by Marco Gidde, Nirmal J. Patel, Sebastian Waschik,
