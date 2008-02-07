@@ -67,8 +67,8 @@ class Emacs(Launch):
     def send(self, text):
         if self.popen is None:
             file('_reply', 'w')
-            command = ('emacs', '-batch', '-q', '--no-init',
-                       '-L', '..', '-l', 'setup.el')
+            emacs = os.environ.get('PYMACS_EMACS', 'emacs')
+            command = emacs, '-batch', '-q', '-l', 'setup.el'
             import subprocess
             self.popen = subprocess.Popen(command)
         self.popen.poll()

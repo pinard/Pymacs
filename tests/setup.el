@@ -1,5 +1,6 @@
 ; Emacs side of the testing protocol.
 
+(push ".." load-path)
 (load "pymacs.el" nil t)
 
 (let ((buffer (get-buffer-create "*Tests*")))
@@ -15,4 +16,4 @@
       (delete-region (point-min) (point-max))
       (delete-file "_request")
       (while (file-exists-p "_reply")
-        (sleep-for 0 10)))))
+        (sleep-for .01)))))

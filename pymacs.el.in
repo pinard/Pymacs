@@ -231,7 +231,7 @@ equivalents, other structures are converted into Lisp handles."
   "Timer to trigger Pymacs garbage collection at regular time intervals.
 The timer is used only if `post-gc-hook' is not available.")
 
-(defun pymacs-schedule-gc ()
+(defun pymacs-schedule-gc (&optional xemacs-list)
   (unless pymacs-gc-running
     (setq pymacs-gc-wanted t)))
 
