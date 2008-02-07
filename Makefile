@@ -11,7 +11,7 @@ lispdir =
 #
 ### End of customisation.
 
-VERSION = 0.23-beta4
+VERSION = 0.23-beta5
 PYSETUP = python setup.py
 
 all: pymacs.el Pymacs/__init__.py
