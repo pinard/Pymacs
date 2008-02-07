@@ -1357,12 +1357,14 @@ began to see that something like Pymacs was possible, I felt strongly
 motivated! :-)
 
 Pymacs draws on previous work of Cedric Adjih that enabled
-the running of Python as a process separate from Emacs.  See
-http://www.crepuscule.com/pyemacs/, or write Cedric at
+the running of Python as a process separate from Emacs.
+See http://www.crepuscule.com/pyemacs/, or write Cedric at
 mailto:adjih-pam@crepuscule.com.  Cedric presented :code:`pyemacs` to me
 as a proof of concept.  As I simplified that concept a bit, I dropped
 the ``e`` in ``pyemacs`` :-). Cedric also previously wrote patches for
-linking Python right into XEmacs, but abandoned the idea.
+linking Python right into XEmacs, but abandoned the idea, as he found
+out that his patches were unmaintainable over the evolution of both
+Python and XEmacs.
 
 As Brian McErlean independently and simultaneously wrote a tool
 similar to this one, we decided to merge our projects.  In an amusing

@@ -4,9 +4,7 @@
 
 . : Work around multi-byte and Unicode
 . : DOS line endings problem
-. : pystring-join problem
 . : XEmacs problems (like pop-excursion) and support
-. : Microsoft difficulties and support
 
 .. Internal problems
 
