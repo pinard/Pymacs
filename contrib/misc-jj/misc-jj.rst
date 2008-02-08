@@ -1,3 +1,18 @@
+.. role:: file(literal)
+
+=======================
+Giorgi Giovanni's files
+=======================
+
+.. contents::
+.. sectnum::
+
+The :file:`contrib/misc-jj/` subdirectory of the Pymacs distribution
+contains miscellaneous files contributed by Giovanni Giorgi, to be
+sorted, documented, maybe deleted, at least pondered in one way or
+another.  The remainder of this page comes from Giorgi's writing,
+waiting for Giorgi to revise its contents.
+
 Introduction
 ============
 
@@ -22,7 +37,7 @@ Improved documentation and examples
 
 In Pymacs 2.0 has been added a medium sized example.
 
-The documentation offers a "Troubleshooting" section, to solve most
+The documentation offers a `Troubleshooting`_ section, to solve most
 common issue, also for helping newbie emacs user.
 
 Improved API
@@ -129,13 +144,14 @@ Useful Extension
 Enanched Python Mode
 --------------------
 
-Under the extensions folder you find a modified version of python-mode.
+Under the extensions folder you find a modified version of python-mode,
+provided as file :file:`python-mode.diffs`.  These diffs are relative to
+:file:`python-mode-1.0.tar.gz` as found at:
 
-Python mode 1.0 is located at:
-http://sourceforge.net/projects/python-mode/
+  http://sourceforge.net/projects/python-mode/
 
-Last released version is dated at the end of 2005, so it seems to
-me quite frozen.  For an usage example execute the Emacs Lisp function
+Last released version is dated at the end of 2005, so it seems to me
+quite frozen.  For an usage example execute the Emacs Lisp function
 "pycomplete-test"
 
 Emacs Server as XMLRPC

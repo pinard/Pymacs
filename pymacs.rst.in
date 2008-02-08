@@ -1060,35 +1060,14 @@ as far as Pymacs is concerned.
     should be programming-wise familiarity with what is a buffer, a point,
     a mark, etc. and what are the allowed operations on those.
 
-Projects using Pymacs
----------------------
-
-One good approach to learning comes from the contemplation and study of
-others' nice works.  A few projects using Pymacs have been brought to my
-attention:
-
-  + :code:`pymdev` -- A Python Emacs Development Module:
-
-    + http://www.toolness.com/pymdev/
-
-  + Ropemacs -- Features like refactoring and code-assists:
-
-    + http://rope.sf.net/
-    + http://rope.sf.net/hg/rpymacs
-
-  + Bicycle Repair Man -- A Refactoring Tool for Python:
-
-    + http://bicyclerepair.sourceforge.net/
-
-  + Emacs Freex -- A personal wiki on steroids:
-
-    + http://www.princeton.edu/%7Egdetre/software/freex/docs/index.html
-
-Paul Winkler's example
-----------------------
+A simple example
+----------------
 
 The problem
 ,,,,,,,,,,,
+
+This problem has been submitted by Paul Winkler, and the text below has
+been reformatted from our email exchanges.
 
 Let's say I have a module, call it :file:`manglers.py`, containing this
 simple python function::
@@ -1150,193 +1129,48 @@ On the Emacs side, one would do::
   (pymacs-load "manglers")
   (global-set-key [f7] 'manglers-break-on-whitespace)
 
-Yet another Gnus back end
--------------------------
+Examples in :file:`contrib/`
+----------------------------
 
-  **Note.**  This example is not fully documented yet.  As it stands, it
-  is merely a collection of random remarks from other sources.
+A few examples are collected within the :file:`contrib/` directory
+within the Pymacs distribution.  Each set should have its own
+documentation file:
 
-The problem
-,,,,,,,,,,,
+  + Giorgi Giovanni's miscellaneous files
 
-I've been reading, saving and otherwise handling electronic mail
-from within Emacs for a lot of years, even before Gnus existed.  The
-preferred Emacs archiving disk format for email is Babyl storage, and
-the special :code:`Rmail` mode in Emacs handles Babyl files.  With
-years passing, I got dozens, then hundreds, then thousands of such
-Babyl files, each of which holds from as little as only one to maybe
-a few hundreds individual messages.  I tried to tailor :code:`Rmail`
-mode in various ways to MIME, foreign character sets, and many other
-nitty-gritty habits.  One of these habits was to progressively eradicate
-paragraphs in messages I was visiting many times, as users were often
-using a single message to report many problems or suggestions all at
-once, while I was often addressing issues one at a time.
+    + http://pymacs.progiciels-bpi.ca/misc-jj.html
 
-When I took maintenance of some popular packages, like GNU :code:`tar`,
-my volume of daily email raised drastically, and I choose Gnus as a way
-to sustain the heavy load.  I thought about converting all my Babyl
-files to :code:`nnml` format, but this would mean loosing many tools
-I wrote for Babyl files, consuming a lot of i-nodes, and also much
-polluting my :code:`*Group*` buffer.  I rather chose to select and
-read Babyl files as ephemeral mail groups (and for doing so, developed
-Emacs user machinery so selection could be done very efficiently).
-Gnus surely gave me for free nice MIME and cryptographic features,
-and a flurry of handsome and useful commands, compared to previous
-:code:`Rmail` mode.  On the other hand, Gnus did not allow me to modify
-individual messages in Babyl files, so for a good while, I had to give
-up on some special handling, like eradicating paragraphs as I used to
-do.
+  + Another Gnus backend
 
-This pushed me into writing my own Gnus back end for Babyl files: making
-sure I correctly implement the article editing and modification support
-of the back end API.  I chose Python to do so because I already had
-various Python tools for handling Babyl files, because I wanted to
-connect other Python scripts to the common mechanics, and of course
-because Pymacs was making this project feasible.  Nowadays, Babyl file
-support does not go very far beyond Emacs itself, while many non-Emacs
-tools for handling Unix mailbox folders are available.  Spam fighting
-concerns brought me to revisit the idea of massively transforming all
-my Babyl files to Unix mailbox format, and I discovered that it would
-be a breeze to do, if I only adapted the Python back end to handle Unix
-mailbox files as well as Babyl, transparently.
+    + http://pymacs.progiciels-bpi.ca/nn.html
 
-Python side
-,,,,,,,,,,,
+  + A reformatter for boxed comments
 
-I started by taking the Info nodes of the Gnus manual which were
-describing the back end interface, and turning them all into a long
-Python comment.  I then split that comment into one dummy function per
-back end interface function, meant to write some debugging information
-when called, and then return failure to Gnus.  This was enough to
-explore what functions were needed, and in which circumstances.  I then
-implemented enough of them so ephemeral Babyl groups work, while solid
-groups might require more such functions.  The unimplemented functions
-are still sitting in the module, with their included comments and
-debugging code.
+    + http://pymacs.progiciels-bpi.ca/rebox.html
 
-Emacs side
-,,,,,,,,,,
+Projects using Pymacs
+---------------------
 
-One difficulty is ensuring that :code:`Nn` contents
-(:file:`nncourrier.py` and :file:`folder.py`) have to be on the Python
-or Pymacs search path.  The :file:`__init__.py` and package nature are
-not essential.
+One good approach to learning comes from the contemplation and study of
+others' nice works.  A few projects using Pymacs have been brought to my
+attention:
 
-The :code:`rebox` tool
-----------------------
+  + :code:`pymdev` -- A Python Emacs Development Module:
 
-This example tool comes in two parts: a batch script :file:`rebox` and a
-:code:`Pymacs.rebox` module.  Go to the :file:`contrib/rebox/` directory
-of the distribution and use ``python setup.py install`` there.  To check
-that both are properly installed, type ``rebox </dev/null`` in a shell;
-you should not receive any output nor see any error.
+    + http://www.toolness.com/pymdev/
 
-The problem
-,,,,,,,,,,,,
+  + Ropemacs -- Features like refactoring and code-assists:
 
-For comments held within boxes, it is painful to fill paragraphs, while
-stretching or shrinking the surrounding box *by hand*, as needed.
-This piece of Python code eases my life on this.  It may be used
-interactively from within Emacs through the Pymacs interface, or in
-batch as a script which filters a single region to be reformatted.
+    + http://rope.sf.net/
+    + http://rope.sf.net/hg/rpymacs
 
-In batch, the reconstruction of boxes is driven by command options and
-arguments and expects a complete, self-contained boxed comment from
-a file.  Emacs function :code:`rebox-region` also presumes that the
-region encloses a single boxed comment.  Emacs :code:`rebox-comment` is
-different, as it has to chase itself the extent of the surrounding boxed
-comment.
+  + Bicycle Repair Man -- A Refactoring Tool for Python:
 
-Python side
-,,,,,,,,,,,
+    + http://bicyclerepair.sourceforge.net/
 
-The Python code is too big to be inserted in this documentation:
-see file :file:`Pymacs/rebox.py` in the Pymacs distribution.  You
-will observe in the code that Pymacs specific features are used
-exclusively from within the :code:`pymacs_load_hook` function and the
-:code:`Emacs_Rebox` class.  In batch mode, :code:`Pymacs` is not even
-imported.  Here, we mean to discuss some of the design choices in the
-context of Pymacs.
+  + Emacs Freex -- A personal wiki on steroids:
 
-In batch mode, as well as with :code:`rebox-region`, the text to
-handle is turned over to Python, and fully processed in Python, with
-practically no Pymacs interaction while the work gets done.  On the
-other hand, :code:`rebox-comment` is rather Pymacs intensive: the
-comment boundaries are chased right from the Emacs buffer, as directed
-by the function :code:`Emacs_Rebox.find_comment`.  Once the boundaries
-are found, the remainder of the work is essentially done on the Python
-side.
-
-Once the boxed comment has been reformatted in Python, the
-old comment is removed in a single delete operation, the new
-comment is inserted in a second operation, this occurs in
-:code:`Emacs_Rebox.process_emacs_region`.  But by doing so, if point
-was within the boxed comment before the reformatting, its precise
-position is lost.  To well preserve point, Python might have driven all
-reformatting details directly in the Emacs buffer.  We really preferred
-doing it all on the Python side: as we gain legibility by expressing the
-algorithms in pure Python, the same Python code may be used in batch or
-interactively, and we avoid the slowdown that would result from heavy
-use of Emacs services.
-
-To avoid completely loosing point, I kludged a :code:`Marker` class,
-which goal is to estimate the new value of point from the old.
-Reformatting may change the amount of white space, and either delete or
-insert an arbitrary number characters meant to draw the box.  The idea
-is to initially count the number of characters between the beginning
-of the region and point, while ignoring any problematic character.
-Once the comment has been put back in a box, point is advanced from
-the beginning of the region until we get the same count of characters,
-skipping all problematic characters.  This :code:`Marker` class works
-fully on the Python side, it does not involve Pymacs at all, but it does
-solve a problem that resulted from my choice of keeping the data on the
-Python side instead of handling it directly in the Emacs buffer.
-
-We want a comment reformatting to appear as a single operation, in the
-context of Emacs Undo.  The method :code:`Emacs_Rebox.clean_undo_after`
-handles the general case for this.  Not that we do so much in
-practice: a reformatting implies one :code:`delete-region` and
-one :code:`insert`, and maybe some other little adjustments at
-:code:`Emacs_Rebox.find_comment` time.  Even if this method scans and
-modifies an Emacs Lisp list directly in the Emacs memory, the code doing
-this stays neat and legible.  However, I found out that the undo list
-may grow quickly when the Emacs buffer use markers, with the consequence
-of making this routine so Pymacs intensive that most of the CPU is spent
-there.  I rewrote that routine in Emacs Lisp so it executes in a single
-Pymacs interaction.
-
-Function :code:`Emacs_Rebox.remainder_of_line` could have been
-written in Python, but it was probably not worth going away from this
-one-liner in Emacs Lisp.  Also, given this routine is often called by
-:code:`find_comment`, a few Pymacs protocol interactions are spared this
-way.  This function is useful when there is a need to apply a regular
-expression already compiled on the Python side, it is probably better
-fetching the line from Emacs and do the pattern match on the Python
-side, than transmitting the source of the regular expression to Emacs
-for it to compile and apply it.
-
-For refilling, I could have either used the refill algorithm built
-within in Emacs, programmed a new one in Python, or relied on Ross
-Paterson's :code:`fmt`, distributed by GNU and available on most
-Linuxes.  In fact, :code:`refill_lines` prefers the latter.  My own
-Emacs setup is such that the built-in refill algorithm is *already*
-overridden by GNU :code:`fmt`, and it really does a much better job.
-Experience taught me that calling an external program is fast enough
-to be very bearable, even interactively.  If Python called Emacs to
-do the refilling, Emacs would itself call GNU :code:`fmt` in my case,
-I preferred that Python calls GNU :code:`fmt` directly.  I could have
-reprogrammed GNU :code:`fmt` in Python.  Despite interesting, this is an
-uneasy project: :code:`fmt` implements the Knuth refilling algorithm,
-which depends on dynamic programming techniques; Ross did carefully fine
-tune them, and took care of many details.  If GNU :code:`fmt` fails,
-for not being available, say, :code:`refill_lines` falls back on a dumb
-refilling algorithm, which is better than none.
-
-Emacs side
-,,,,,,,,,,
-
-The Emacs recipe appears under the ``Emacs usage`` section, near the
-beginning of :file:`Pymacs/rebox.py`, so I do not repeat it here.
+    + http://www.princeton.edu/%7Egdetre/software/freex/docs/index.html
 
 About and around Pymacs
 =======================

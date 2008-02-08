@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 # Copyright © 1991-1998, 2000, 2002, 2003 Progiciels Bourbeau-Pinard inc.
-# François Pinard <pinard@iro.umontreal.ca>, April 1991.
+# François Pinard <pinard@iro.umontreal.ca>, 1991-04.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,202 +20,16 @@
 """\
 Handling of boxed comments in various box styles.
 
-Introduction
-------------
+The user documentation for this tool may be found at:
 
-For comments held within boxes, it is painful to fill paragraphs, while
-stretching or shrinking the surrounding box "by hand", as needed.  This piece
-of Python code eases my life on this.  It may be used interactively from
-within Emacs through the Pymacs interface, or in batch as a script which
-filters a single region to be reformatted.  I find only fair, while giving
-all sources for a package using such boxed comments, to also give the
-means I use for nicely modifying comments.  So here they are!
-
-Box styles
-----------
-
-Each supported box style has a number associated with it.  This number is
-arbitrary, yet by _convention_, it holds three non-zero digits such the the
-hundreds digit roughly represents the programming language, the tens digit
-roughly represents a box quality (or weight) and the units digit roughly
-a box type (or figure).  An unboxed comment is merely one of box styles.
-Language, quality and type are collectively referred to as style attributes.
-
-When rebuilding a boxed comment, attributes are selected independently
-of each other.  They may be specified by the digits of the value given
-as Emacs commands argument prefix, or as the `-s' argument to the `rebox'
-script when called from the shell.  If there is no such prefix, or if the
-corresponding digit is zero, the attribute is taken from the value of the
-default style instead.  If the corresponding digit of the default style
-is also zero, than the attribute is recognised and taken from the actual
-boxed comment, as it existed before prior to the command.  The value 1,
-which is the simplest attribute, is ultimately taken if the parsing fails.
-
-A programming language is associated with comment delimiters.  Values are
-100 for none or unknown, 200 for `/*' and `*/' as in plain C, 300 for `//'
-as in C++, 400 for `#' as in most scripting languages, 500 for `;' as in
-Lisp or assembler and 600 for `%' as in TeX or PostScript.
-
-Box quality differs according to language. For unknown languages (100) or
-for the C language (200), values are 10 for simple, 20 for rounded, and
-30 or 40 for starred.  Simple quality boxes (10) use comment delimiters
-to left and right of each comment line, and also for the top or bottom
-line when applicable. Rounded quality boxes (20) try to suggest rounded
-corners in boxes.  Starred quality boxes (40) mostly use a left margin of
-asterisks or X'es, and use them also in box surroundings.  For all others
-languages, box quality indicates the thickness in characters of the left
-and right sides of the box: values are 10, 20, 30 or 40 for 1, 2, 3 or 4
-characters wide.  With C++, quality 10 is not useful, it is not allowed.
-
-Box type values are 1 for fully opened boxes for which boxing is done
-only for the left and right but not for top or bottom, 2 for half
-single lined boxes for which boxing is done on all sides except top,
-3 for fully single lined boxes for which boxing is done on all sides,
-4 for half double lined boxes which is like type 2 but more bold,
-or 5 for fully double lined boxes which is like type 3 but more bold.
-
-The special style 221 is for C comments between a single opening `/*'
-and a single closing `*/'.  The special style 111 deletes a box.
-
-Batch usage
------------
-
-Usage is `rebox [OPTION]... [FILE]'.  By default, FILE is reformatted to
-standard output by refilling the comment up to column 79, while preserving
-existing boxed comment style.  If FILE is not given, standard input is read.
-Options may be:
-
-  -n         Do not refill the comment inside its box, and ignore -w.
-  -s STYLE   Replace box style according to STYLE, as explained above.
-  -t         Replace initial sequence of spaces by TABs on each line.
-  -v         Echo both the old and the new box styles on standard error.
-  -w WIDTH   Try to avoid going over WIDTH columns per line.
-
-So, a single boxed comment is reformatted by invocation.  `vi' users, for
-example, would need to delimit the boxed comment first, before executing
-the `!}rebox' command (is this correct? my `vi' recollection is far away).
-
-Batch usage is also slow, as internal structures have to be reinitialised
-at every call.  Producing a box in a single style is fast, but recognising
-the previous style requires setting up for all possible styles.
-
-Emacs usage
------------
-
-For most Emacs language editing modes, refilling does not make sense
-outside comments, one may redefine the `M-q' command and link it to this
-Pymacs module.  For example, I use this in my `.emacs' file:
-
-     (add-hook 'c-mode-hook 'fp-c-mode-routine)
-     (defun fp-c-mode-routine ()
-       (local-set-key "\M-q" 'rebox-comment))
-     (autoload 'rebox-comment "rebox" nil t)
-     (autoload 'rebox-region "rebox" nil t)
-
-with a "rebox.el" file having this single line:
-
-     (pymacs-load "Pymacs.rebox")
-
-Install Pymacs from `http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz'.
-
-The Emacs function `rebox-comment' automatically discovers the extent of
-the boxed comment near the cursor, possibly refills the text, then adjusts
-the box style.  When this command is executed, the cursor should be within
-a comment, or else it should be between two comments, in which case the
-command applies to the next comment.  The function `rebox-region' does
-the same, except that it takes the current region as a boxed comment.
-Both commands obey numeric prefixes to add or remove a box, force a
-particular box style, or to prevent refilling of text.  Without such
-prefixes, the commands may deduce the current box style from the comment
-itself so the style is preserved.
-
-The default style initial value is nil or 0.  It may be preset to another
-value through calling `rebox-set-default-style' from Emacs Lisp, or changed
-to anything else though using a negative value for a prefix, in which case
-the default style is set to the absolute value of the prefix.
-
-A `C-u' prefix avoids refilling the text, but forces using the default box
-style.  `C-u -' lets the user interact to select one attribute at a time.
-
-Adding new styles
------------------
-
-Let's suppose you want to add your own boxed comment style, say:
-
-    //--------------------------------------------+
-    // This is the style mandated in our company.
-    //--------------------------------------------+
-
-You might modify `rebox.py' but then, you will have to edit it whenever you
-get a new release of `pybox.py'.  Emacs users might modify their `.emacs'
-file or their `rebox.el' bootstrap, if they use one.  In either cases,
-after the `(pymacs-load "Pymacs.rebox")' line, merely add:
-
-    (rebox-Template NNN MMM ["//-----+"
-                             "// box  "
-                             "//-----+"])
-
-If you use the `rebox' script rather than Emacs, the simplest is to make
-your own.  This is easy, as it is very small.  For example, the above
-style could be implemented by using this script instead of `rebox':
-
-    #!/usr/bin/env python
-    import sys
-    from Pymacs.Rebox import rebox
-    rebox.Template(226, 325, ('//-----+',
-                              '// box  ',
-                              '//-----+'))
-    rebox.main(*sys.argv[1:])
-
-In all cases, NNN is the style three-digit number, with no zero digit.
-Pick any free style number, you are safe with 911 and up.  MMM is the
-recognition priority, only used to disambiguate the style of a given boxed
-comments, when it matches many styles at once.  Try something like 400.
-Raise or lower that number as needed if you observe false matches.
-
-On average, the template uses three lines of equal length.  Do not worry if
-this implies a few trailing spaces, they will be cleaned up automatically
-at box generation time.  The first line or the third line may be omitted
-to create vertically opened boxes.  But the middle line may not be omitted,
-it ought to include the word `box', which will get replaced by your actual
-comment.  If the first line is shorter than the middle one, it gets merged
-at the start of the comment.  If the last line is shorter than the middle
-one, it gets merged at the end of the comment and is refilled with it.
-
-History
--------
-
-I first observed rounded corners, as in style 223 boxes, in code from
-Warren Tucker, a previous maintainer of the `shar' package, circa 1980.
-
-Except for very special files, I carefully avoided boxed comments for
-real work, as I found them much too hard to maintain.  My friend Paul
-Provost was working at Taarna, a computer graphics place, which had boxes
-as part of their coding standards.  He asked that we try something to get
-him out of his misery, and this is how `rebox.el' was originally written.
-I did not plan to use it for myself, but Paul was so enthusiastic that I
-timidly started to use boxes in my things, very little at first, but more
-and more as time passed, still in doubt that it was a good move.  Later,
-many friends spontaneously started to use this tool for real, some being very
-serious workers.  This convinced me that boxes are acceptable, after all.
-
-I do not use boxes much with Python code.  It is so legible that boxing
-is not that useful.  Vertical white space is less necessary, too.  I even
-avoid white lines within functions.  Comments appear prominent enough when
-using highlighting editors like Emacs or nice printer tools like `enscript'.
-
-After Emacs could be extended with Python, in 2001, I translated `rebox.el'
-into `rebox.py', and added the facility to use it as a batch script.
+    http://pymacs.progiciels-bpi.ca/rebox.html
 """
-
-## Note: This code is currently compatible down to Python version 1.5.2.
-## It is probably worth keeping it that way for a good while, still.
 
 ## Note: a double hash comment introduces a group of functions or methods.
 
 __metatype__ = type
 import re, sys
-
+
 ## Batch specific features.
 
 def main(*arguments):
