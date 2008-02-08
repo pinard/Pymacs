@@ -8,10 +8,10 @@
 #
 # Somewhere on your Emacs Lisp load-path.
 lispdir =
-# The name or path of your Emacs executable.
-emacs = emacs
-# The name or path of your python executable.
-python = python
+# The name or path of your Emacs executable (for "make check" only).
+emacs = $(PYMACS_EMACS)
+# The name or path of your python executable (for "make check" only).
+python = $(PYMACS_PYTHON)
 #
 ### End of customisation.
 
@@ -23,7 +23,7 @@ all: pymacs.el Pymacs/__init__.py
 
 check: pymacs.el Pymacs/__init__.py
 	@echo
-	@echo Checking Pymacs $(VERSION), using $(emacs) and $(python)
+	@echo Checking Pymacs $(VERSION)
 	@echo
 	cd tests && \
 	  PYMACS_EMACS=$(emacs) PYMACS_PYTHON=$(python) ./pytest $(TEST)

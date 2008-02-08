@@ -86,6 +86,66 @@ There is also `revised pymacs`, part of the Ropemacs project:
 Installation
 ============
 
+Select Emacs and Python
+-----------------------
+
+The environment variable ``PYMACS_PYTHON`` is usually left unset or
+empty, in which case ``python`` is implied.  It has the purpose of
+naming the Python interpreter program to be called for starting the
+Pymacs server.  It may be set to give the full path of the executable if
+the Python program exists at some location outside the program search
+path.  It may also be given when the interpreter name is different,
+for exemple when the Python version is part of the program name.
+
+The similar environment variable ``PYMACS_EMACS`` is usually left unset
+or empty, in which case ``emacs`` is implied.  It has the purpose of
+naming the Emacs editor, yet this is only meaningful for the validation
+(see next section).  For normal Pymacs usage, Emacs is launched by the
+user long before Pymacs is itself started, and consequently, there
+is absolutely no need to tell Pymacs which Emacs is needed.  For the
+validation suite however, it may be set to give the full path of the
+executable if the Emacs program exists at some location outside the
+program search path.  It may also be given when the editor name is
+different, for example when the Emacs version is part of the program
+name, or when this is a different editor (like the value ``xemacs`` to
+call XEmacs).
+
+Check if Pymacs would work
+--------------------------
+
+To know, before installing Pymacs, if it would work on your system,
+try the validation suite by running ``make check``.  The suite is
+fairly elementary, but nevertheless, it is able to detect some common
+show stoppers.  As a convenience for those who want to quickly try
+various Emacs and Python combinations, ``make check emacs=SOME_EMACS
+python=SOME_PYTHON`` temporarily overrides the environment variables
+``PYMACS_EMACS`` and ``PYMACS_PYTHON``.  For example, ``make check
+emacs=xemacs`` runs the validation suite using ``xemacs`` for an editor.
+
+The remaining of this section may be safely be skipped, for mere Pymacs
+installation.
+
+I did not base the validation suite on Junit (the Python unit testing
+framework is a re-implementation of it), but on Codespeak's pylib
+:file:`py.test`, which is much simpler, and still very powerful.  The
+:code:`pylib` project is driven by Holge Kregel, but attracted some
+Python brains, like Armin Rigo (known for Psyco, among other things --
+I think his :code:`lsprof` has also been added to Python 2.5 under the
+name :code:`cProfile`).  This gang addresses overdone/heavy methods in
+Python, and do them better.  Even :file:`py.test` is a bit more complex
+that I would want, and has (or at least had) flaws on the Unicode side,
+so I rewrote my own, as a simple single file.  I merely translated it
+from French to English, to make it more distributable within Pymacs.
+
+It has not been fruitful, trying to use Emacs stdin and stdout for
+communicating expressions to evaluate and getting back results from
+within the validation suite.  After some fight, I reluctantly put this
+avenue aside.  Currently, the suite writes problems in files, for Emacs
+to read, and Emacs writes replies in files, for the suite to check.
+Busy waiting (with small sleep added in the loops) is used on both
+sides.  This is all too heavy, and it slows down the suite.  Hopefully,
+the suite is not run often, this is not a real problem.
+
 Install the Pymacs proper
 -------------------------
 
@@ -189,30 +249,6 @@ Syver Enstad reports that Pymacs could be made to work on Windows-2000
 shell stunts which were once needed should not be anymore.
 
 Jiva DeVoe reports that Pymacs seems to work fine on Mac OSX.
-
-Validation suite
-----------------
-
-There is now a working ``make check``, which does not require prior
-installation.  I did not base it on Junit (the Python unit testing
-framework is a re-implementation of it), but on Codespeak's pylib
-:file:`py.test`, which is much simpler, and still very powerful.  The
-:code:`pylib` project is driven by Holge Kregel, but attracted some
-Python brains, like Armin Rigo (known for Psyco, among other things --
-I think his :code:`lsprof` has also been added to Python 2.5 under the
-name :code:`cProfile`).  The gang addresses overdone/heavy methods in
-Python, and do them better.  Even :file:`py.test` is a bit more complex
-that I would want, and has (or at least had) flaws on the Unicode side,
-so I rewrote my own, as a simple single file.  I merely translated it
-from French to English, to make it more distributable within Pymacs.
-
-I first tried using Emacs stdin and stdout for communicating expressions
-to evaluate and getting back results from within the validation suite,
-but after some fight, I reluctantly had to put that avenue aside, and
-try something else.  Currently, the suite writes problems in files,
-for Emacs to read, and Emacs writes replies in files, for the suite to
-check.  Busy waiting (with small sleep added in the loops) is used on
-both sides.  This is all heavy and slows down the suite.
 
 Emacs Lisp structures and Python objects
 ========================================
@@ -516,10 +552,9 @@ Special Emacs Lisp variables
 ----------------------------
 
 Users could alter the inner working of Pymacs through a few variables,
-these are all documented here.  Except for :code:`pymacs-load-path` and
-:code:`pymacs-python-executable`, which should be set before calling
-any Pymacs function, the value of these variables can be changed at any
-time.
+these are all documented here.  Except for :code:`pymacs-load-path`,
+which should be set before calling any Pymacs function, the value of
+these variables can be changed at any time.
 
 pymacs-load-path
 ,,,,,,,,,,,,,,,,
@@ -535,16 +570,6 @@ given as arguments all strings in the :code:`pymacs-load-path` list.
 These arguments are added at the beginning of :code:`sys.path`,
 or moved at the beginning if they were already on :code:`sys.path`.
 So in practice, nothing is removed from :code:`sys.path`.
-
-pymacs-python-executable
-,,,,,,,,,,,,,,,,,,,,,,,,
-
-This variable, which value is ``"python"`` by default, names the Python
-interpreter program to be called for starting the Pymacs server.  It may
-be changed to give the full path of the executable if the Python program
-exists at some location outside the program search path.  It may also be
-given when the interpreter name is different, this happens in particular
-when the Python version is part of the program name.
 
 pymacs-trace-transit
 ,,,,,,,,,,,,,,,,,,,,

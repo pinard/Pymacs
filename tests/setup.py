@@ -67,7 +67,7 @@ class Emacs(Launch):
     def send(self, text):
         if self.popen is None:
             file('_reply', 'w')
-            emacs = os.environ.get('PYMACS_EMACS', 'emacs')
+            emacs = os.environ.get('PYMACS_EMACS') or 'emacs'
             command = emacs, '-batch', '-q', '-l', 'setup.el'
             import subprocess
             self.popen = subprocess.Popen(command)
@@ -93,7 +93,8 @@ class Python(Launch):
     def __init__(self):
         Launch.__init__(self)
         # Start a server subprocess for executing Python code.
-        command = 'python -c "from Pymacs.pymacs import main; main(\'..\')"'
+        python = os.environ.get('PYMACS_PYTHON') or 'python'
+        command = python + ' -c "from Pymacs.pymacs import main; main(\'..\')"'
         import popen2
         self.output, self.input = popen2.popen4(command)
         text = self.receive()

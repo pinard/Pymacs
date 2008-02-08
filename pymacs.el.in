@@ -24,9 +24,6 @@
   "List of additional directories to search for Python modules.
 The directories listed will be searched first, in the order given.")
 
-(defvar pymacs-python-executable "python"
-  "The name of the executable that starts python.")
-
 (defvar pymacs-trace-transit '(5000 . 30000)
   "Keep the communication buffer growing, for debugging.
 When this variable is nil, the `*Pymacs*' communication buffer gets erased
@@ -468,10 +465,13 @@ The timer is used only if `post-gc-hook' is not available.")
         ;; Launch the Python helper.
         (let ((process
                (apply 'start-process "pymacs" buffer
-                      pymacs-python-executable "-c"
-                      (concat "import sys;"
-                              " from Pymacs.pymacs import main;"
-                              " main(*sys.argv[1:])")
+                      (let ((python (getenv "PYMACS_PYTHON")))
+                        (if (or (null python) (equal python ""))
+                            "python"
+                          python))
+                      "-c" (concat "import sys;"
+                                   " from Pymacs.pymacs import main;"
+                                   " main(*sys.argv[1:])")
                       (mapcar 'expand-file-name pymacs-load-path))))
           (cond ((fboundp 'set-process-query-on-exit-flag)
                  (set-process-query-on-exit-flag process nil))
