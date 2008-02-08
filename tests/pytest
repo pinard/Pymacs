@@ -65,6 +65,9 @@ class Main:
     did_tests_in_class = False
 
     def main(self, *arguments):
+        if sys.getdefaultencoding() == 'ascii':
+            sys.stdout = Friendly_StreamWriter(sys.stdout)
+            sys.stderr = Friendly_StreamWriter(sys.stderr)
         import getopt
         options, arguments = getopt.getopt(arguments, u'hk:l:no:ps:vx:')
         for option, value in options:
@@ -402,6 +405,24 @@ class Main:
     def deactivate_profiling(self):
         if self.profiler is not None:
             self.profiler.disable()
+
+class Friendly_StreamWriter:
+    # Avoid some Unicode nightmares, by allowing both unicode and
+    # UTF-8 str strings to be written (given our sources are all UTF-8).
+
+    def __init__(self, stream):
+        import codecs, locale
+        writer = codecs.getwriter(locale.getpreferredencoding())
+        self.stream = writer(stream, 'backslashreplace')
+
+    def write(self, text):
+        if not isinstance(text, unicode):
+            text = unicode(text, 'UTF-8')
+        self.stream.write(text)
+
+    def writelines(self, lines):
+        for line in lines:
+            self.write(line)
 
 run = Main()
 main = run.main

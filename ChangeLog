@@ -3,6 +3,9 @@
 	* : Have documentation files created at top-level, not in web/.
 	Reported by Ulrich Mueller.
 
+	* pytest: Make it work in Unicode-hostile Python environments.
+	Reported by Neal Becker and Ulrich Mueller.
+
 2008-02-07  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Handle both old-style and new-style exceptions.
