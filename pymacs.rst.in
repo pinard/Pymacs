@@ -38,28 +38,39 @@ It is very easy to install Pymacs, as neither Emacs nor Python need to
 be compiled nor relinked.  Emacs merely starts Python as a subprocess,
 and Pymacs implements a communication protocol between both processes.
 
-http://www.iro.umontreal.ca/~pinard/pymacs/ contains a copy
-of the Pymacs manual file in HTML form.  The distribution
-contains the documentation sources, as well as PostScript and PDF
-renderings.  The canonical Pymacs distribution is available as
-http://www.iro.umontreal.ca/~pinard/pymacs/Pymacs.tar.gz .
-
 Beware that this is beta-status software: while specifications are a bit
 frozen, changes may still happen that would require small adaptations in
 your code.
 
-Pymacs sites and archives
--------------------------
+Pymacs sites and resources
+--------------------------
 
 The main Pymacs site conveys the Pymacs documentation (you are reading
 its Pymacs manual right now) and distributions:
 
   + http://pymacs.progiciels-bpi.ca
 
-There is a :file:`contrib/` directory in the Pymacs distribution,
-meant to be documented here:
+I expect average Pymacs users to have a deeper knowledge of Python than
+Emacs Lisp.  Some examples, later in this manual, are meant for Python
+users having a limited experience with the Emacs API.  Examples, like
+pizzas, come in three varieties: small, medium and large (one of each!).
+To find more about these examples, peek into the :file:`contrib/`
+directory in the Pymacs distribution, meant to be documented at:
 
   + http://pymacs.progiciels-bpi.ca/contrib.html
+
+Report problems, documentation flaws, or suggestions to François Pinard:
+
+  + mailto:pinard@iro.umontreal.ca
+
+Or feel welcome writing to or joining the following mailing list, where
+there are a few more people around likely to give you feedback:
+
+  + mailto:pymacs-devel@googlegroups.com
+
+If you have no fear of wider crowds :-), there still is:
+
+  + mailto:python-list@python.org
 
 There are other Web sites specifically about Pymacs. `Giovanni Giorgi`__
 has one of them:
@@ -71,20 +82,6 @@ __ http://blog.objectsroot.com/
 There is also `revised pymacs`, part of the Ropemacs project:
 
   + http://rope.sourceforge.net/ropemacs.html
-
-Questions, problems, suggestions
---------------------------------
-
-I expect average Pymacs users to have a deeper knowledge of Python than
-Emacs Lisp.  Some examples, later in this manual, are meant for Python
-users having a limited experience with the Emacs API.  Examples, like
-pizzas, come in three varieties: small, medium and large (one of each!).
-
-Report problems, documentation flaws, or suggestions to François Pinard
-at mailto:pinard@iro.umontreal.ca; or if you so prefer, you're welcome
-to the mailto:pymacs-devel@googlegroups.com mailing list where there are
-a few more people around likely to give you feedback.  If you have no
-fear of wider crowds, there still is mailto:python-list@python.org :-).
 
 Installation
 ============
@@ -1505,12 +1502,12 @@ about Pymacs closing to some version 1.0.  Specifications are still
 incomplete (for example, there is no link between Emacs Mule/MULE and
 Python unicode, and that's a capital sin), many worth user suggestions
 of elementary nature are still not addressed, porting considerations
-are currently naive or not well documented.  There is no test suite,
-examples are not appropriate, the distribution already have too much
-clutter -- my fault, which I should repair.  Also, Pymacs should
-integrate more seamlessly with all :file:`.el` files, with transparent
-standard :code:`autoload` and such things.  My little tries in that
-direction were not satisfying so far.  On the Python side, there are
-likely bits to write so Pymacs fit better with iterators.  One or two
-useful faked primitives (like :code:`getindex` and :code:`putindex`)
-*might* (I'm not fully sure) be useful sometimes.
+are currently naive or not well documented.  The test suite is still in
+its infancy, examples are not appropriate, the distribution still has
+a bit too much clutter.  Also, Pymacs should integrate more seamlessly
+with all :file:`.el` files, with transparent standard :code:`autoload`
+and such things.  My little tries in that direction were not satisfying
+so far.  On the Python side, there are likely bits to write so Pymacs
+fit better with iterators.  One or two useful faked primitives (like
+:code:`getindex` and :code:`putindex`) *might* (I'm not fully sure) be
+useful sometimes.  And Python 3.0 has not been considered yet.
