@@ -2,5 +2,5 @@
 Pymacs/__init__.py
 build
 pymacs.el
-web/pymacs.pdf
-web/pymacs.rst
+pymacs.pdf
+pymacs.rst

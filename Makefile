@@ -8,6 +8,10 @@
 #
 # Somewhere on your Emacs Lisp load-path.
 lispdir =
+# The name or path of your Emacs executable.
+emacs = emacs
+# The name or path of your python executable.
+python = python
 #
 ### End of customisation.
 
@@ -18,7 +22,11 @@ all: pymacs.el Pymacs/__init__.py
 	$(PYSETUP) build
 
 check: pymacs.el Pymacs/__init__.py
-	cd tests && ./pytest $(TEST)
+	@echo
+	@echo Checking Pymacs $(VERSION), using $(emacs) and $(python)
+	@echo
+	cd tests && \
+	  PYMACS_EMACS=$(emacs) PYMACS_PYTHON=$(python) ./pytest $(TEST)
 
 install: pymacs.el Pymacs/__init__.py
 	./setup -l '$(lispdir)'
@@ -48,28 +56,28 @@ Pymacs/__init__.py: __init__.py.in Makefile
 official: publish
 	ln -s Pymacs-$(VERSION).tar.gz web/archives/Pymacs.tar.gz
 
-publish: web/pymacs.pdf web/pymacs.rst
+publish: pymacs.pdf pymacs.rst
 	rm -f web/archives/Pymacs.tar.gz
 	git archive --format=tar --prefix=Pymacs-$(VERSION)/ HEAD . \
 	  | gzip > web/archives/Pymacs-$(VERSION).tar.gz
 
-synchro: web/pymacs.pdf web/pymacs.rst
+synchro: pymacs.pdf pymacs.rst
 	ajuster-web web
 	git gc --prune
 	find -name '*~' | xargs rm -fv
 	synchro -PD alcyon entretien
 
-web/pymacs.pdf: web/pymacs.rst
+pymacs.pdf: pymacs.rst
 	rm -rf tmp-pdf
 	mkdir tmp-pdf
 	rst2latex.py --use-latex-toc --input-encoding=UTF-8 \
-	  web/pymacs.rst tmp-pdf/pymacs.tex
+	  pymacs.rst tmp-pdf/pymacs.tex
 	cd tmp-pdf && pdflatex pymacs.tex
 	cd tmp-pdf && pdflatex pymacs.tex
 	mv -f tmp-pdf/pymacs.pdf $@
 	rm -rf tmp-pdf
 
-web/pymacs.rst: pymacs.rst.in Makefile
+pymacs.rst: pymacs.rst.in Makefile
 	rm -f $@
 	sed 's/@VERSION@/$(VERSION)/g' pymacs.rst.in > $@-tmp
 	mv $@-tmp $@
