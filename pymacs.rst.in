@@ -149,48 +149,55 @@ the suite is not run often, this is not a real problem.
 Install the Pymacs proper
 -------------------------
 
-Pymacs is a very small package.  If we put the documentation aside,
-there is one Emacs Lisp file and one Python file.
+Pymacs is a small package.  Putting the documentation and administrative
+files aside, there is one Python file and one Emacs Lisp file to it, to
+be installed in turn.  Always start with the Python file.
 
-The simplest way (as of now!) to install is through the command::
++ For the Python part
 
-  make install lispdir=LISPDIR
+  At the top-level of the Pymacs distribution, then execute ``python
+  setup.py install``.  First, the script copies a few source files while
+  presetting the version strings in them.  Second, it installs the
+  Python package through the Python standard Distutils tool.  To get
+  an option reminder, do ``python setup.py install --help``.  Consult
+  the Distutils documentation if you need more information about this.
 
-where :var:`LISPDIR` is some directory along the list kept in your Emacs
-:code:`load-path`.  This internally does some substitutions to propagate
-the version information, and runs two installation scripts.
+  That's all to it.  To check that :file:`pymacs.py` is properly
+  installed, start an interactive Python session and type ``from Pymacs
+  import lisp``: you should not receive any error.
 
-If you want to do it all by hand, change ``@VER``\ ``SION@`` strings in
-the sources in some consistent way, and run the installation scripts *by
-hand*.
++ For the Emacs part
 
-The first installation script installs the Python package using
-the Python standard Distutils tool.  Merely ``cd`` into the Pymacs
-distribution, then execute ``python setup.py install``.  To get an
-option reminder, do ``python setup.py install --help``.  Check the
-Distutils documentation if you need more information about this.
+  This is usually done by hand now.  First select some directory along
+  the list kept in your Emacs :code:`load-path`, for which you have
+  write access, and copy file :file:`pymacs.el` in that directory.
 
-The second installation script installs the Emacs Lisp part only.  It's
-a lot of fuzz for little: if you are able to copy :file:`pymacs.el`
-somewhere Emacs will find it, that's more than enough, just forget this
-second script.  Otherwise, merely ``cd`` into the Pymacs distribution,
-then run ``python setup -ie``.  This will invite you to interactively
-confirm which Lisp installation directory, *if* the script discovers
-more than one reasonable possibility for it.  Without ``-ie``, the Lisp
-part of Pymacs will be installed in some automatically guessed place.
-Use ``-n`` to known about the guess without proceeding to the actual
-installation. ``./setup -E xemacs ...`` may be useful to XEmacs lovers.
-See ``./setup -H`` for all options.
+  If you want speed, you should ideally byte-compile this file.  To do
+  so, go to that directory, launch Emacs, then give the command ``M-x
+  byte-compile-file RET pymacs.el RET``.  If for some reason you intend
+  to such commands often, you could create a little script to do so.
+  Here is an example of such a script, assuming here that you use Emacs
+  and want to install in directory :file:`~/share/emacs/lisp/`::
 
-To check that :file:`pymacs.el` is properly installed, start Emacs
-and give it the command ``M-x load-library RET pymacs RET``: you should
-not receive any error.  To check that :file:`pymacs.py` is properly
-installed, start an interactive Python session and type ``from Pymacs
-import lisp``: you should not receive any error.
+    #!/bin/bash
+    cp pymacs.el ~/share/emacs/lisp/
+    emacs -batch -eval '(byte-compile-file "~/share/emacs/lisp/pymacs.el")'
 
-Some previous Pymacs releases installed examples automatically,
-but this is not done anymore.  You may browse the contents of the
-:file:`contrib/` directory to learn about available examples.
+  You should be done now.  To check that :file:`pymacs.el` is properly
+  installed, return to your usual directories, start Emacs and give
+  it the command ``M-x load-library RET pymacs RET``: you should not
+  receive any error.
+
+Some features from previous Pymacs releases have been dropped:
+
++ There used to be a script for installing the Emacs Lisp file.  As it
+  was difficult to get it right in all circumstances; the script grew
+  an interactive mode and lot of options.  This is just not worth the
+  complexity, so this script is now gone.
+
++ Examples were all installed automatically, but at least for some of
+  them, this was more pollution than help.  You may browse the contents of
+  the :file:`contrib/` directory to learn about available examples.
 
 Prepare your :file:`.emacs` file
 --------------------------------

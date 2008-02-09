@@ -6,6 +6,9 @@
 	* pytest: Make it work in Unicode-hostile Python environments.
 	Reported by Neal Becker and Ulrich Müller.
 
+	* : Propagate version from setup.py instead of from Makefile.
+	Reported by Giorgi Giovanni.
+
 2008-02-07  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Handle both old-style and new-style exceptions.
