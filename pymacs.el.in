@@ -16,9 +16,15 @@
 ;;; along with this program; if not, write to the Free Software Foundation,
 ;;; Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.  */
 
-;;; See the Pymacs documentation (in `README') for more information.
+;;; Portability stunts.
 
-;;; Published functions.
+(defvar pymacs-use-hash-tables
+  (and (fboundp 'make-hash-table) (fboundp 'gethash) (fboundp 'puthash))
+  "Set to t if hash tables are available.")
+
+(defalias 'pymacs-report-error (symbol-function 'error))
+
+;;; Published variables and functions.
 
 (defvar pymacs-load-path nil
   "List of additional directories to search for Python modules.
@@ -55,9 +61,6 @@ The status of the Pymacs server is checked at every such timeout.")
   "Expected maximum time, in seconds, to get another line of a reply.
 The status of the Pymacs server is checked at every such timeout.")
 
-(defvar pymacs-use-hash-tables nil
-  "Automatically set to t if hash tables are available.")
-
 (defun pymacs-load (module &optional prefix noerror)
   "Import the Python module named MODULE into Emacs.
 Each function in the Python module is made available as an Emacs function.
@@ -77,7 +80,7 @@ If NOERROR is not nil, do not raise error when the module is not found."
                        (message "Pymacs loading %s...done" module)
                        result))
           (noerror (message "Pymacs loading %s...failed" module) nil)
-          (t (error "Pymacs loading %s...failed" module)))))
+          (t (pymacs-report-error "Pymacs loading %s...failed" module)))))
 
 (defun pymacs-eval (text)
   "Compile TEXT as a Python expression, and return its value."
@@ -179,7 +182,7 @@ equivalents, other structures are converted into Lisp handles."
                                        (substring (car arguments) 0 -3)
                                        nil)))
            (unless lisp-code
-             (error "Python import error"))
+             (pymacs-report-error "Python import error"))
            (eval lisp-code)))
         ((and (eq operation 'insert-file-contents)
               (not (pymacs-file-force
@@ -189,7 +192,7 @@ equivalents, other structures are converted into Lisp handles."
                                        (substring (car arguments) 0 -3)
                                        nil)))
            (unless lisp-code
-             (error "Python import error"))
+             (pymacs-report-error "Python import error"))
            (insert (prin1-to-string lisp-code))))
         (t (pymacs-file-force operation arguments))))
 
@@ -482,14 +485,14 @@ The timer is used only if `post-gc-hook' is not available.")
                    (goto-char (point-min))
                    (not (re-search-forward "<\\([0-9]+\\)\t" nil t)))
             (unless (accept-process-output process pymacs-timeout-at-start)
-              (error "Pymacs helper did not start within %d seconds."
+              (pymacs-report-error "Pymacs helper did not start within %d seconds"
                      pymacs-timeout-at-start)))
           (let ((marker (process-mark process))
                 (limit-position (+ (match-end 0)
                                    (string-to-number (match-string 1)))))
             (while (< (marker-position marker) limit-position)
               (unless (accept-process-output process pymacs-timeout-at-start)
-                (error "Pymacs helper probably was interrupted at start.")))))
+                (pymacs-report-error "Pymacs helper probably was interrupted at start")))))
         ;; Check that synchronisation occurred.
         (goto-char (match-end 0))
         (let ((reply (read (current-buffer))))
@@ -497,12 +500,9 @@ The timer is used only if `post-gc-hook' is not available.")
                    (= (length reply) 2)
                    (eq (car reply) 'pymacs-version))
               (unless (string-equal (cadr reply) "@VERSION@")
-                (error "Pymacs Lisp version is @VERSION@, Python is %s."
+                (pymacs-report-error "Pymacs Lisp version is 0.30, Python is %s"
                        (cadr reply)))
-            (error "Pymacs got an invalid initial reply.")))))
-    (setq pymacs-use-hash-tables (and (fboundp 'make-hash-table)
-                                      (fboundp 'gethash)
-                                      (fboundp 'puthash)))
+            (pymacs-report-error "Pymacs got an invalid initial reply")))))
     (when pymacs-use-hash-tables
       (if pymacs-weak-hash
           ;; A previous Pymacs session occurred in *this* Emacs session.  Some
@@ -640,7 +640,7 @@ Killing the helper might create zombie objects.  Kill? "))
                   (setq status (process-status process))))))
           ;; Decode reply.
           (if (not (eq status 'run))
-              (error "Pymacs helper status is `%S'." status)
+              (pymacs-report-error "Pymacs helper status is `%S'" status)
             (goto-char (match-end 0))
             (setq reply (read (current-buffer))))))
       (when (and moving (not pymacs-trace-transit))
