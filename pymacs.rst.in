@@ -243,6 +243,12 @@ the validation suite is different.  For the validation suite (and only
 it) Python 2.4 or better is needed, and I'll leave it that way unless
 someone contributes the back porting.
 
+Syver Enstad reports that Pymacs could be made to work on Windows-2000
+(win2k), he suspects it should equally work with NT and XP.  The little
+shell stunts which were once needed should not be anymore.
+
+Jiva DeVoe reports that Pymacs seems to work fine on Mac OSX.
+
 Some later versions of Emacs 20 silently ignore the request for creating
 weak hash tables, they create an ordinary table instead.  Older Emacses
 just do not have hash tables.  Pymacs should run on all, yet for
@@ -250,12 +256,6 @@ these, memory will leak on the Python side whenever complex objects
 get transmitted to Emacs, as these objects will not be reclaimed on
 the Python side once Emacs is finished with them.  It should not be a
 practical problem in most simple cases.
-
-Syver Enstad reports that Pymacs could be made to work on Windows-2000
-(win2k), he suspects it should equally work with NT and XP.  The little
-shell stunts which were once needed should not be anymore.
-
-Jiva DeVoe reports that Pymacs seems to work fine on Mac OSX.
 
 Emacs Lisp structures and Python objects
 ========================================
@@ -1207,6 +1207,19 @@ attention:
 About and around Pymacs
 =======================
 
+Known limitations
+-----------------
+
+Memory may leak in some theoretical circumstances (I say theoretical,
+because no one ever reported this as being an actual problem).  As
+Richard Stallman once put it (2002-08):
+
+  `I wonder, though, can this` [memory management] `technique fully handle
+  cycles that run between Lisp and Python?  Suppose Lisp object A refers
+  to Python object B, which refers to Lisp object A, and suppose nothing
+  else refers to either one of them.  Will you succeed in recognizing
+  these two objects as garbage?`
+
 History
 -------
 
@@ -1278,8 +1291,8 @@ it on his own, and later felt like maintaining it whole (late 2007-12).
 I rather suggested an attempt at collaborative maintenance, and this
 experiment is still going on...
 
-Pymacs and Vim
---------------
+Vim considerations
+------------------
 
 Emacs Lisp is deeply soldered into Emacs internals.  Vim has its own
 language, which people sometimes call Vimscript, similarly tightened
@@ -1293,7 +1306,7 @@ then runs Python as a process external to Emacs, with a communication
 protocol between both processes.  Python may be built into Vim, and then
 both Python and Vim use a single process.  The same as Pymacs gives
 access to almost all of Emacs Lisp, Python within Vim gives access to
-almost all of Vimscript, but with a smaller overhead than Pymacs.
+almost all of Vimscript, but with a much smaller overhead than Pymacs.
 
 Pymacs is not Emacs Lisp, and Python in Vim is not Vimscript either,
 tweaks are needed in both cases for accessing some of the underlying
@@ -1308,27 +1321,28 @@ within Pymacs or Vim.  However, Emacs is byte oriented, while Vim is
 line oriented.  In a few Pymacs applications of mine, I internally
 toggle between line orientation and byte orientation, keeping both for
 speed most probably, while I see things would be a bit simpler (and
-maybe slower) if I was pushing myself on the line-oriented side.
+maybe slower) if I was pushing myself on the line-oriented side.  Each
+of Emacs and Vim have their own logic and elegance, and it is probable
+that we loose overall if we try to emulate one with the other.
 
 The idea traversed me to convert all the few Pymacs examples so they
 work both for Pymacs and Vim, and through the documentation, publicise
 how people writing Python extensions could write them for both editors
 at once.  Yet, while doing so, one has to stretch either towards Emacs
 or Vim, and I guess I would favour Vim over Emacs when the time comes to
-evaluate efficiency-related choices.  This might be dangerous a bit :-).
+evaluate efficiency-related choices.
 
 I also thought about writing a Pymacs module for running Python scripts
 already written for Vim, by offering a compatibility layer.  The
-complexity of this might be unbounded however, I should study actual
-Python scripts for Vim before knowing better if this is thinkable or
-not.  Until then, I'm prone to making questionable decisions, who knows.
+complexity of this might be unbounded, I should study actual Python
+scripts for Vim before knowing better if this is thinkable or not.
 
-Pymacs and the FSF
-------------------
+Inclusion within Emacs
+----------------------
 
 Gerd Möllman, who was maintaining Emacs at the time of Pymacs birth and
-development, retrofitted the idea of a :code:`post-gc-hook` from XEmacs,
-as a way to facilitate memory management within Pymacs.
+development, retrofitted (2001-09) the idea of a :code:`post-gc-hook`
+from XEmacs, as a way to facilitate memory management within Pymacs.
 
 Richard Stallman once suggested (2001-10) that Pymacs be distributed
 within Emacs, and while discussing the details of this, I underlined
@@ -1342,8 +1356,8 @@ development team wrote again (2002-01) asking information about how to
 integrate Pymacs.  It was easy to write a good summary, after all the
 discussions with Richard.  And that's it.  Nothing more happened! :-)
 
-Pymacs and speed
-----------------
+Speed issues
+------------
 
 Doug Bagley's shoot out project compares the relative speed of many
 popular languages, and this might interest Pymacs users.  The first URL
@@ -1354,8 +1368,57 @@ towards Win32 systems, the third is more recent but Debian-oriented:
   + http://dada.perl.it/shootout/index.html
   + http://shootout.alioth.debian.org/
 
-Pymacs and the future
----------------------
+I've not heard of any Python to Lisp compiler.  Lisp may be slow or fast
+depending on how one uses it, and how much one uses declarations.  Some
+Lisp systems have really excellent compilers, that give very fast code
+when properly hinted.
+
+Python itself may be slow or fast, once again depending on how one
+uses it.  With the proper bend, one can develop the habit of writing
+Python which shows honest speed.  And there is always Pyrex, which is
+Python complemented with explicit declarations (a bit like some Lisp
+implementations), and which can buy a lot of speed.
+
+This is quite likely that one can have fast programs while using Python,
+or a mix of Python and Pyrex (or even Psyco sometimes), that is, within
+Python paradigms, without feeling any need of resorting to Lisp.
+
+If Python looks like being slow while being used with Emacs, the problem
+probably lies in Emacs-Python communication which Pymacs implements.
+One has to learn how to do the proper compromises for having less
+communications.  (In that regard, Vim and Python are really linked
+together, so Python in Vim is likely faster than Pymacs for someone who
+does not pay special attention to such matters.)
+
+Ali Gholami Rudi also writes (2008-02):
+
+  `Well, there seems to be lots of overhead when transferring large
+  strings.  Transferring them requires:`
+
+    1. `escaping characters in the strings`
+    2. `putting them in` :file:`*Pymacs*` `buffer`
+    3. `sending the region to Python process`
+    4. `evaluating the Python string in Python-side (involves compiling)`
+
+  `In my experiments, transferring a ~5k-line file takes more than a
+  second on a relatively new computer (data from` :code:`rope-dev`\ `).
+  Improving that probably requires a new protocol that does not
+  use Python eval and has an optional debug buffer.  Probably few
+  applications need to transfer large strings to Python but if they do,
+  it is quite slow.`
+
+All in all, speed may sometimes become a real issue for Pymacs.  I once
+wrote within http://pinard.progiciels-bpi.ca/opinions/editors.htm :
+
+  `While Pymacs is elegant in my opinion, one cannot effectively use
+  Pymacs (the Python part) without knowing at least the specification
+  of many Lisp functions, and I found that it requires some doing for a
+  Pymacs developer to decouple the Emacs interaction part from the purer
+  algorithmic part in applications.  Moreover, if you do not consider
+  speed issues, they bite you.`
+
+The future of Pymacs
+--------------------
 
 Some people suggested important internal Pymacs changes.  In my opinion,
 new bigger features are better implemented in a careful way, first as
