@@ -2,7 +2,6 @@
 # Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
-VERSION = `grep '^version' setup.py | sed -e "s/'$$//" -e "s/.*'//"`
 PYSETUP = python setup.py
 
 emacs = $(PYMACS_EMACS)
@@ -32,12 +31,15 @@ pymacs.pdf: pymacs.rst
 	mv -f tmp-pdf/pymacs.pdf $@
 	rm -rf tmp-pdf
 
+# (Note: python setup.py clean is the most no-op thing I could find.)
 pymacs.el pymacs.rst Pymacs/__init__.py: .stamp
 .stamp: pymacs.el.in pymacs.rst.in __init__.py.in
 	$(PYSETUP) clean
 	touch .stamp
 
 # The following goals for the maintainer of the Pymacs Web site.
+
+VERSION = `grep '^version' setup.py | sed -e "s/'$$//" -e "s/.*'//"`
 
 local: pymacs.pdf pymacs.rst
 	ajuster-web web
@@ -49,7 +51,8 @@ publish:
 	    | gzip > web/archives/Pymacs-$$version.tar.gz
 
 official: publish
-	ln -s Pymacs-$(VERSION).tar.gz web/archives/Pymacs.tar.gz
+	version=$(VERSION) && \
+	  ln -s Pymacs-$$version.tar.gz web/archives/Pymacs.tar.gz
 
 synchro: local
 	git gc --prune
