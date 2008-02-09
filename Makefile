@@ -11,7 +11,7 @@ python = $(PYMACS_PYTHON)
 all:
 	$(PYSETUP) build
 
-check: all
+check: pymacs.el Pymacs/__init__.py
 	cd tests && \
 	  PYMACS_EMACS=$(emacs) PYMACS_PYTHON=$(python) ./pytest $(TEST)
 
@@ -22,9 +22,6 @@ clean:
 	rm -rf build* Pymacs/*.pyc tests/*.pyc
 	rm -f pymacs.el pymacs.rst pymacs.pdf Pymacs/__init__.py
 
-pymacs.rst: pymacs.rst.in
-	$(PYSETUP) clean
-
 pymacs.pdf: pymacs.rst
 	rm -rf tmp-pdf
 	mkdir tmp-pdf
@@ -34,6 +31,11 @@ pymacs.pdf: pymacs.rst
 	cd tmp-pdf && pdflatex pymacs.tex
 	mv -f tmp-pdf/pymacs.pdf $@
 	rm -rf tmp-pdf
+
+pymacs.el pymacs.rst Pymacs/__init__.py: .stamp
+.stamp: pymacs.el.in pymacs.rst.in __init__.py.in
+	$(PYSETUP) clean
+	touch .stamp
 
 # The following goals for the maintainer of the Pymacs Web site.
 
