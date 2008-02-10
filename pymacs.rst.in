@@ -1408,7 +1408,7 @@ Ali Gholami Rudi also writes (2008-02):
   it is quite slow.`
 
 All in all, speed may sometimes become a real issue for Pymacs.  I once
-wrote within http://pinard.progiciels-bpi.ca/opinions/editors.htm :
+wrote within http://pinard.progiciels-bpi.ca/opinions/editors.html :
 
   `While Pymacs is elegant in my opinion, one cannot effectively use
   Pymacs (the Python part) without knowing at least the specification
