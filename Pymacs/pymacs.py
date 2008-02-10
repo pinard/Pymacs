@@ -115,7 +115,7 @@ class Protocol:
             fragments = []
             write = fragments.append
             write('(%s ' % action)
-            print_lisp(argument, write, quoted=1)
+            print_lisp(argument, write, True)
             write(')')
             self.send(''.join(fragments))
 
@@ -399,7 +399,7 @@ class Symbol:
             fragments = []
             write = fragments.append
             write('(progn (setq %s ' % self.text)
-            print_lisp(value, write, quoted=1)
+            print_lisp(value, write, True)
             write(') nil)')
             lisp(''.join(fragments))
 
@@ -409,7 +409,7 @@ class Symbol:
         write('(%s' % self.text)
         for argument in arguments:
             write(' ')
-            print_lisp(argument, write, quoted=1)
+            print_lisp(argument, write, True)
         write(')')
         return lisp(''.join(fragments))
 
@@ -452,7 +452,7 @@ class List(Lisp):
         write('(%s' % self)
         for argument in arguments:
             write(' ')
-            print_lisp(argument, write, quoted=1)
+            print_lisp(argument, write, True)
         write(')')
         return lisp(''.join(fragments))
 
@@ -471,7 +471,7 @@ class List(Lisp):
         fragments = []
         write = fragments.append
         write('(setcar (nthcdr %d %s) ' % (key, self))
-        print_lisp(value, write, quoted=1)
+        print_lisp(value, write, True)
         write(')')
         lisp(''.join(fragments))
 
@@ -481,7 +481,7 @@ class Table(Lisp):
         fragments = []
         write = fragments.append
         write('(gethash ')
-        print_lisp(key, write, quoted=1)
+        print_lisp(key, write, True)
         write(' %s)' % self)
         return lisp(''.join(fragments))
 
@@ -489,9 +489,9 @@ class Table(Lisp):
         fragments = []
         write = fragments.append
         write('(puthash ')
-        print_lisp(key, write, quoted=1)
+        print_lisp(key, write, True)
         write(' ')
-        print_lisp(value, write, quoted=1)
+        print_lisp(value, write, True)
         write(' %s)' % self)
         lisp(''.join(fragments))
 
@@ -507,7 +507,7 @@ class Vector(Lisp):
         fragments = []
         write = fragments.append
         write('(aset %s %d ' % (self, key))
-        print_lisp(value, write, quoted=1)
+        print_lisp(value, write, True)
         write(')')
         lisp(''.join(fragments))
 
@@ -554,7 +554,7 @@ lisp = Lisp_Interface()
 print_lisp_quoted_specials = {'"': '\\"', '\\': '\\\\', '\b': '\\b',
                               '\f': '\\f', '\n': '\\n', '\t': '\\t'}
 
-def print_lisp(value, write, quoted=0):
+def print_lisp(value, write, quoted):
     if value is None:
         write('nil')
     elif isinstance(value, bool):
@@ -581,21 +581,21 @@ def print_lisp(value, write, quoted=0):
             write('nil')
         elif len(value) == 2 and value[0] == lisp.quote:
             write("'")
-            print_lisp(value[1], write)
+            print_lisp(value[1], write, False)
         else:
             write('(')
-            print_lisp(value[0], write)
+            print_lisp(value[0], write, False)
             for sub_value in value[1:]:
                 write(' ')
-                print_lisp(sub_value, write)
+                print_lisp(sub_value, write, False)
             write(')')
     elif isinstance(value, tuple):
         write('[')
         if len(value) > 0:
-            print_lisp(value[0], write)
+            print_lisp(value[0], write, False)
             for sub_value in value[1:]:
                 write(' ')
-                print_lisp(sub_value, write)
+                print_lisp(sub_value, write, False)
         write(']')
     elif isinstance(value, Lisp):
         write(str(value))
