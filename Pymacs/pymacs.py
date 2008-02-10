@@ -111,20 +111,12 @@ class Protocol:
                 action = 'pymacs-error'
                 argument = buffer.getvalue()
             # Send an expression to EMACS applying FUNCTION over ARGUMENT,
-            # where FUNCTION is `pymacs-STATUS'.
+            # where FUNCTION is some `pymacs-STATUS'.
             fragments = []
             write = fragments.append
-            if self.freed:
-                write('(progn (pymacs-free-lisp')
-                for index in self.freed:
-                    write(' %d' % index)
-                write(') ')
             write('(%s ' % action)
             print_lisp(argument, write, quoted=1)
             write(')')
-            if self.freed:
-                write(')')
-                self.freed = []
             self.send(''.join(fragments))
 
     def receive(self):
@@ -140,6 +132,18 @@ class Protocol:
 
     def send(self, text):
         # Send TEXT to Emacs, which is an expression to evaluate.
+        if self.freed:
+            # All delayed Lisp cleanup gets piggied back on the transmission.
+            fragments = []
+            write = fragments.append
+            write('(progn (pymacs-free-lisp')
+            for index in self.freed:
+                write(' %d' % index)
+            write(') ')
+            write(text)
+            write(')\n')
+            text = ''.join(fragments)
+            self.freed = []
         if text[-1] == '\n':
             sys.stdout.write('<%d\t%s' % (len(text), text))
         else:
