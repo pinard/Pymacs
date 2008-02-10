@@ -568,24 +568,25 @@ Killing the helper might create zombie objects.  Kill? "))
   (when pymacs-gc-wanted
     (pymacs-garbage-collect))
   (let (done value)
-    (while (not done)
-      (let* ((text (pymacs-round-trip inserter))
-             (reply (condition-case info
-                        (eval text)
-                      (error (cons 'pymacs-oops (prin1-to-string info))))))
-        (cond ((not (consp reply))
-               (setq inserter `(pymacs-print-for-apply 'reply '(,reply))))
-              ((eq 'pymacs-reply (car reply))
-               (setq done t value (cdr reply)))
-              ((eq 'pymacs-error (car reply))
-               (error "Python: %s" (cdr reply)))
-              ((eq 'pymacs-expand (car reply))
-               (setq inserter `(pymacs-print-for-apply-expanded
-                                'reply '(,(cdr reply)))))
-              ((eq 'pymacs-oops (car reply))
-               (setq inserter `(pymacs-print-for-apply
-                                'error '(,(cdr reply)))))
-              (t (setq inserter `(pymacs-print-for-apply 'reply '(,reply)))))))
+      (while (not done)
+        (let* ((text (pymacs-round-trip inserter))
+               (reply (condition-case info
+                          (eval text)
+                        (pymacs-report-error (cons 'pymacs-oops (prin1-to-string info))))))
+          (cond ((not (consp reply))
+                 (setq inserter `(pymacs-print-for-apply 'reply '(,reply))))
+                ((eq 'pymacs-reply (car reply))
+                 (setq done t value (cdr reply)))
+                ((eq 'pymacs-error (car reply))
+                 (pymacs-report-error "Python: %s" (cdr reply)))
+                ((eq 'pymacs-expand (car reply))
+                 (setq inserter `(pymacs-print-for-apply-expanded
+                                  'reply '(,(cdr reply)))))
+                ((eq 'pymacs-oops (car reply))
+                 (setq inserter `(pymacs-print-for-apply
+                                  'error '(,(cdr reply)))))
+                (t (setq inserter `(pymacs-print-for-apply
+                                    'reply '(,reply)))))))
     value))
 
 (defun pymacs-round-trip (inserter)
