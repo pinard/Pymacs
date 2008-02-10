@@ -45,12 +45,12 @@ local: pymacs.pdf pymacs.rst
 	ajuster-web web
 
 publish:
-	rm -f web/archives/Pymacs.tar.gz
 	version=$(VERSION) && \
 	  git archive --format=tar --prefix=Pymacs-$$version/ HEAD . \
 	    | gzip > web/archives/Pymacs-$$version.tar.gz
 
 official: publish
+	rm -f web/archives/Pymacs.tar.gz
 	version=$(VERSION) && \
 	  ln -s Pymacs-$$version.tar.gz web/archives/Pymacs.tar.gz
 
