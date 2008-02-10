@@ -301,12 +301,18 @@ and yield Python numbers.  In the other direction, Python numbers are
 converted into Emacs Lisp numbers, with the exception of long Python
 integers and complex numbers.
 
-Emacs Lisp strings are usually converted into equivalent Python
-narrow strings.  As Python strings do not have text properties,
-these are not reflected.  This may be changed by setting the
-:code:`pymacs-mutable-strings` option: if this variable is not
-:code:`nil`, Emacs Lisp strings are then transmitted opaquely.  Python
-strings, except Unicode, are always converted into Emacs Lisp strings.
+Emacs Lisp strings are usually converted into equivalent Python strings.
+As Python strings do not have text properties, these are not reflected.
+This may be changed by setting the :code:`pymacs-mutable-strings`
+option: if this variable is not :code:`nil`, Emacs Lisp strings are
+then transmitted opaquely.  Python strings are always converted into
+Emacs Lisp strings.  Unicode strings are produced on the Python side for
+Emacs Lisp multi-byte strings, but only when they do not fit in ASCII,
+otherwise Python narrow strings are produced.  Conversely, Emacs Lisp
+multi-byte strings are produced for Python Unicode strings, but only
+when they do not fit ASCII, otherwise Emacs Lisp uni-byte strings are
+produced.  Currently, Pymacs behaviour is undefined for users wandering
+outside the limits of Emacs' :code:`utf-8` coding system.
 
 Emacs Lisp symbols yield ``lisp[STRING]`` notations on the Python
 side, where :var:`STRING` names the symbol.  In the other direction,
@@ -450,14 +456,13 @@ The same as Emacs Lisp handles are useful for handling Emacs Lisp
 objects on the Python side, Python handles are useful for handling
 Python objects on the Emacs Lisp side.
 
-Many Python objects do not have direct Emacs Lisp equivalents,
-including long integers, complex numbers, Unicode strings, modules,
-classes, instances and surely a lot of others.  When such are being
-transmitted to the Emacs Lisp side, Pymacs use Python handles.  These
-are automatically recovered into the original Python objects whenever
-transmitted back to Python, either as arguments to a Python function,
-as the Python function itself, or as the return value of an Emacs Lisp
-function called from Python.
+Many Python objects do not have direct Emacs Lisp equivalents, including
+long integers, complex numbers, modules, classes, instances and surely a
+lot of others.  When such are being transmitted to the Emacs Lisp side,
+Pymacs use Python handles.  These are automatically recovered into the
+original Python objects whenever transmitted back to Python, either as
+arguments to a Python function, as the Python function itself, or as the
+return value of an Emacs Lisp function called from Python.
 
 The objects represented by these Python handles may be inspected or
 modified using the basic library of Python functions.  For example, in::
@@ -1428,10 +1433,8 @@ concentrate at doing its own humble job well, and resist bloat.
 
 There is much to do, in my opinion, before one seriously dares to speak
 about Pymacs closing to some version 1.0.  Specifications are still
-incomplete (for example, there is no link between Emacs Mule/MULE and
-Python unicode, and that's a capital sin), many worth user suggestions
-of elementary nature are still not addressed, porting considerations
-are currently naive or not well documented.  The test suite is still in
+incomplete, worth user suggestions are still not addressed, porting
+considerations are not well documented.  The test suite is still in
 its infancy, examples are not appropriate, the distribution still has
 a bit too much clutter.  Also, Pymacs should integrate more seamlessly
 with all :file:`.el` files, with transparent standard :code:`autoload`

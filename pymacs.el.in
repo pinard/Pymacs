@@ -22,6 +22,12 @@
   (and (fboundp 'make-hash-table) (fboundp 'gethash) (fboundp 'puthash))
   "Set to t if hash tables are available.")
 
+(if (fboundp 'multibyte-string-p)
+    (defalias 'pymacs-multibyte-string-p 'multibyte-string-p)
+  (defun pymacs-multibyte-string-p (string)
+    "Tell XEmacs if STRING should be handled as multibyte."
+    (not (equal (find-charset-string string) '(ascii)))))
+
 (defalias 'pymacs-report-error (symbol-function 'error))
 
 ;;; Published variables and functions.
@@ -381,11 +387,17 @@ The timer is used only if `post-gc-hook' is not available.")
           ((stringp expression)
            (when (or pymacs-forget-mutability
                      (not pymacs-mutable-strings))
-             (let ((text (copy-sequence expression)))
+             (let* ((multibyte (pymacs-multibyte-string-p expression))
+                    (text (if multibyte
+                              (encode-coding-string expression 'utf-8)
+                            (copy-sequence expression))))
                (set-text-properties 0 (length text) nil text)
                (princ (mapconcat 'identity
                                  (split-string (prin1-to-string text) "\n")
-                                 "\\n")))
+                                 "\\n"))
+               (when (and multibyte
+                          (not (equal (find-charset-string text) '(ascii))))
+                 (princ ".decode('UTF-8')")))
              (setq done t)))
           ((symbolp expression)
            (let ((name (symbol-name expression)))
@@ -464,6 +476,8 @@ The timer is used only if `post-gc-hook' is not available.")
   (let ((buffer (get-buffer-create "*Pymacs*")))
     (with-current-buffer buffer
       (buffer-disable-undo)
+      (set-buffer-multibyte nil)
+      (set-buffer-file-coding-system 'raw-text)
       (save-match-data
         ;; Launch the Python helper.
         (let ((process
@@ -485,14 +499,16 @@ The timer is used only if `post-gc-hook' is not available.")
                    (goto-char (point-min))
                    (not (re-search-forward "<\\([0-9]+\\)\t" nil t)))
             (unless (accept-process-output process pymacs-timeout-at-start)
-              (pymacs-report-error "Pymacs helper did not start within %d seconds"
+              (pymacs-report-error
+               "Pymacs helper did not start within %d seconds"
                      pymacs-timeout-at-start)))
           (let ((marker (process-mark process))
                 (limit-position (+ (match-end 0)
                                    (string-to-number (match-string 1)))))
             (while (< (marker-position marker) limit-position)
               (unless (accept-process-output process pymacs-timeout-at-start)
-                (pymacs-report-error "Pymacs helper probably was interrupted at start")))))
+                (pymacs-report-error
+                 "Pymacs helper probably was interrupted at start")))))
         ;; Check that synchronisation occurred.
         (goto-char (match-end 0))
         (let ((reply (read (current-buffer))))
@@ -572,7 +588,8 @@ Killing the helper might create zombie objects.  Kill? "))
         (let* ((text (pymacs-round-trip inserter))
                (reply (condition-case info
                           (eval text)
-                        (pymacs-report-error (cons 'pymacs-oops (prin1-to-string info))))))
+                        (pymacs-report-error
+                         (cons 'pymacs-oops (prin1-to-string info))))))
           (cond ((not (consp reply))
                  (setq inserter `(pymacs-print-for-apply 'reply '(,reply))))
                 ((eq 'pymacs-reply (car reply))

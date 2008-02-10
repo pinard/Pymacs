@@ -41,6 +41,12 @@ def test_1():
             (False, 'h\nz', r'"h\nz"'),
             (False, 'i\tz', r'"i\tz"'),
             (False, 'j\x1bz', r'"j\033z"'),
+            (False, u'p', '"p"'),
+            (False, u'qyz', '"qyz"'),
+            (False, u'rêvé', (r'(decode-coding-string "r\303\252v\303\251"'
+                              ' \'utf-8)')),
+            (False, u's—z!', (r'(decode-coding-string "s\342\200\224z!"'
+                              ' \'utf-8)')),
             (False, (), '[]'),
             (False, (0,), '[0]'),
             (False, (0.0,), '[0.0]'),

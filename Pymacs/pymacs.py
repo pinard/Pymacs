@@ -563,7 +563,16 @@ def print_lisp(value, write, quoted):
         write(repr(value))
     elif isinstance(value, float):
         write(repr(value))
-    elif isinstance(value, str):
+    elif isinstance(value, basestring):
+        multibyte = False
+        if isinstance(value, unicode):
+            try:
+                value = value.encode('ASCII')
+            except UnicodeEncodeError:
+                value = value.encode('UTF-8')
+                multibyte = True
+        if multibyte:
+            write('(decode-coding-string ')
         write('"')
         for character in value:
             special = print_lisp_quoted_specials.get(character)
@@ -574,6 +583,8 @@ def print_lisp(value, write, quoted):
             else:
                 write('\\%.3o' % ord(character))
         write('"')
+        if multibyte:
+            write(' \'utf-8)')
     elif isinstance(value, list):
         if quoted:
             write("'")
