@@ -277,54 +277,45 @@ def zombie(*arguments):
 class Let:
 
     def __init__(self, **keywords):
+        # The stack holds (METHOD, DATA) pairs, where METHOD is the expected
+        # unbound pop_* method, and DATA holds information to be restored.
+        # METHOD may not be bound to the instance, as this would induce
+        # reference cycles, and then, __del__ would not be called timely.
         self.stack = []
         self.push(**keywords)
 
     def __del__(self):
         while self.stack:
-            method = self.stack[-1][0]
-            if method == 'variables':
-                self.pop()
-            elif method == 'excursion':
-                self.pop_excursion()
-            elif method == 'match_data':
-                self.pop_match_data()
-            elif method == 'restriction':
-                self.pop_restriction()
-            elif method == 'selected_window':
-                self.pop_selected_window()
-            elif method == 'window_excursion':
-                self.pop_window_excursion()
+            self.stack[-1][0](self)
 
     def __nonzero__(self):
         # So stylistic `if let:' executes faster.
-        return 1
+        return True
 
     def push(self, **keywords):
-        pairs = []
+        data = []
         for name, value in keywords.items():
-            pairs.append((name, getattr(lisp, name).value()))
+            data.append((name, getattr(lisp, name).value()))
             setattr(lisp, name, value)
-        self.stack.append(('variables', pairs))
+        self.stack.append((Let.pop, data))
         return self
 
     def pop(self):
-        method, pairs = self.stack[-1]
-        assert method == 'variables', self.stack[-1]
-        del self.stack[-1]
-        for name, value in pairs:
+        method, data = self.stack.pop()
+        assert method == Let.pop, (method, data)
+        for name, value in data:
             setattr(lisp, name, value)
 
     def push_excursion(self):
-        self.stack.append(('excursion',
-                           (lisp.current_buffer(),
-                            lisp.point_marker(), lisp.mark_marker())))
+        self.stack.append((Let.pop_excursion, (lisp.current_buffer(),
+                                               lisp.point_marker(),
+                                               lisp.mark_marker())))
         return self
 
     def pop_excursion(self):
-        method, (buffer, point_marker, mark_marker) = self.stack[-1]
-        assert method == 'excursion', self.stack[-1]
-        del self.stack[-1]
+        method, data = self.stack.pop()
+        assert method == Let.pop_excursion, (method, data)
+        buffer, point_marker, mark_marker = data
         lisp.set_buffer(buffer)
         lisp.goto_char(point_marker)
         lisp.set_mark(mark_marker)
@@ -332,48 +323,45 @@ class Let:
         lisp.set_marker(mark_marker, None)
 
     def push_match_data(self):
-        self.stack.append(('match_data', lisp.match_data()))
+        self.stack.append((Let.pop_match_data, lisp.match_data()))
         return self
 
     def pop_match_data(self):
-        method, match_data = self.stack[-1]
-        assert method == 'match_data', self.stack[-1]
-        del self.stack[-1]
-        lisp.set_match_data(match_data)
+        method, data = self.stack.pop()
+        assert method == Let.pop_match_data, (method, data)
+        lisp.set_match_data(data)
 
     def push_restriction(self):
-        self.stack.append(('restriction',
-                           (lisp.point_min_marker(), lisp.point_max_marker())))
+        self.stack.append((Let.pop_restriction, (lisp.point_min_marker(),
+                                                 lisp.point_max_marker())))
         return self
 
     def pop_restriction(self):
-        method, (point_min_marker, point_max_marker) = self.stack[-1]
-        assert method == 'restriction', self.stack[-1]
-        del self.stack[-1]
+        method, data = self.stack.pop()
+        assert method == Let.pop_restriction, (method, data)
+        point_min_marker, point_max_marker = data
         lisp.narrow_to_region(point_min_marker, point_max_marker)
         lisp.set_marker(point_min_marker, None)
         lisp.set_marker(point_max_marker, None)
 
     def push_selected_window(self):
-        self.stack.append(('selected_window', lisp.selected_window()))
+        self.stack.append((Let.pop_selected_window, lisp.selected_window()))
         return self
 
     def pop_selected_window(self):
-        method, selected_window = self.stack[-1]
-        assert method == 'selected_window', self.stack[-1]
-        del self.stack[-1]
-        lisp.select_window(selected_window)
+        method, data = self.stack.pop()
+        assert method == Let.pop_selected_window, (method, data)
+        lisp.select_window(data)
 
     def push_window_excursion(self):
-        self.stack.append(('window_excursion',
+        self.stack.append((Let.pop_window_excursion,
                            lisp.current_window_configuration()))
         return self
 
     def pop_window_excursion(self):
-        method, current_window_configuration = self.stack[-1]
-        assert method == 'window_excursion', self.stack[-1]
-        del self.stack[-1]
-        lisp.set_window_configuration(current_window_configuration)
+        method, data = self.stack.pop()
+        assert method == Let.pop_window_excursion, (method, data)
+        lisp.set_window_configuration(data)
 
 class Symbol:
 

@@ -3,6 +3,9 @@
 	* : Add Unicode support, which was needed around some bugs.
 	Reported by Ali Gholami Rudi and Greg Detre.
 
+	* pymacs.py (Let): Stack and code simplified.
+	Reported by Eyal Lotem.
+
 2008-02-08  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Have documentation files created at top-level, not in web/.
