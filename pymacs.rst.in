@@ -308,6 +308,17 @@ get transmitted to Emacs, as these objects will not be reclaimed on
 the Python side once Emacs is finished with them.  It should not be a
 practical problem in most simple cases.
 
+Nowadays, the :file:`Pymacs` package contains a single :file:`pymacs.py`
+file (and the mandatory :file:`__init__.py`).  That's overkill, yet I'm
+pondering with the idea that people might want to add their own Pymacs
+applications as sub-packages of this one.  See the :file:`contrib/`
+directory structure for examples, with included :file:`Pymacs/` and
+such.  I am not fully sure this is the good direction to take or to
+suggest.  If :file:`Pymacs` package was not to receive sub-packages,
+it would be better replaced by a mere :file:`Pymacs.py` file (named as
+such for compatibility), with simple trickery so to be compatible with
+previous Pymacs versions.
+
 Emacs Lisp structures and Python objects
 ========================================
 

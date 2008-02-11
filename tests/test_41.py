@@ -92,3 +92,7 @@ def test_2():
 def notest_3():
 
     setup.ask_emacs('(pymacs-exec "import os\nimport sys")')
+
+def notest_4():
+
+    # Try ``list.buffer_string()`` in a multi-byte buffer.
