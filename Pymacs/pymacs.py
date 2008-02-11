@@ -23,6 +23,7 @@ Interface between Emacs Lisp and Python - Python part.
 Emacs may launch this module as a stand-alone program, in which case it
 acts as a server of Python facilities for that Emacs session, reading
 requests from standard input and writing replies on standard output.
+When used in this way, the program is called "the Pymacs helper".
 
 This module may also be usefully imported by those other Python modules.
 See the Pymacs documentation (in `README') for more information.
@@ -276,9 +277,9 @@ def zombie_python(*indices):
 
 def zombie(*arguments):
     # This catch-all function is set as the value for any function which
-    # disappeared with a previous Pymacs server process, so calling
+    # disappeared with a previous Pymacs helper process, so calling
     # such a function from Emacs will trigger a decipherable diagnostic.
-    error("Object vanished when helper was killed.")
+    error("Object vanished when the Pymacs helper was killed.")
 
 ## Emacs services for Python applications.
 

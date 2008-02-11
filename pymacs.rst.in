@@ -142,7 +142,7 @@ Select Emacs and Python
 The environment variable ``PYMACS_PYTHON`` is usually left unset or
 empty, in which case ``python`` is implied.  It has the purpose of
 naming the Python interpreter program to be called for starting the
-Pymacs server.  It may be set to give the full path of the executable if
+Pymacs helper.  It may be set to give the full path of the executable if
 the Python program exists at some location outside the program search
 path.  It may also be given when the interpreter name is different,
 for exemple when the Python version is part of the program name.
@@ -669,7 +669,7 @@ preset :code:`pymacs-load-path`, :code:`nil` by default, to a list of
 these directory names.  (Tilde expansions and such occur automatically.)
 
 Here is how it works.  The first time Pymacs is needed from Emacs,
-a Pymacs server is automatically started as an Emacs subprocess, and
+a Pymacs helper is automatically started as an Emacs subprocess, and
 given as arguments all strings in the :code:`pymacs-load-path` list.
 These arguments are added at the beginning of :code:`sys.path`,
 or moved at the beginning if they were already on :code:`sys.path`.
@@ -1031,7 +1031,7 @@ some recursion trickery over the protocol, but the trickery itself is
 not part of the protocol, which is rather simple deep down:
 
   + messages are exchanged in strictly alternating directions, the first
-    being sent by the Pymacs server just after it started,
+    being sent by the Pymacs helper just after it started,
 
   + Python-originated messages are nothing but Lisp expressions,
 

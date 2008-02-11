@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-# Checking if pymacs.py works (Emacs and the Pymacs server are not used).
+# Checking if pymacs.py works (Emacs and the Pymacs helper are not used).
 
 import re
 import setup

@@ -92,7 +92,7 @@ class Python(Launch):
 
     def __init__(self):
         Launch.__init__(self)
-        # Start a server subprocess for executing Python code.
+        # Start a Pymacs helper subprocess for executing Python code.
         python = os.environ.get('PYMACS_PYTHON') or 'python'
         command = python + ' -c "from Pymacs.pymacs import main; main(\'..\')"'
         import popen2
@@ -102,16 +102,16 @@ class Python(Launch):
         assert text == '(pymacs-version "%s")\n' % __version__, text
 
     def receive(self):
-        # Receive a Lisp expression from the Pymacs server.
+        # Receive a Lisp expression from the Pymacs helper.
         text = self.output.read(3)
         if not text or text[0] != '<':
-            raise Protocol.ProtocolError, "`>' expected."
+            raise Protocol.ProtocolError, "`<' expected."
         while text[-1] != '\t':
             text = text + self.output.read(1)
         return self.output.read(int(text[1:-1]))
 
     def send(self, text):
-        # Send TEXT, a Python expression, to the Pymacs server.
+        # Send TEXT, a Python expression, to the Pymacs helper.
         if text[-1] == '\n':
             self.input.write('>%d\t%s' % (len(text), text))
         else:

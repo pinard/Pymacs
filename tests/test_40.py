@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-# Checking if Emacs loads the Python server.
+# Checking if Emacs loads the Python helper.
 
 import setup
 

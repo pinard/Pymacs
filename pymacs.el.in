@@ -56,16 +56,16 @@ Python side thus has no way for modifying the original Lisp strings.
 This variable is ignored whenever `forget-mutability' is set.")
 
 (defvar pymacs-timeout-at-start 30
-  "Maximum reasonable time, in seconds, for starting the Pymacs server.
+  "Maximum reasonable time, in seconds, for starting the Pymacs helper.
 A machine should be pretty loaded before one needs to increment this.")
 
 (defvar pymacs-timeout-at-reply 5
   "Expected maximum time, in seconds, to get the first line of a reply.
-The status of the Pymacs server is checked at every such timeout.")
+The status of the Pymacs helper is checked at every such timeout.")
 
 (defvar pymacs-timeout-at-line 2
   "Expected maximum time, in seconds, to get another line of a reply.
-The status of the Pymacs server is checked at every such timeout.")
+The status of the Pymacs helper is checked at every such timeout.")
 
 (defun pymacs-load (module &optional prefix noerror)
   "Import the Python module named MODULE into Emacs.
@@ -479,7 +479,7 @@ The timer is used only if `post-gc-hook' is not available.")
       (set-buffer-multibyte nil)
       (set-buffer-file-coding-system 'raw-text)
       (save-match-data
-        ;; Launch the Python helper.
+        ;; Launch the Pymacs helper.
         (let ((process
                (apply 'start-process "pymacs" buffer
                       (let ((python (getenv "PYMACS_PYTHON")))
@@ -542,7 +542,7 @@ The timer is used only if `post-gc-hook' is not available.")
   (pymacs-garbage-collect)
   (when (or (not pymacs-used-ids)
             (yes-or-no-p "\
-Killing the helper might create zombie objects.  Kill? "))
+Killing the Pymacs helper might create zombie objects.  Kill? "))
     (cond ((boundp 'post-gc-hook)
            (remove-hook 'post-gc-hook 'pymacs-schedule-gc))
           ((timerp pymacs-gc-timer)
@@ -575,7 +575,7 @@ Killing the helper might create zombie objects.  Kill? "))
 
 (defun pymacs-serve-until-reply (inserter)
   ;; This function evals INSERTER to print a Python request.  It sends it to
-  ;; the Python helper, and serves all sub-requests coming from the
+  ;; the Pymacs helper, and serves all sub-requests coming from the
   ;; Python side, until either a reply or an error is finally received.
   (unless (and pymacs-transit-buffer
                (buffer-name pymacs-transit-buffer)
@@ -608,7 +608,7 @@ Killing the helper might create zombie objects.  Kill? "))
 
 (defun pymacs-round-trip (inserter)
   ;; This function evals INSERTER to print a Python request.  It sends it to
-  ;; the Python helper, awaits for any kind of reply, and returns it.
+  ;; the Pymacs helper, awaits for any kind of reply, and returns it.
   (with-current-buffer pymacs-transit-buffer
     ;; Possibly trim the beginning of the transit buffer.
     (cond ((not pymacs-trace-transit)
