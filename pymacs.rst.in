@@ -1311,9 +1311,10 @@ for Pymacs.  As Richard felt, at the time, very overwhelmed with other
 duties, no decision was taken and the integration went nowhere.
 
 After Gerd resigned as an Emacs maintainer, someone from the Emacs
-development team wrote again (2002-01) asking information about how to
-integrate Pymacs.  It was easy to write a good summary, after all the
-discussions with Richard.  And that's it.  Nothing more happened! :-)
+development team wrote again (2002-01) asking information about how
+to integrate Pymacs.  It was easy for me to write a good and thorough
+summary, after all these discussions with Richard.  And that's the end
+of the story: I never heard of it again. :-)
 
 Speed issues
 ------------
@@ -1385,15 +1386,11 @@ examples or contributions, and moved closer to internal integration
 depending on how users use or appreciate them.  For now, Pymacs should
 concentrate at doing its own humble job well, and resist bloat.
 
-There is much to do, in my opinion, before one seriously dares to speak
-about Pymacs closing to some version 1.0.  Specifications are still
-incomplete, worth user suggestions are still not addressed, porting
-considerations are not well documented.  The test suite is still in
-its infancy, examples are not appropriate, the distribution still has
-a bit too much clutter.  Also, Pymacs should integrate more seamlessly
-with all :file:`.el` files, with transparent standard :code:`autoload`
-and such things.  My little tries in that direction were not satisfying
-so far.  On the Python side, there are likely bits to write so Pymacs
-fit better with iterators.  One or two useful faked primitives (like
-:code:`getindex` and :code:`putindex`) *might* (I'm not fully sure) be
-useful sometimes.  And Python 3.0 has not been considered yet.
+Before Pymacs closes to some version 1.0, some specifications should be
+revisited, user suggestions pondered, porting matters documented.  The
+test suite should grow up, we should collect more examples.  Pymacs
+should aim seamless integration with :file:`.el` files and with
+transparent :code:`autoload` (my little tries were not so successful).
+On the Python side, Pymacs *might* fake primitives like :code:`getindex`
+and :code:`putindex`, better support iterators and some newer Python
+features, and at least consider Python 3.0.
