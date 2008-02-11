@@ -588,7 +588,7 @@ Killing the helper might create zombie objects.  Kill? "))
         (let* ((text (pymacs-round-trip inserter))
                (reply (condition-case info
                           (eval text)
-                        (pymacs-report-error
+                        (error
                          (cons 'pymacs-oops (prin1-to-string info))))))
           (cond ((not (consp reply))
                  (setq inserter `(pymacs-print-for-apply 'reply '(,reply))))
