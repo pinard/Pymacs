@@ -1,3 +1,8 @@
+2008-02-11  François Pinard  <pinard@iro.umontreal.ca>
+
+	* contrib/Perez: New.
+	Contributed by Fernando Pérez.
+
 2008-02-10  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Add Unicode support, which was needed around some bugs.

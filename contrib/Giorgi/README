@@ -1,17 +1,17 @@
 .. role:: file(literal)
 
 =======================
-Giorgi Giovanni's files
+Giovanni Giorgi's files
 =======================
 
 .. contents::
 .. sectnum::
 
-The :file:`contrib/misc-jj/` subdirectory of the Pymacs distribution
+The :file:`contrib/Giorgi/` subdirectory of the Pymacs distribution
 contains miscellaneous files contributed by Giovanni Giorgi, to be
 sorted, documented, maybe deleted, at least pondered in one way or
-another.  The remainder of this page comes from Giorgi's writing,
-waiting for Giorgi to revise its contents.
+another.  The remainder of this page comes from Giovanni's writing,
+waiting for Giovanni to revise its contents.
 
 Introduction
 ============

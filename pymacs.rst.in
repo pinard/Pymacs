@@ -17,7 +17,7 @@ Extending Emacs with Python
 .. contents::
 .. sectnum::
 
-Presentation
+Introduction
 ============
 
 What is Pymacs?
@@ -38,11 +38,11 @@ It is very easy to install Pymacs, as neither Emacs nor Python need to
 be compiled nor relinked.  Emacs merely starts Python as a subprocess,
 and Pymacs implements a communication protocol between both processes.
 
-Beware that this is beta-status software: while specifications are a bit
-frozen, changes may still happen that would require small adaptations in
-your code.
+Report problems, documentation flaws, or suggestions to François Pinard:
 
-Pymacs sites and resources
+  + mailto:pinard@iro.umontreal.ca
+
+Documentation and examples
 --------------------------
 
 The main Pymacs site conveys the Pymacs documentation (you are reading
@@ -50,21 +50,71 @@ its Pymacs manual right now) and distributions:
 
   + http://pymacs.progiciels-bpi.ca
 
-I expect average Pymacs users to have a deeper knowledge of Python than
-Emacs Lisp.  Some examples, later in this manual, are meant for Python
-users having a limited experience with the Emacs API.  Examples, like
-pizzas, come in three varieties: small, medium and large (one of each!).
-To find more about these examples, peek into the :file:`contrib/`
-directory in the Pymacs distribution, meant to be documented at:
+I expect average Pymacs users to have a deeper knowledge of Python
+than Emacs Lisp.  People have widely varying approaches in writing
+:file:`.emacs` files, as far as Pymacs is concerned:
 
-  + http://pymacs.progiciels-bpi.ca/contrib.html
+  + Some can go and write almost no Emacs Lisp, yet a bit is still
+    necessary for establishing a few loading hooks.  For many simple
+    needs, one can do a lot without having to learn much.
 
-Report problems, documentation flaws, or suggestions to François Pinard:
+  + On the other hand, for more sophisticated usages, people cannot
+    really escape knowing the Emacs Lisp API to some extent, because they
+    should be programming-wise familiarity with what is a buffer, a point,
+    a mark, etc. and what are the allowed operations on those.
 
-  + mailto:pinard@iro.umontreal.ca
+While Pymacs examples are no substitute for a careful reading of the
+Pymacs manual, the contemplation and study of others' nice works may
+well enligthen and deepen your understanding.  A few examples are
+included within the Pymacs distribution, each as a subdirectory of the
+:file:`contrib/` directory, and each haviing its own :file:`README`
+file.  These are listed below, easiest examples first:
 
-Or feel welcome writing to or joining the following mailing list, where
-there are a few more people around likely to give you feedback:
+  + Paul Winkler's example
+
+    + http://pymacs.progiciels-bpi.ca/Winkler.html
+
+  + Fernando Pérez' examples
+
+    + http://pymacs.progiciels-bpi.ca/Perez.html
+    + http://pymacs.progiciels-bpi.ca/contrib/Perez/
+
+  + Giovanni Giorgi's files
+
+    + http://pymacs.progiciels-bpi.ca/Giorgi.html
+    + http://pymacs.progiciels-bpi.ca/contrib/Giorgi/
+
+  + A reformatter for boxed comments
+
+    + http://pymacs.progiciels-bpi.ca/rebox.html
+    + http://pymacs.progiciels-bpi.ca/contrib/rebox/
+
+A few more substantial examples of Pymacs usage have been brought to my
+attention, and are available externally (listed here in no particular
+order):
+
+  + pymdev -- A Python Emacs Development Module:
+
+    + http://www.toolness.com/pymdev/
+
+  + Ropemacs -- Features like refactoring and code-assists:
+
+    + http://rope.sf.net/
+    + http://rope.sf.net/hg/rpymacs
+
+  + Bicycle Repair Man -- A Refactoring Tool for Python:
+
+    + http://bicyclerepair.sourceforge.net/
+
+  + Emacs Freex -- A personal wiki on steroids:
+
+    + http://www.princeton.edu/%7Egdetre/software/freex/docs/index.html
+
+Other resources
+---------------
+
+You are welcome writing to or joining the following mailing list, where
+there are a few people around likely to give you feedback:
 
   + mailto:pymacs-devel@googlegroups.com
 
@@ -1112,133 +1162,6 @@ The code below assumes that Python files meant for Pymacs are kept in
                  (string-match "\\.py\\'" buffer-file-name))
         (pymacs-load (substring buffer-file-name 0 -3)))))
   (add-hook 'after-save-hook 'fp-maybe-pymacs-reload)
-
-Pymacs examples
-===============
-
-People have widely varying approaches in writing :file:`.emacs` files,
-as far as Pymacs is concerned.
-
-  + Some can go and write almost no Emacs Lisp, yet a bit is still
-    necessary for establishing a few loading hooks.  For many simple
-    needs, one can do a lot without having to learn much.
-
-  + On the other hand, for more sophisticated usages, people cannot
-    really escape knowing the Emacs Lisp API to some extent, because they
-    should be programming-wise familiarity with what is a buffer, a point,
-    a mark, etc. and what are the allowed operations on those.
-
-A simple example
-----------------
-
-The problem
-,,,,,,,,,,,
-
-This problem has been submitted by Paul Winkler, and the text below has
-been reformatted from our email exchanges.
-
-Let's say I have a module, call it :file:`manglers.py`, containing this
-simple python function::
-
-  def break_on_whitespace(some_string):
-      words = some_string.split()
-      return '\n'.join(words)
-
-The goal is telling Emacs about this function so that I can call it on a
-region of text and replace the region with the result of the call.  And
-bind this action to a key, of course, let's say :code:`[f7]`.
-
-The Emacs buffer ought to be handled in some way.  If this is not on the
-Emacs Lisp side, it has to be on the Python side, but we cannot escape
-handling the buffer.  So, there is an equilibrium in the work to do for
-the user, that could be displaced towards Emacs Lisp or towards Python.
-
-Python side
-,,,,,,,,,,,
-
-Here is a first draft for the Python side of the problem::
-
-  from Pymacs import lisp
-
-  def break_on_whitespace():
-      start = lisp.point()
-      end = lisp.mark(True)
-      if start > end:
-          start, end = end, start
-      text = lisp.buffer_substring(start, end)
-      words = text.split()
-      replacement = '\n'.join(words)
-      lisp.delete_region(start, end)
-      lisp.insert(replacement)
-
-  interactions = {break_on_whitespace: ''}
-
-For various stylistic reasons, this could be rewritten into::
-
-  from Pymacs import lisp
-  interactions = {}
-
-  def break_on_whitespace():
-      start, end = lisp.point(), lisp.mark(True)
-      words = lisp.buffer_substring(start, end).split()
-      lisp.delete_region(start, end)
-      lisp.insert('\n'.join(words))
-
-  interactions[break_on_whitespace] = ''
-
-The above relies, in particular, on the fact that for those Emacs Lisp
-functions used here, ``start`` and ``end`` may be given in any order.
-
-Emacs side
-,,,,,,,,,,
-
-On the Emacs side, one would do::
-
-  (pymacs-load "manglers")
-  (global-set-key [f7] 'manglers-break-on-whitespace)
-
-Examples in :file:`contrib/`
-----------------------------
-
-A few examples are collected within the :file:`contrib/` directory
-within the Pymacs distribution.  Each set should have its own
-documentation file:
-
-  + Giorgi Giovanni's miscellaneous files
-
-    + http://pymacs.progiciels-bpi.ca/misc-jj.html
-
-  + Another Gnus backend
-
-    + http://pymacs.progiciels-bpi.ca/nn.html
-
-  + A reformatter for boxed comments
-
-    + http://pymacs.progiciels-bpi.ca/rebox.html
-
-Projects using Pymacs
----------------------
-
-One good approach to learning comes from the contemplation and study of
-others' nice works.  A few projects using Pymacs have been brought to my
-attention:
-
-  + :code:`pymdev` -- A Python Emacs Development Module:
-
-    + http://www.toolness.com/pymdev/
-
-  + Ropemacs -- Features like refactoring and code-assists:
-
-    + http://rope.sf.net/
-    + http://rope.sf.net/hg/rpymacs
-
-  + Bicycle Repair Man -- A Refactoring Tool for Python:
-
-    + http://bicyclerepair.sourceforge.net/
-
-  + Emacs Freex -- A personal wiki on steroids:
-
-    + http://www.princeton.edu/%7Egdetre/software/freex/docs/index.html
 
 About and around Pymacs
 =======================

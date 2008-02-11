@@ -4,5 +4,4 @@
 Contents of Pymacs' :file:`contrib/`
 ====================================
 
-Each subdirectory of :file`contrib/` contains its own documentation file,
-named after that subdirectory (like, say, :file:`contrib/rebox/rebox.rst`).
+Each subdirectory of :file`contrib/` contains its own :file:`README` file.
