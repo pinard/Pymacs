@@ -205,10 +205,11 @@ Prepare your :file:`.emacs` file
 The :file:`.emacs` file is not given in the distribution, you likely
 have one already in your home directory.  You need to add these lines::
 
-  (autoload 'pymacs-load "pymacs" nil t)
-  (autoload 'pymacs-eval "pymacs" nil t)
   (autoload 'pymacs-apply "pymacs")
   (autoload 'pymacs-call "pymacs")
+  (autoload 'pymacs-eval "pymacs" nil t)
+  (autoload 'pymacs-exec "pymacs" nil t)
+  (autoload 'pymacs-load "pymacs" nil t)
   ;;(eval-after-load "pymacs"
   ;;  '(add-to-list 'pymacs-load-path YOUR-PYMACS-DIRECTORY"))
 
@@ -482,12 +483,27 @@ object.
 Usage on the Emacs Lisp side
 ============================
 
+:code:`pymacs-exec`
+-------------------
+
+Function ``(pymacs-exec TEXT)`` gets :var:`TEXT` executed as a Python
+statement, and its value is always :code:`nil`.  So, this function may
+only be useful because of its possible side effects on the Python side.
+
+This function may also be called interactively::
+
+  M-x pymacs-exec RET TEXT RET
+
 :code:`pymacs-eval`
 -------------------
 
 Function ``(pymacs-eval TEXT)`` gets :var:`TEXT` evaluated as a Python
 expression, and returns the value of that expression converted back to
 Emacs Lisp.
+
+This function may also be called interactively::
+
+  M-x pymacs-eval RET TEXT RET
 
 :code:`pymacs-call`
 -------------------
@@ -528,6 +544,15 @@ added before the Emacs Lisp name (as a way to avoid name clashes).
 of :var:`MODULE` with underlines turned into dashes, and followed by a
 dash.
 
+Note that :code:`pymacs-load` has the effect of declaring the module
+variables and methods the Emacs Lisp side, but it does *not* declare
+anything on the Python side.  Of course, Python imports the module
+before making it available for Emacs, but there is no Pymacs ready
+variable on the Python side holding that module.  If you need to import
+:var:`MODULE` in a variable on the Python side, the proper incantation
+is ``(pymacs-exec "import MODULE")``.  And of course, that this latter
+statement does not declare anything on the Emacs Lisp side.
+
 Whenever :code:`pymacs_load_hook` is defined in the loaded
 Python module, :code:`pymacs-load` calls it without arguments,
 but before creating the Emacs view for that module.  So, the
@@ -547,15 +572,20 @@ interactive function, the interaction specification drives some checking
 on the Emacs Lisp side.  Currently, there is no provision for collecting
 keyword arguments in Emacs Lisp.
 
+This function may also be called interactively::
+
+  M-x pymacs-load RET MODULE RET PREFIX RET
+
 Expected usage
 --------------
 
-We do not expect that :code:`pymacs-eval`, :code:`pymacs-call` or
-:code:`pymacs-apply` will be much used, if ever.  In practice, the Emacs
-Lisp side of a Pymacs application might call :code:`pymacs-load` a few
-times for linking into the Python modules, with the indirect effect of
-defining trampoline functions for these modules on the Emacs Lisp side,
-which can later be called like usual Emacs Lisp functions.
+We do not expect that :code:`pymacs-exec`, :code:`pymacs-eval`,
+:code:`pymacs-call` or :code:`pymacs-apply` will be much used, if
+ever, in most Pymacs applications.  In practice, the Emacs Lisp side
+of a Pymacs application might call :code:`pymacs-load` a few times for
+linking into the Python modules, with the indirect effect of defining
+trampoline functions for these modules on the Emacs Lisp side, which can
+later be called like usual Emacs Lisp functions.
 
 These imported functions are usually those which are of interest for the
 user, and the preferred way to call Python services with Pymacs.
