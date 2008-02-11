@@ -55,6 +55,8 @@ official: publish
 	  ln -s Pymacs-$$version.tar.gz web/archives/Pymacs.tar.gz
 
 synchro: local
+	du -s .git
 	git gc --prune
+	du -s .git
 	find -name '*~' | xargs rm -fv
 	synchro -PD alcyon entretien
