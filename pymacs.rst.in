@@ -468,10 +468,11 @@ return value of an Emacs Lisp function called from Python.
 The objects represented by these Python handles may be inspected or
 modified using the basic library of Python functions.  For example, in::
 
+  (pymacs-exec "import re")
   (setq matcher (pymacs-eval "re.compile('PATTERN').match"))
   (pymacs-call matcher ARGUMENT)
 
-the initial :code:`setq` above could be decomposed into::
+the :code:`setq` line above could be decomposed into::
 
   (setq compiled (pymacs-eval "re.compile('PATTERN')")
         matcher (pymacs-call "getattr" compiled "match"))
