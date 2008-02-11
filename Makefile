@@ -21,7 +21,9 @@ clean:
 	rm -rf build* Pymacs/*.pyc tests/*.pyc
 	rm -f pymacs.el pymacs.rst pymacs.pdf Pymacs/__init__.py
 
-pymacs.pdf: pymacs.rst
+pymacs.pdf: pymacs.rst.in
+	$(PYSETUP) clean
+	touch .stamp
 	rm -rf tmp-pdf
 	mkdir tmp-pdf
 	rst2latex.py --use-latex-toc --input-encoding=UTF-8 \
