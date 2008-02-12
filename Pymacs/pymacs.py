@@ -551,8 +551,9 @@ class Lisp_Interface:
 
 lisp = Lisp_Interface()
 
-print_lisp_quoted_specials = {'"': '\\"', '\\': '\\\\', '\b': '\\b',
-                              '\f': '\\f', '\n': '\\n', '\t': '\\t'}
+print_lisp_quoted_specials = {
+        '"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f',
+        '\n': '\\n', '\r': '\\r', '\t': '\\t'}
 
 def print_lisp(value, write, quoted):
     if value is None:
