@@ -96,3 +96,4 @@ def notest_3():
 def notest_4():
 
     # Try ``list.buffer_string()`` in a multi-byte buffer.
+    pass
