@@ -751,6 +751,44 @@ expecting the first line of a reply.  The :code:`pymacs-timeout-at-line`
 variable, which defaults to 2, says how many seconds to wait without
 checking, while expecting a line of the reply after the first.
 
+pymacs-dreadful-zombies
+,,,,,,,,,,,,,,,,,,,,,,,
+
+When the Pymacs helper dies, all useful Python objects it might contain
+also die with it.  However, if the death occurs unexpectedly, instead of
+normally at the end of the Emacs session, there might now exist dangling
+references in Emacs Lisp space towards those vanished Python objects.
+
+Pymacs could not do much without a Pymacs helper, and likely, a new
+one will soon be created within the same Emacs session, and brand new
+Python objects may be created within that new helper.  Now, and this is
+a bit technical, all references are transmitted in form of object slot
+numbers.  As a consequence, the new Pymacs helper should be careful at
+never allocating a new Python object using a slot number of a useful
+vanished object, as this might possibly create fatal confusion.
+
+There is not enough information for the new Pymacs helper to recreate
+the useful objects which disappeared.  However, there is enough
+machinery to recover all their slot numbers, and then, all these slots
+are initialized with so-called *zombies*.  If Emacs later calls a
+vanished Python object, this merely awakes its zombie, which will then
+make some noise, then fall asleep again.  The noise has the form of a
+diagnostic within the ``*Messages*`` buffer, sometimes visible in the
+mini-buffer as well when the mini-buffer is not simultaneously used for
+some other purpose.
+
+Zombies get more dreadful if :code:`pymacs-dreadful-zombies` is set to a
+non-:code:`nil` value.  In this case, calling a vanished Python object
+raises an error that will eventually interrupt the current computation.
+Such a behaviour might be useful for debugging purposes, or for making
+sure that no call to a vanished Python object goes unnoticed.
+
+In previous Pymacs releases, zombies were always dreadful, under the
+assumption that calling a vanished object is a real error.  However, it
+could cause irritation in some circumstances, like when associated with
+frequently triggered Emacs Lisp hook functions.  That's why that, by
+default, zombies have been finally turned into more innocuous beings!
+
 Usage on the Python side
 ========================
 

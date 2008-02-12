@@ -279,7 +279,10 @@ def zombie(*arguments):
     # This catch-all function is set as the value for any function which
     # disappeared with a previous Pymacs helper process, so calling
     # such a function from Emacs will trigger a decipherable diagnostic.
-    error("Object vanished when the Pymacs helper was killed.")
+    diagnostic = "Object vanished when the Pymacs helper was killed"
+    if lisp.pymacs_dreadful_zombies:
+        error(diagnostic)
+    lisp.message(diagnostic)
 
 ## Emacs services for Python applications.
 

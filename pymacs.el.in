@@ -67,6 +67,10 @@ The status of the Pymacs helper is checked at every such timeout.")
   "Expected maximum time, in seconds, to get another line of a reply.
 The status of the Pymacs helper is checked at every such timeout.")
 
+(defvar pymacs-dreadful-zombies nil
+  "If zombies should trigger hard errors, whenever they get called.
+If `nil', calling a zombie will merely produce a diagnostic message.")
+
 (defun pymacs-load (module &optional prefix noerror)
   "Import the Python module named MODULE into Emacs.
 Each function in the Python module is made available as an Emacs function.

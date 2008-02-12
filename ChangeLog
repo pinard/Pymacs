@@ -3,6 +3,9 @@
 	* contrib/Perez: New.
 	Contributed by Fernando Pérez.
 
+	* : Turn dreaded zombies into kind zombies, by default.
+	Reported by Ali Gholami Rudi.
+
 2008-02-10  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Add Unicode support, which was needed around some bugs.
