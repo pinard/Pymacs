@@ -105,7 +105,7 @@ class Python(Launch):
         # Receive a Lisp expression from the Pymacs helper.
         text = self.output.read(3)
         if not text or text[0] != '<':
-            raise Protocol.ProtocolError, "`<' expected."
+            raise pymacs.ProtocolError("'<' expected, got %r" % text)
         while text[-1] != '\t':
             text = text + self.output.read(1)
         return self.output.read(int(text[1:-1]))
