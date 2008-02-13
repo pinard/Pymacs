@@ -180,7 +180,6 @@ equivalents, other structures are converted into Lisp handles."
   ;; The goal is to generate a virtual contents for this `MODULE.el' file, as
   ;; a set of Lisp trampoline functions to the Python module functions.
   ;; Python modules can then be loaded or autoloaded as if they were Lisp.
-  ;(message "** %S %S" operation arguments)
   (cond ((and (eq operation 'file-readable-p)
               (let ((module (substring (car arguments) 0 -3)))
                 (or (pymacs-file-force operation arguments)
@@ -260,8 +259,6 @@ The timer is used only if `post-gc-hook' is not available.")
           (if (gethash id pymacs-weak-hash)
               (setq used-ids (cons id used-ids))
             (setq unused-ids (cons id unused-ids)))))
-      ;;(message "** pymacs-garbage-collect %d %d"
-      ;;         (length used-ids) (length unused-ids))
       (setq pymacs-used-ids used-ids
             pymacs-gc-wanted nil)
       (when unused-ids
