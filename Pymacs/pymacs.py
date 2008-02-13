@@ -96,19 +96,15 @@ Arguments are added to the search path for Python modules.
 run = Main()
 main = run.main
 
-# The few following declarations are logically inside to the Protocol class.
-# Having them outside has the slight inconvenience of polluting the global
+# The following declaration is logically inside to the Protocol class.
+# Having it outside has the slight inconvenience of polluting the global
 # name space, but it has the advantage of making the remainder of the code
 # a bit easier to write and read.  Not a big deal! :-)
 
 if old_style_exception:
     ProtocolError = 'ProtocolError'
-    ReplyException = 'ReplyException'
-    ErrorException = 'ErrorException'
 else:
     class ProtocolError(Exception): pass
-    class ReplyException(Exception): pass
-    class ErrorException(Exception): pass
 
 class Protocol:
 
@@ -135,23 +131,44 @@ class Protocol:
         # that the reply has been transmitted, or that an error occurred.
         # A reply notification from Emacs interrupts the loop: the result
         # of this function is then the value returned from Emacs.
-        while True:
+        done = False
+        while not done:
             try:
-                text = self.receive()
-                if text[:5] == 'exec ':
-                    exec eval(text[5:], {}, {})
+                action, text = self.receive()
+                if action == 'eval':
                     action = 'pymacs-reply'
-                    argument = None
+                    try:
+                        run.inhibit_quit = False
+                        value = eval(text)
+                    finally:
+                        run.inhibit_quit = True
+                elif action == 'exec':
+                    action = 'pymacs-reply'
+                    value = None
+                    try:
+                        run.inhibit_quit = False
+                        exec text
+                    finally:
+                        run.inhibit_quit = True
+                elif action == 'return':
+                    done = True
+                    try:
+                        run.inhibit_quit = False
+                        value = eval(text, {}, {})
+                    finally:
+                        run.inhibit_quit = True
+                elif action == 'raise':
+                    action = 'pymacs-error'
+                    value = 'Emacs: ' + text
                 else:
-                    action = 'pymacs-reply'
-                    argument = eval(text)
-            except ReplyException, exception:
-                if old_style_exception:
-                    return exception
-                return exception.args[0]
-            except ErrorException, exception:
+                    if old_style_exception:
+                        raise ProtocolError, text
+                    raise ProtocolError(text)
+            except KeyboardInterrupt:
+                if done:
+                    raise
                 action = 'pymacs-error'
-                argument = str(exception)
+                value = '*Interrupted*'
             except ProtocolError, exception:
                 sys.stderr.write("Protocol error: %s\n" % exception)
                 sys.exit(1)
@@ -160,29 +177,36 @@ class Protocol:
                 buffer = StringIO.StringIO()
                 traceback.print_exc(file=buffer)
                 action = 'pymacs-error'
-                argument = buffer.getvalue()
-            # Send an expression to EMACS applying FUNCTION over ARGUMENT,
-            # where FUNCTION is some `pymacs-STATUS'.
-            fragments = []
-            write = fragments.append
-            write('(%s ' % action)
-            print_lisp(argument, write, True)
-            write(')')
-            self.send(''.join(fragments))
+                value = buffer.getvalue()
+            if not done:
+                # Send an expression to EMACS applying FUNCTION over ARGUMENT,
+                # where FUNCTION is some `pymacs-STATUS'.
+                fragments = []
+                write = fragments.append
+                write('(%s ' % action)
+                print_lisp(value, write, True)
+                write(')')
+                self.send(''.join(fragments))
+        return value
 
     def receive(self):
-        # Receive a Python expression from Emacs, return its text unevaluated.
+        # Receive a Python expression from Emacs, return (ACTION, TEXT).
         prefix = sys.stdin.read(3)
         if not prefix or prefix[0] != '>':
             if old_style_exception:
                 raise ProtocolError, "`>' expected."
             raise ProtocolError("`>' expected.")
         while prefix[-1] != '\t':
-            prefix = prefix + sys.stdin.read(1)
+            character = sys.stdin.read(1)
+            if not character:
+                if old_style_exception:
+                    raise ProtocolError, "Empty stdin read."
+                raise ProtocolError("Empty stdin read.")
+            prefix += character
         text = sys.stdin.read(int(prefix[1:-1]))
         if run.debug_file is not None:
             file(run.debug_file, 'a').write(prefix + text)
-        return text
+        return text.split(None, 1)
 
     def send(self, text):
         # Send TEXT to Emacs, which is an expression to evaluate.
@@ -205,21 +229,6 @@ class Protocol:
             file(run.debug_file, 'a').write(prefix + text)
         sys.stdout.write(prefix + text)
         sys.stdout.flush()
-
-def reply(value):
-    # This function implements the `reply' pseudo-function.  It is only
-    # used from within `pymacs-serve-until-reply' on the Emacs side.
-    if old_style_exception:
-        raise ReplyException, value
-    raise ReplyException(value)
-
-def error(message):
-    # This function implements the `error' pseudo-function.  It is merely
-    # used from within `pymacs-serve-until-reply' on the Emacs side.
-    # It is also used by the catch-all `zombie' function, below.
-    if old_style_exception:
-        raise ErrorException, "Emacs: %s" % message
-    raise ErrorException("Emacs: %s" % message)
 
 def pymacs_load_helper(file_without_extension, prefix):
     # This function imports a Python module, then returns a Lisp expression

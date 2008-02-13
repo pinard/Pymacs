@@ -97,7 +97,7 @@ If NOERROR is not nil, do not raise error when the module is not found."
 (defun pymacs-eval (text)
   "Compile TEXT as a Python expression, and return its value."
   (interactive "sPython expression? ")
-  (let ((value (pymacs-call "eval" text)))
+  (let ((value (pymacs-serve-until-reply "eval" `(princ ,text))))
     (when (interactive-p)
       (message "%S" value))
     value))
@@ -106,8 +106,7 @@ If NOERROR is not nil, do not raise error when the module is not found."
   "Compile and execute TEXT as a sequence of Python statements.
 This functionality is experimental, and does not appear to be useful."
   (interactive "sPython statements? ")
-  (let ((value (pymacs-serve-until-reply
-                `(progn (princ "exec ") (prin1 ,text)))))
+  (let ((value (pymacs-serve-until-reply "exec" `(princ ,text))))
     (when (interactive-p)
       (message "%S" value))
     value))
@@ -117,14 +116,16 @@ This functionality is experimental, and does not appear to be useful."
 FUNCTION is a string denoting the Python function, ARGUMENTS are separate
 Lisp expressions, one per argument.  Immutable Lisp constants are converted
 to Python equivalents, other structures are converted into Lisp handles."
-  (pymacs-serve-until-reply `(pymacs-print-for-apply ',function ',arguments)))
+  (pymacs-serve-until-reply
+   "eval" `(pymacs-print-for-apply ',function ',arguments)))
 
 (defun pymacs-apply (function arguments)
   "Return the result of calling a Python function FUNCTION over ARGUMENTS.
 FUNCTION is a string denoting the Python function, ARGUMENTS is a list of
 Lisp expressions.  Immutable Lisp constants are converted to Python
 equivalents, other structures are converted into Lisp handles."
-  (pymacs-serve-until-reply `(pymacs-print-for-apply ',function ',arguments)))
+  (pymacs-serve-until-reply
+   "eval" `(pymacs-print-for-apply ',function ',arguments)))
 
 ;;; Integration details.
 
@@ -375,6 +376,13 @@ The timer is used only if `post-gc-hook' is not available.")
       (pymacs-print-for-eval argument))
     (princ ")")))
 
+(defun pymacs-print-for-eval-expanded (expression)
+  ;; This function acts like `print-for-eval', but expands a copy
+  ;; whenever possible.  A proper list is turned into a Python list,
+  ;; and a vector is turned into a Python tuple.
+  (let ((pymacs-forget-mutability t))
+    (pymacs-print-for-eval expression)))
+
 (defun pymacs-print-for-eval (expression)
   ;; This function prints a Python expression out of a Lisp EXPRESSION.
   (let (done)
@@ -576,10 +584,12 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
   ;; `serve-until-reply' later recognises this form.
   (cons 'pymacs-expand expression))
 
-(defun pymacs-serve-until-reply (inserter)
-  ;; This function evals INSERTER to print a Python request.  It sends it to
-  ;; the Pymacs helper, and serves all sub-requests coming from the
-  ;; Python side, until either a reply or an error is finally received.
+(defun pymacs-serve-until-reply (action inserter)
+  ;; This function builds a Python request by printing ACTION and
+  ;; evaluating INSERTER, which itself prints an argument.  It then
+  ;; sends the request to the Pymacs helper, and serves all
+  ;; sub-requests coming from the Python side, until either a reply or
+  ;; an error is finally received.
   (unless (and pymacs-transit-buffer
                (buffer-name pymacs-transit-buffer)
                (get-buffer-process pymacs-transit-buffer))
@@ -588,30 +598,34 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
     (pymacs-garbage-collect))
   (let (done value)
       (while (not done)
-        (let* ((text (pymacs-round-trip inserter))
-               (reply (condition-case info
+        (let ((text (pymacs-round-trip action inserter)))
+          (setq value (condition-case info
                           (eval text)
                         (error
-                         (cons 'pymacs-oops (prin1-to-string info))))))
-          (cond ((not (consp reply))
-                 (setq inserter `(pymacs-print-for-apply 'reply '(,reply))))
-                ((eq 'pymacs-reply (car reply))
-                 (setq done t value (cdr reply)))
-                ((eq 'pymacs-error (car reply))
-                 (pymacs-report-error "Python: %s" (cdr reply)))
-                ((eq 'pymacs-expand (car reply))
-                 (setq inserter `(pymacs-print-for-apply-expanded
-                                  'reply '(,(cdr reply)))))
-                ((eq 'pymacs-oops (car reply))
-                 (setq inserter `(pymacs-print-for-apply
-                                  'error '(,(cdr reply)))))
-                (t (setq inserter `(pymacs-print-for-apply
-                                    'reply '(,reply)))))))
+                         (cons 'pymacs-oops (prin1-to-string info)))))
+          (cond ((not (consp value))
+                 (setq action "return"
+                       inserter `(pymacs-print-for-eval ',value)))
+                ((eq 'pymacs-reply (car value))
+                 (setq done t
+                       value (cdr value)))
+                ((eq 'pymacs-error (car value))
+                 (pymacs-report-error "Python: %s" (cdr value)))
+                ((eq 'pymacs-expand (car value))
+                 (setq action "return"
+                       inserter `(pymacs-print-for-eval-expanded ,(cdr value))))
+                ((eq 'pymacs-oops (car value))
+                 (setq action "raise"
+                       inserter `(pymacs-print-for-eval ,(cdr value))))
+                (t (setq action "return"
+                         inserter `(pymacs-print-for-eval ',value))))))
     value))
 
-(defun pymacs-round-trip (inserter)
-  ;; This function evals INSERTER to print a Python request.  It sends it to
-  ;; the Pymacs helper, awaits for any kind of reply, and returns it.
+(defun pymacs-round-trip (action inserter)
+  ;; This function produces a Python request by printing and
+  ;; evaluating INSERTER, which itself prints an argument.  It sends
+  ;; the request to the Pymacs helper, awaits for any kind of reply,
+  ;; and returns it.
   (with-current-buffer pymacs-transit-buffer
     ;; Possibly trim the beginning of the transit buffer.
     (cond ((not pymacs-trace-transit)
@@ -636,6 +650,8 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
           ;; Encode request.
           (setq send-position (marker-position marker))
           (let ((standard-output marker))
+            (princ action)
+            (princ " ")
             (eval inserter))
           (goto-char marker)
           (unless (= (preceding-char) ?\n)

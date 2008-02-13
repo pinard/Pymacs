@@ -17,7 +17,7 @@ def test_1():
     def validate(input, expected):
         output = re.sub(r'\(pymacs-(defun|python) [0-9]*',
                         r'(pymacs-\1 0',
-                        setup.ask_python(input))
+                        setup.ask_python('eval ' + input))
         assert output == expected, (output, expected)
 
     for quotable, input, output in (
@@ -80,5 +80,5 @@ def test_1():
         yield validate, input, '(pymacs-reply %s)\n' % output
 
 def test_2():
-    value = setup.ask_python('3 + 5\n')
+    value = setup.ask_python('eval 3 + 5\n')
     assert value == '(pymacs-reply 8)\n', repr(value)
