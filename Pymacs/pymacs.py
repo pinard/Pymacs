@@ -31,31 +31,75 @@ See the Pymacs documentation (in `README') for more information.
 
 __metaclass__ = type
 import os, sys
+
+old_style_exception = not isinstance(Exception, type)
 
 ## Python services for Emacs applications.
 
-def main(*arguments):
-    """\
+class Main:
+    debug_file = None
+    signal_file = None
+
+    def main(self, *arguments):
+        """\
 Execute Python services for Emacs, and Emacs services for Python.
 This program is meant to be called from Emacs, using `pymacs.el'.
 
-The program arguments are additional search paths for Python modules.
+Debugging options:
+    -d FILE  Debug the protocol to FILE.
+    -s FILE  Trace received signals to FILE.
+
+Arguments are added to the search path for Python modules.
 """
-    arguments = list(arguments)
-    arguments.reverse()
-    for argument in arguments:
-        if os.path.isdir(argument):
-            sys.path.insert(0, argument)
-    from Pymacs import __version__
-    lisp._protocol.send('(pymacs-version "%s")' % __version__)
-    lisp._protocol.loop()
+        # Decode options.
+        arguments = (os.environ.get('PYMACS_OPTIONS', '').split()
+                     + list(arguments))
+        import getopt
+        options, arguments = getopt.getopt(arguments, 'd:s:')
+        for option, value in options:
+            if option == '-d':
+                self.debug_file = value
+            elif option == '-s':
+                self.signal_file = value
+        arguments.reverse()
+        for argument in arguments:
+            if os.path.isdir(argument):
+                sys.path.insert(0, argument)
+        # Inhibit signals.
+        import signal
+        for counter in range(1, signal.NSIG):
+            if counter == signal.SIGINT:
+                self.original_handler = signal.signal(counter,
+                                                      self.interrupt_handler)
+            else:
+                try:
+                    signal.signal(counter, self.generic_handler)
+                except RuntimeError:
+                    pass
+        self.inhibit_quit = True
+        # Start protocol and services.
+        from Pymacs import __version__
+        lisp._protocol.send('(pymacs-version "%s")' % __version__)
+        lisp._protocol.loop()
+
+    def generic_handler(self, number, frame):
+        if self.debug_file:
+            file(self.debug_file, 'a').write('%d\n' % number)
+
+    def interrupt_handler(self, number, frame):
+        if self.debug_file:
+            star = (' *', '')[self.inhibit_quit]
+            file(self.debug_file, 'a').write('%d%s\n' % (number, star))
+        if not self.inhibit_quit:
+            self.original_handler(number, frame)
+
+run = Main()
+main = run.main
 
 # The few following declarations are logically inside to the Protocol class.
 # Having them outside has the slight inconvenience of polluting the global
 # name space, but it has the advantage of making the remainder of the code
 # a bit easier to write and read.  Not a big deal! :-)
-
-old_style_exception = not isinstance(Exception, type)
 
 if old_style_exception:
     ProtocolError = 'ProtocolError'
@@ -111,8 +155,6 @@ class Protocol:
             except ProtocolError, exception:
                 sys.stderr.write("Protocol error: %s\n" % exception)
                 sys.exit(1)
-            except KeyboardInterrupt:
-                raise
             except:
                 import StringIO, traceback
                 buffer = StringIO.StringIO()
@@ -130,14 +172,17 @@ class Protocol:
 
     def receive(self):
         # Receive a Python expression from Emacs, return its text unevaluated.
-        text = sys.stdin.read(3)
-        if not text or text[0] != '>':
+        prefix = sys.stdin.read(3)
+        if not prefix or prefix[0] != '>':
             if old_style_exception:
                 raise ProtocolError, "`>' expected."
             raise ProtocolError("`>' expected.")
-        while text[-1] != '\t':
-            text = text + sys.stdin.read(1)
-        return sys.stdin.read(int(text[1:-1]))
+        while prefix[-1] != '\t':
+            prefix = prefix + sys.stdin.read(1)
+        text = sys.stdin.read(int(prefix[1:-1]))
+        if run.debug_file is not None:
+            file(run.debug_file, 'a').write(prefix + text)
+        return text
 
     def send(self, text):
         # Send TEXT to Emacs, which is an expression to evaluate.
@@ -153,10 +198,12 @@ class Protocol:
             write(')\n')
             text = ''.join(fragments)
             self.freed = []
-        if text[-1] == '\n':
-            sys.stdout.write('<%d\t%s' % (len(text), text))
-        else:
-            sys.stdout.write('<%d\t%s\n' % (len(text) + 1, text))
+        if text[-1] != '\n':
+            text += '\n'
+        prefix = '<%d\t' % len(text)
+        if run.debug_file is not None:
+            file(run.debug_file, 'a').write(prefix + text)
+        sys.stdout.write(prefix + text)
         sys.stdout.flush()
 
 def reply(value):

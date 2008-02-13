@@ -795,22 +795,29 @@ Usage on the Python side
 Python setup
 ------------
 
-Pymacs requires little or no setup in the Python modules which are meant
-to be used from Emacs, for the simple situations where these modules
-receive nothing but Emacs :code:`nil`, numbers or strings, or return
-nothing but Python :code:`None`, numbers or strings.
+For Python modules meant to be used from Emacs and which receive nothing
+but Emacs :code:`nil`, numbers or strings, or return nothing but Python
+:code:`None`, numbers or strings, then Pymacs requires little or no
+setup.  Otherwise, use ``from Pymacs import lisp`` at the start of your
+module.  If you need more Pymacs features, like the :code:`Let` class,
+then write ``from Pymacs import lisp, Let``.
 
-Otherwise, use ``from Pymacs import lisp``.  If you need more Pymacs
-features, like the :code:`Let` class, write ``from Pymacs import lisp,
-Let``.
+The Pymacs helper runs Python code to serve the Emacs side, and it is
+blocked waiting until Emacs sends a request.  Until the Pymacs helper
+returns a reply, Emacs is blocked in turn, yet fully listening to serve
+eventual Python sub-requests, etc.  So, either Emacs or the Pymacs
+helper is active at a given instant, but never both at once.
 
-Response mode
--------------
+Unless Emacs has sent a request to the Pymacs helper and is expecting
+a reply, it is just not listening to receive Python requests.  So, any
+other Python thread may not asynchronously use Pymacs to get Emacs
+services.  The design of the Python application should be such that the
+communication is always be channelled from the main Python thread.
 
-When Python receives a request from Emacs in the context of Pymacs,
-and until it returns the reply, Emacs keeps listening to serve Python
-requests.  Emacs is not listening otherwise.  Other Python threads, if
-any, may not call Emacs without *very* careful synchronisation.
+When Pymacs starts, all process signals are inhibited on the Python
+side.  Yet, :code:`SIGINT` gets re-enabled while running user functions.
+If the user elects to reactivate some other signal in her Python code,
+she should do so as to not damage or severe the communication protocol.
 
 Emacs Lisp symbols
 ------------------
@@ -1212,6 +1219,38 @@ The code below assumes that Python files meant for Pymacs are kept in
         (pymacs-load (substring buffer-file-name 0 -3)))))
   (add-hook 'after-save-hook 'fp-maybe-pymacs-reload)
 
+Debugging the Pymacs helper
+---------------------------
+
+The Pymacs helper is a Python program which accepts options and arguments.
+The available options, which are only meant for debugging, are:
+
+    -d FILE  Debug the protocol to FILE
+    -s FILE  Trace received signals to FILE
+
++ The ``-d`` option saves a copy of the communication protocol in the
+  given file, as seen from the Pymacs helper.  The file should be fairly
+  identical to the contents of the :code:`*Pymacs*` buffer within Emacs.
+
++ The ``-s`` option monitors most signals received by the Pymacs helper
+  and logs them in the given file.  Each log line contains the process id
+  of the Pymacs helper and the signal number.  Besides logging, signals
+  are usually ignored.
+
+The arguments list directories to be added at the beginning of the
+Python module search path, and whenever Emacs launches the Pymacs
+helper, the contents of the Emacs Lisp :code:`pymacs-load-path` variable
+is turned into this argument list.
+
+The Pymacs helper options may be set through the :code:`PYMACS_OPTIONS`
+environment variable.  For example, one could execute something like::
+
+  export PYMACS_OPTIONS='-d /tmp/pymacs-debug -s /tmp/pymacs-signals'
+
+in a shell (presuming :code:`bash` here) and start Emacs from that shell.
+Then, when Emacs will launch the Pymacs helper, the above options will
+be obeyed.
+
 About and around Pymacs
 =======================
 
@@ -1405,7 +1444,7 @@ Ali Gholami Rudi also writes (2008-02):
   strings.  Transferring them requires:`
 
     1. `escaping characters in the strings`
-    2. `putting them in` :file:`*Pymacs*` `buffer`
+    2. `putting them in` :code:`*Pymacs*` `buffer`
     3. `sending the region to Python process`
     4. `evaluating the Python string in Python-side (involves compiling)`
 
