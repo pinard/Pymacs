@@ -274,12 +274,11 @@ To check this, start a fresh Emacs session, and type ``M-x
 pymacs-eval RET``.  Emacs should prompt you for a Python expression.
 Try ``repr(2L**111) RET``.  The mini buffer should display
 `"2596148429267413814265248164610048L"`. ``M-x pymacs-load RET`` should
-prompt you for a Python module name.  Reply ``os RET``.  After Emacs
-prompts you for a prefix, merely hit Enter to accept the default prefix.
-This should have the effect of importing the Python :code:`os` module
-within Emacs.  Typing ``M-: (os-getcwd) RET`` should echo the current
-directory in the message buffer, as returned by the :code:`os.getcwd`
-Python function.
+prompt you for a Python module name.  Reply ``os RET RET`` (the second
+``RET`` is for accepting the default prefix.  This should have the
+effect of importing the Python :code:`os` module within Emacs.  Typing
+``M-: (os-getcwd) RET`` should echo the current directory in the message
+buffer, as returned by the :code:`os.getcwd` Python function.
 
 Porting and caveats
 -------------------
@@ -1070,28 +1069,56 @@ Debugging
 On the communication protocol
 -----------------------------
 
-There is not much to say about the protocol.  A comment in the source
-describes it shortly, and there is not much besides it.  All the rest is
-some recursion trickery over the protocol, but the trickery itself is
-not part of the protocol, which is rather simple deep down:
+Initially, the Pymacs communication protocol was rather simple deep
+down, merely using evaluation on arrival on both sides.  All the rest
+was recursion trickery over that simple idea.  But the magic was fragile
+to interruption requests, so the protocol has been revisited a bit so
+each message action could be recognized before evaluation is attempted.
+The idea (not fully implemented yet) is to make the protocol part immune
+to interruptions, but to allow evaluations themselves to be interrupted.
 
-  + messages are exchanged in strictly alternating directions, the first
-    being sent by the Pymacs helper just after it started,
+  + As it is more easy to generate than to parse, and also because Emacs
+    has a Lisp parser and Python has a Python parser, Emacs generates
+    Python code when preparing a message to the Pymacs helper, and Python
+    generates Emacs Lisp expressions when preparing a message for Emacs.
 
-  + Python-originated messages are nothing but Lisp expressions,
+  + Messages are exchanged in strictly alternating directions (from
+    Python to Emacs, from Emacs to Python, etc.), the first message being
+    sent by the Pymacs helper just after it started, identifying the
+    current Pymacs version.
 
-  + Emacs-originated messages are nothing but Python expressions, if
-    we except the case of :code:`exec` requests which introduce Python
-    statements, and these requests are handled separately, first,
+  + Messages in both directions have a similar envelope.  Each physical
+    message has a prefix, the message contents, and a newline.  The
+    prefix starts with either ``<`` or ``>`` to mark the directionality,
+    immediately followed by the decimal expression of the contents length
+    counted in characters, immediately followed by a single horizontal
+    tab.  The count excludes the prefix, but includes the newline.
 
-  + expressions (or execs) are evaluated on arrival, both sides.
+  + In each direction, messages are made up of two elements: an action
+    keyword and a single argument (yet the argument may sometimes be
+    complex).  As a special case, memory cleanup messages, from Python
+    to Emacs, use four elements: the atom :code:`free`, a list of slot
+    numbers to free, and then the real action and argument.  This is
+    because the cleanup is delayed and piggy-backed over some other
+    message from Python to Emacs.
 
-It helps to know that some expressions (like for :code:`reply` and
-:code:`error`) are kludged to trigger exceptions, which are expected and
-caught, then transmitted to the other side.  Memory management concerns
-are merely piggy-backed over the protocol, just abusing a bit of the
-*evaluation on arrival* machinery, so seamlessly that the protocol did
-not even have to be modified.
+  + For Emacs originated messages, the action and the argument are
+    separated by a space.  For Python originated messages, the action and
+    the argument are made into a Lisp list.
+
+  + Most actions in the following table are available in both
+    directions, unless noted.  The first three actions *start* a new level
+    of Pymacs evaluation, the remaining actions end the current level.
+
+    + :code:`eval` requests the evaluation of its expression argument.
+    + :code:`exec` requests the execution of its statement argument (this may
+      only be received on the Python side).
+    + :code:`expand` requests the opening of an Emacs Lisp structure (this may
+      only be received on the Emacs side).
+    + :code:`return` represents the normal reply to a request, the argument
+      holds the value to be returned (:code:`nil` in case of :code:`exec`).
+    + :code:`raise` represents the error reply to a request, the argument
+      then holds a diagnostic string.
 
 The :code:`*Pymacs*` buffer
 ---------------------------
@@ -1107,29 +1134,31 @@ debugging use of it, first set :code:`pymacs-trace-transit` to either
 understand the communication protocol, it is briefly explained here,
 using an artificially complex example to do so.  Consider::
 
-  (pymacs-eval "lisp('(pymacs-eval \"`2L**111`\")')")
+  (pymacs-eval "lisp('(pymacs-eval \"repr(2L**111)\")')")
   "2596148429267413814265248164610048L"
 
 Here, Emacs asks Python to ask Emacs to ask Python for a simple bignum
-computation.  Note that Emacs does not natively know how to handle
-big integers, nor has an internal representation for them.  This is
-why I use back ticks, so Python returns a string representation of
-the result, instead of the result itself.  Here is a trace for this
-example.  The ``<`` character flags a message going from Python to Emacs
-and is followed by an expression written in Emacs Lisp.  The ``>``
-character flags a message going from Emacs to Python and is followed
-by a expression written in Python.  The number gives the length of the
-message.
+computation.  Note that Emacs does not natively know how to handle big
+integers, nor has an internal representation for them.  This is why I
+use the :code:`repr` function, so Python returns a string representation
+of the result, instead of the result itself.  Here is a trace for this
+example.  Imagine that Emacs stands on the left and that Python stands
+on the right.  The ``<`` character flags a message going from Python
+to Emacs, while the ``>`` character flags a message going from Emacs
+to Python.  The number gives the length of the message, including the
+end of line.  (Acute readers may notice that the first number is likely
+incorrect, this is because the version number is replaced in the example
+while this manual is being produced.)
 
 ::
 
-  <22   (pymacs-version "@VERSION@")
-  >49   eval("lisp('(pymacs-eval \"`2L**111`\")')")
-  <25   (pymacs-eval "`2L**111`")
-  >18   eval("`2L**111`")
-  <47   (pymacs-reply "2596148429267413814265248164610048L")
-  >45   reply("2596148429267413814265248164610048L")
-  <47   (pymacs-reply "2596148429267413814265248164610048L")
+  <22     (version "@VERSION@")
+  >43     eval lisp('(pymacs-eval "repr(2L**111)")')
+  <45     (eval (progn (pymacs-eval "repr(2L**111)")))
+  >19     eval repr(2L**111)
+  <47     (return "2596148429267413814265248164610048L")
+  >45     return "2596148429267413814265248164610048L"
+  <47     (return "2596148429267413814265248164610048L")
 
 Python evaluation is done in the context of the :code:`Pymacs.pymacs`
 module, so for example a mere :code:`reply` really means
@@ -1233,9 +1262,9 @@ The available options, which are only meant for debugging, are:
   identical to the contents of the :code:`*Pymacs*` buffer within Emacs.
 
 + The ``-s`` option monitors most signals received by the Pymacs helper
-  and logs them in the given file.  Each log line contains the process id
-  of the Pymacs helper and the signal number.  Besides logging, signals
-  are usually ignored.
+  and logs them in the given file.  Each log line merely contains a signal
+  number, possibly followed by a star if the interruption was allowed in.
+  Besides logging, signals are usually ignored.
 
 The arguments list directories to be added at the beginning of the
 Python module search path, and whenever Emacs launches the Pymacs
@@ -1482,3 +1511,6 @@ transparent :code:`autoload` (my little tries were not so successful).
 On the Python side, Pymacs *might* fake primitives like :code:`getindex`
 and :code:`putindex`, better support iterators and some newer Python
 features, and at least consider Python 3.0.
+
+Pymacs is not much geared towards Python threads.  It is not clear yet if
+it would be reasonably tractable to better support them.

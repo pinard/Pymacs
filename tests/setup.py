@@ -99,7 +99,7 @@ class Python(Launch):
         self.output, self.input = popen2.popen4(command)
         text = self.receive()
         from Pymacs import __version__
-        assert text == '(pymacs-version "%s")\n' % __version__, text
+        assert text == '(version "%s")\n' % __version__, repr(text)
 
     def receive(self):
         # Receive a Lisp expression from the Pymacs helper.

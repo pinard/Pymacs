@@ -341,7 +341,7 @@ The timer is used only if `post-gc-hook' is not available.")
     (aset pymacs-lisp index expression)
     index))
 
-(defun pymacs-free-lisp (&rest indices)
+(defun pymacs-free-lisp (indices)
   ;; This function is triggered from Python side for Lisp handles which lost
   ;; their last reference.  These references should be cut on the Lisp side as
   ;; well, or else, the objects will never be garbage-collected.
@@ -525,7 +525,7 @@ The timer is used only if `post-gc-hook' is not available.")
         (let ((reply (read (current-buffer))))
           (if (and (pymacs-proper-list-p reply)
                    (= (length reply) 2)
-                   (eq (car reply) 'pymacs-version))
+                   (eq (car reply) 'version))
               (unless (string-equal (cadr reply) "@VERSION@")
                 (pymacs-report-error "Pymacs Lisp version is 0.30, Python is %s"
                        (cadr reply)))
@@ -566,24 +566,6 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
           pymacs-lisp nil
           pymacs-freed-list nil)))
 
-(defun pymacs-reply (expression)
-  ;; This pseudo-function returns `(pymacs-reply . EXPRESSION)'.
-  ;; It is only used from within the `loop' function on the Python side.
-  ;; `serve-until-reply' later recognises this form.
-  (cons 'pymacs-reply expression))
-
-(defun pymacs-error (expression)
-  ;; This pseudo-function returns `(pymacs-error . EXPRESSION)'.
-  ;; It is only used from within the `loop' function on the Python side.
-  ;; `serve-until-reply' later recognises this form.
-  (cons 'pymacs-error expression))
-
-(defun pymacs-expand (expression)
-  ;; This pseudo-function returns `(pymacs-expand . EXPRESSION)'.  It is
-  ;; only called from the `loop' function within `Pymacs/pymacs.py'.
-  ;; `serve-until-reply' later recognises this form.
-  (cons 'pymacs-expand expression))
-
 (defun pymacs-serve-until-reply (action inserter)
   ;; This function builds a Python request by printing ACTION and
   ;; evaluating INSERTER, which itself prints an argument.  It then
@@ -598,27 +580,30 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
     (pymacs-garbage-collect))
   (let (done value)
       (while (not done)
-        (let ((text (pymacs-round-trip action inserter)))
-          (setq value (condition-case info
-                          (eval text)
-                        (error
-                         (cons 'pymacs-oops (prin1-to-string info)))))
-          (cond ((not (consp value))
+        (let ((form (pymacs-round-trip action inserter)))
+          (setq action (car form))
+          (when (eq action 'free)
+            (pymacs-free-lisp (cadr form))
+            (setq form (cddr form)
+                  action (car form)))
+          (setq value (cadr form))
+          ;(setq value (condition-case info
+          ;                (eval value)
+          ;              (error
+          ;               (cons 'oops (prin1-to-string info)))))
+          (cond ((eq action 'eval)
                  (setq action "return"
-                       inserter `(pymacs-print-for-eval ',value)))
-                ((eq 'pymacs-reply (car value))
-                 (setq done t
-                       value (cdr value)))
-                ((eq 'pymacs-error (car value))
-                 (pymacs-report-error "Python: %s" (cdr value)))
-                ((eq 'pymacs-expand (car value))
+                       inserter `(pymacs-print-for-eval ',(eval value))))
+                ((eq action 'expand)
                  (setq action "return"
-                       inserter `(pymacs-print-for-eval-expanded ,(cdr value))))
-                ((eq 'pymacs-oops (car value))
-                 (setq action "raise"
-                       inserter `(pymacs-print-for-eval ,(cdr value))))
-                (t (setq action "return"
-                         inserter `(pymacs-print-for-eval ',value))))))
+                       inserter `(pymacs-print-for-eval-expanded
+                                  ',(eval value))))
+                ((eq action 'return)
+                 (setq value (eval value)
+                       done t))
+                ((eq action 'raise)
+                 (pymacs-report-error "Python: %s" value))
+                (t (pymacs-report-error "Protocol error: %s" form)))))
     value))
 
 (defun pymacs-round-trip (action inserter)

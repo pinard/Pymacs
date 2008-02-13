@@ -70,15 +70,15 @@ def test_1():
             # TODO: Lisp and derivatives
             ):
         if quotable:
-            yield validate, repr(input), '(pymacs-reply \'%s)\n' % output
+            yield validate, repr(input), '(return \'%s)\n' % output
         else:
-            yield validate, repr(input), '(pymacs-reply %s)\n' % output
+            yield validate, repr(input), '(return %s)\n' % output
     for input, output in (
             ('ord', '(pymacs-defun 0 nil)'),
             ('object()', '(pymacs-python 0)'),
             ):
-        yield validate, input, '(pymacs-reply %s)\n' % output
+        yield validate, input, '(return %s)\n' % output
 
 def test_2():
     value = setup.ask_python('eval 3 + 5\n')
-    assert value == '(pymacs-reply 8)\n', repr(value)
+    assert value == '(return 8)\n', repr(value)

@@ -79,7 +79,7 @@ Arguments are added to the search path for Python modules.
         self.inhibit_quit = True
         # Start protocol and services.
         from Pymacs import __version__
-        lisp._protocol.send('(pymacs-version "%s")' % __version__)
+        lisp._protocol.send('version', '"%s"' % __version__)
         lisp._protocol.loop()
 
     def generic_handler(self, number, frame):
@@ -136,14 +136,14 @@ class Protocol:
             try:
                 action, text = self.receive()
                 if action == 'eval':
-                    action = 'pymacs-reply'
+                    action = 'return'
                     try:
                         run.inhibit_quit = False
                         value = eval(text)
                     finally:
                         run.inhibit_quit = True
                 elif action == 'exec':
-                    action = 'pymacs-reply'
+                    action = 'return'
                     value = None
                     try:
                         run.inhibit_quit = False
@@ -154,39 +154,33 @@ class Protocol:
                     done = True
                     try:
                         run.inhibit_quit = False
-                        value = eval(text, {}, {})
+                        value = eval(text)
                     finally:
                         run.inhibit_quit = True
                 elif action == 'raise':
-                    action = 'pymacs-error'
+                    action = 'raise'
                     value = 'Emacs: ' + text
                 else:
                     if old_style_exception:
-                        raise ProtocolError, text
-                    raise ProtocolError(text)
+                        raise ProtocolError, "Unknown action %r" % action
+                    raise ProtocolError("Unknown action %r" % action)
             except KeyboardInterrupt:
                 if done:
                     raise
-                action = 'pymacs-error'
+                action = 'raise'
                 value = '*Interrupted*'
             except ProtocolError, exception:
-                sys.stderr.write("Protocol error: %s\n" % exception)
-                sys.exit(1)
+                sys.exit("Protocol error: %s\n" % exception)
             except:
                 import StringIO, traceback
                 buffer = StringIO.StringIO()
                 traceback.print_exc(file=buffer)
-                action = 'pymacs-error'
+                action = 'raise'
                 value = buffer.getvalue()
             if not done:
-                # Send an expression to EMACS applying FUNCTION over ARGUMENT,
-                # where FUNCTION is some `pymacs-STATUS'.
                 fragments = []
-                write = fragments.append
-                write('(%s ' % action)
-                print_lisp(value, write, True)
-                write(')')
-                self.send(''.join(fragments))
+                print_lisp(value, fragments.append, True)
+                self.send(action, ''.join(fragments))
         return value
 
     def receive(self):
@@ -208,22 +202,15 @@ class Protocol:
             file(run.debug_file, 'a').write(prefix + text)
         return text.split(None, 1)
 
-    def send(self, text):
-        # Send TEXT to Emacs, which is an expression to evaluate.
+    def send(self, action, text):
+        # Send ACTION and its TEXT argument to Emacs.
         if self.freed:
-            # All delayed Lisp cleanup gets piggied back on the transmission.
-            fragments = []
-            write = fragments.append
-            write('(progn (pymacs-free-lisp')
-            for index in self.freed:
-                write(' %d' % index)
-            write(') ')
-            write(text)
-            write(')\n')
-            text = ''.join(fragments)
+            # All delayed Lisp cleanup is piggied back on the transmission.
+            text = ('(free (%s) %s %s)\n'
+                    % (' '.join(map(str, self.freed)), action, text))
             self.freed = []
-        if text[-1] != '\n':
-            text += '\n'
+        else:
+            text = '(%s %s)\n' % (action, text)
         prefix = '<%d\t' % len(text)
         if run.debug_file is not None:
             file(run.debug_file, 'a').write(prefix + text)
@@ -443,21 +430,21 @@ class Symbol:
         return '\'' + self.text
 
     def value(self):
-        return lisp(self.text)
+        return lisp._eval(self.text)
 
     def copy(self):
-        return lisp('(pymacs-expand %s)' % self.text)
+        return lisp._expand(self.text)
 
     def set(self, value):
         if value is None:
-            lisp('(setq %s nil)' % self.text)
+            lisp._eval('(setq %s nil)' % self.text)
         else:
             fragments = []
             write = fragments.append
             write('(progn (setq %s ' % self.text)
             print_lisp(value, write, True)
             write(') nil)')
-            lisp(''.join(fragments))
+            lisp._eval(''.join(fragments))
 
     def __call__(self, *arguments):
         fragments = []
@@ -467,7 +454,7 @@ class Symbol:
             write(' ')
             print_lisp(argument, write, True)
         write(')')
-        return lisp(''.join(fragments))
+        return lisp._eval(''.join(fragments))
 
 class Lisp:
 
@@ -487,7 +474,7 @@ class Lisp:
         return self
 
     def copy(self):
-        return lisp('(pymacs-expand %s)' % self)
+        return lisp._expand(str(self))
 
 class Buffer(Lisp):
     pass
@@ -510,13 +497,13 @@ class List(Lisp):
             write(' ')
             print_lisp(argument, write, True)
         write(')')
-        return lisp(''.join(fragments))
+        return lisp._eval(''.join(fragments))
 
     def __len__(self):
-        return lisp('(length %s)' % self)
+        return lisp._eval('(length %s)' % self)
 
     def __getitem__(self, key):
-        value = lisp('(nth %d %s)' % (key, self))
+        value = lisp._eval('(nth %d %s)' % (key, self))
         if value is None and key >= len(self):
             if old_style_exception:
                 raise IndexError, key
@@ -529,7 +516,7 @@ class List(Lisp):
         write('(setcar (nthcdr %d %s) ' % (key, self))
         print_lisp(value, write, True)
         write(')')
-        lisp(''.join(fragments))
+        lisp._eval(''.join(fragments))
 
 class Table(Lisp):
 
@@ -539,7 +526,7 @@ class Table(Lisp):
         write('(gethash ')
         print_lisp(key, write, True)
         write(' %s)' % self)
-        return lisp(''.join(fragments))
+        return lisp._eval(''.join(fragments))
 
     def __setitem__(self, key, value):
         fragments = []
@@ -549,15 +536,15 @@ class Table(Lisp):
         write(' ')
         print_lisp(value, write, True)
         write(' %s)' % self)
-        lisp(''.join(fragments))
+        lisp._eval(''.join(fragments))
 
 class Vector(Lisp):
 
     def __len__(self):
-        return lisp('(length %s)' % self)
+        return lisp._eval('(length %s)' % self)
 
     def __getitem__(self, key):
-        return lisp('(aref %s %d)' % (self, key))
+        return lisp._eval('(aref %s %d)' % (self, key))
 
     def __setitem__(self, key, value):
         fragments = []
@@ -565,7 +552,7 @@ class Vector(Lisp):
         write('(aset %s %d ' % (self, key))
         print_lisp(value, write, True)
         write(')')
-        lisp(''.join(fragments))
+        lisp._eval(''.join(fragments))
 
 class Lisp_Interface:
 
@@ -574,7 +561,14 @@ class Lisp_Interface:
         self.__dict__['_protocol'] = Protocol()
 
     def __call__(self, text):
-        self._protocol.send('(progn %s)' % text)
+        return self._eval('(progn %s)' % text)
+
+    def _eval(self, text):
+        self._protocol.send('eval', text)
+        return self._protocol.loop()
+
+    def _expand(self, text):
+        self._protocol.send('expand', text)
         return self._protocol.loop()
 
     def __getattr__(self, name):

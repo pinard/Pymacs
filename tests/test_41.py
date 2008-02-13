@@ -86,10 +86,15 @@ def test_2():
         assert output == expected, (output, expected)
 
     yield validate, '(pymacs-eval "3 + 5")', '8'
+
     yield (validate,
            ('(progn (pymacs-exec "def f(): pass")\n'
             '       (pymacs-eval "lisp.apply(f, None)"))\n'),
            'nil')
+
+    yield (validate,
+           '(pymacs-eval "lisp(\'(pymacs-eval \\"repr(2L**111)\\")\')")',
+           '"2596148429267413814265248164610048L"')
 
 def notest_3():
 
