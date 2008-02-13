@@ -22,11 +22,13 @@
   (and (fboundp 'make-hash-table) (fboundp 'gethash) (fboundp 'puthash))
   "Set to t if hash tables are available.")
 
-(if (fboundp 'multibyte-string-p)
-    (defalias 'pymacs-multibyte-string-p 'multibyte-string-p)
-  (defun pymacs-multibyte-string-p (string)
-    "Tell XEmacs if STRING should be handled as multibyte."
-    (not (equal (find-charset-string string) '(ascii)))))
+(eval-and-compile
+
+  (if (fboundp 'multibyte-string-p)
+      (defalias 'pymacs-multibyte-string-p 'multibyte-string-p)
+    (defun pymacs-multibyte-string-p (string)
+      "Tell XEmacs if STRING should be handled as multibyte."
+      (not (equal (find-charset-string string) '(ascii))))))
 
 (defalias 'pymacs-report-error (symbol-function 'error))
 
