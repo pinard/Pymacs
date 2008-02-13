@@ -83,13 +83,13 @@ Arguments are added to the search path for Python modules.
         lisp._protocol.loop()
 
     def generic_handler(self, number, frame):
-        if self.debug_file:
-            file(self.debug_file, 'a').write('%d\n' % number)
+        if self.signal_file:
+            file(self.signal_file, 'a').write('%d\n' % number)
 
     def interrupt_handler(self, number, frame):
-        if self.debug_file:
+        if self.signal_file:
             star = (' *', '')[self.inhibit_quit]
-            file(self.debug_file, 'a').write('%d%s\n' % (number, star))
+            file(self.signal_file, 'a').write('%d%s\n' % (number, star))
         if not self.inhibit_quit:
             self.original_handler(number, frame)
 
