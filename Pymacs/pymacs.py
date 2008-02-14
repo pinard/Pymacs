@@ -67,15 +67,22 @@ Arguments are added to the search path for Python modules.
                 sys.path.insert(0, argument)
         # Inhibit signals.
         import signal
+        self.original_handler = signal.signal(
+                signal.SIGINT, self.interrupt_handler)
         for counter in range(1, signal.NSIG):
             if counter == signal.SIGINT:
                 self.original_handler = signal.signal(counter,
                                                       self.interrupt_handler)
-            else:
-                try:
-                    signal.signal(counter, self.generic_handler)
-                except RuntimeError:
-                    pass
+
+            # The following few lines of code are reported to create IO
+            # problems within the Pymacs helper itself, so I merely comment
+            # them for now, until we know better.
+
+            #else:
+            #    try:
+            #        signal.signal(counter, self.generic_handler)
+            #    except RuntimeError:
+            #        pass
         self.inhibit_quit = True
         # Start protocol and services.
         from Pymacs import __version__
