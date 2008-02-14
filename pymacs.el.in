@@ -319,7 +319,7 @@ The timer is used only if `post-gc-hook' is not available.")
 (defvar pymacs-freed-list nil
   "List of unallocated indices in Lisp.")
 
-;; When the Python CG is done with a Lisp object, a communication occurs so to
+;; When the Python GC is done with a Lisp object, a communication occurs so to
 ;; free the object on the Lisp side as well.
 
 (defun pymacs-allocate-lisp (expression)
@@ -351,13 +351,6 @@ The timer is used only if `post-gc-hook' is not available.")
       (setq pymacs-freed-list (cons index pymacs-freed-list)
             indices (cdr indices)))))
 
-(defun pymacs-print-for-apply-expanded (function arguments)
-  ;; This function acts like `print-for-apply', but produce arguments which
-  ;; are expanded copies whenever possible, instead of handles.  Proper lists
-  ;; are turned into Python lists, vectors are turned into Python tuples.
-  (let ((pymacs-forget-mutability t))
-    (pymacs-print-for-apply function arguments)))
-
 (defun pymacs-print-for-apply (function arguments)
   ;; This function prints a Python expression calling FUNCTION, which is a
   ;; string naming a Python function, or a Python reference, over all its
@@ -375,13 +368,6 @@ The timer is used only if `post-gc-hook' is not available.")
       (setq separator ", ")
       (pymacs-print-for-eval argument))
     (princ ")")))
-
-(defun pymacs-print-for-eval-expanded (expression)
-  ;; This function acts like `print-for-eval', but expands a copy
-  ;; whenever possible.  A proper list is turned into a Python list,
-  ;; and a vector is turned into a Python tuple.
-  (let ((pymacs-forget-mutability t))
-    (pymacs-print-for-eval expression)))
 
 (defun pymacs-print-for-eval (expression)
   ;; This function prints a Python expression out of a Lisp EXPRESSION.
@@ -578,32 +564,40 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
     (pymacs-start-services))
   (when pymacs-gc-wanted
     (pymacs-garbage-collect))
-  (let (done value)
-      (while (not done)
-        (let ((form (pymacs-round-trip action inserter)))
-          (setq action (car form))
-          (when (eq action 'free)
-            (pymacs-free-lisp (cadr form))
-            (setq form (cddr form)
-                  action (car form)))
-          (setq value (cadr form))
-          ;(setq value (condition-case info
-          ;                (eval value)
-          ;              (error
-          ;               (cons 'oops (prin1-to-string info)))))
+  (let ((inhibit-quit t)
+        done value)
+    (while (not done)
+      (let ((form (pymacs-round-trip action inserter)))
+        (setq action (car form))
+        (when (eq action 'free)
+          (pymacs-free-lisp (cadr form))
+          (setq form (cddr form)
+                action (car form)))
+        (let* ((pair (pymacs-interruptible-eval (cadr form)))
+               (success (cdr pair)))
+          (setq value (car pair))
           (cond ((eq action 'eval)
-                 (setq action "return"
-                       inserter `(pymacs-print-for-eval ',(eval value))))
+                 (if success
+                     (setq action "return"
+                           inserter `(pymacs-print-for-eval ',value))
+                   (setq action "raise"
+                         inserter `(princ ,value))))
                 ((eq action 'expand)
-                 (setq action "return"
-                       inserter `(pymacs-print-for-eval-expanded
-                                  ',(eval value))))
+                 (if success
+                     (setq action "return"
+                           inserter `(let ((pymacs-forget-mutability t))
+                                       (pymacs-print-for-eval ,value)))
+                   (setq action "raise"
+                         inserter `(princ ,value))))
                 ((eq action 'return)
-                 (setq value (eval value)
-                       done t))
+                 (if success
+                     (setq done t)
+                   (pymacs-report-error "%s" value)))
                 ((eq action 'raise)
-                 (pymacs-report-error "Python: %s" value))
-                (t (pymacs-report-error "Protocol error: %s" form)))))
+                 (if success
+                     (pymacs-report-error "Python: %s" value)
+                   (pymacs-report-error "%s" value)))
+                (t (pymacs-report-error "Protocol error: %s" form))))))
     value))
 
 (defun pymacs-round-trip (action inserter)
@@ -668,6 +662,27 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
       (when (and moving (not pymacs-trace-transit))
         (goto-char marker))
       reply)))
+
+(defun pymacs-interruptible-eval (expression)
+  ;; This function produces a pair (VALUE . SUCCESS) for EXPRESSION.
+  ;; A cautious evaluation of EXPRESSION is attempted, and any
+  ;; error while evaluating is caught, including Emacs quit (C-g).
+  ;; Any Emacs quit also gets forward as a SIGINT to the Pymacs handler.
+  ;; With SUCCESS being true, VALUE is the expression value.
+  ;; With SUCCESS being false, VALUE is an interruption diagnostic.
+  (let (value success)
+    (with-local-quit
+      (condition-case info
+          (setq value (eval expression)
+                success t)
+        (error
+         (setq value (prin1-to-string info)
+               success nil))))
+    (when quit-flag
+      (interrupt-process pymacs-transit-buffer)
+      (setq value "*Interrupted!*"
+            success nil))
+    (cons value success)))
 
 (defun pymacs-proper-list-p (expression)
   ;; Tell if a list is proper, id est, that it is `nil' or ends with `nil'.
