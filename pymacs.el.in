@@ -670,19 +670,12 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
   ;; Any Emacs quit also gets forward as a SIGINT to the Pymacs handler.
   ;; With SUCCESS being true, VALUE is the expression value.
   ;; With SUCCESS being false, VALUE is an interruption diagnostic.
-  (let (value success)
-    (with-local-quit
-      (condition-case info
-          (setq value (eval expression)
-                success t)
-        (error
-         (setq value (prin1-to-string info)
-               success nil))))
-    (when quit-flag
-      (interrupt-process pymacs-transit-buffer)
-      (setq value "*Interrupted!*"
-            success nil))
-    (cons value success)))
+  (condition-case info
+      (cons (let ((inhibit-quit nil)) (eval expression)) t)
+    (quit (setq quit-flag t)
+          (interrupt-process pymacs-transit-buffer)
+          (cons "*Interrupted!*" nil))
+    (error (cons (prin1-to-string info) nil))))
 
 (defun pymacs-proper-list-p (expression)
   ;; Tell if a list is proper, id est, that it is `nil' or ends with `nil'.
