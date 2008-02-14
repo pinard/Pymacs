@@ -10,7 +10,9 @@ python = $(PYMACS_PYTHON)
 all:
 	$(PYSETUP) build
 
-check: pymacs.el Pymacs/__init__.py
+check:
+	$(PYSETUP) clean
+	touch .stamp
 	cd tests && \
 	  PYMACS_EMACS=$(emacs) PYMACS_PYTHON=$(python) ./pytest $(TEST)
 
