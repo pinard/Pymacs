@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 """Functions accessible from inside Emacs.
 
 Filename: pym.py

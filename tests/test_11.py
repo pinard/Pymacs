@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 
 # Checking if pymacs.py works (Emacs and the Pymacs helper are not used).
 
