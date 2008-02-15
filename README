@@ -5,11 +5,6 @@
 README file for Pymacs
 ======================
 
-  *Pymacs 0.23 is now imminent.  The manual is in reST format, there is
-  a small validation suite, reported bugs have been squashed.  Yet, some
-  suggestions have been postponed, to be pondered.  I'm warmly thanking
-  all contributors and collaborators!*
-
 Pymacs is a powerful tool which, once started from Emacs, allows
 both-way communication between Emacs Lisp and Python.  Pymacs aims
 Python as an extension language for Emacs rather than the other way
@@ -18,27 +13,25 @@ Emacs Lisp code, one may load and use Python modules.  Python functions
 may themselves use Emacs services, and handle Emacs Lisp objects kept in
 Emacs Lisp space.
 
-The Pymacs manual offers installation instructions, a detailed
-description of the API usage, pointers to documented examples, other
+The Pymacs manual has installation instructions, a full description of
+the API, pointers to documented examples, to resources, and to other
 Pymacs sites or projects.  Both HTML and PDF formats may be found here:
 
   + http://pymacs.progiciels-bpi.ca/pymacs.html
   + http://pymacs.progiciels-bpi.ca/pymacs.pdf
 
-The latest *official* Pymacs distribution may be fetched from:
+The latest official Pymacs distribution may be fetched from:
 
   + http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz
 
-*Beware* that this one does not currently work with Python 2.5.  This is
-solved with the incoming release.  Other distributions, either older, or
-beta tests for the next one, are available in this directory:
+Some older distributions, and maybe beta pre-releases for testers,
+*might* be available in this directory:
 
   + http://pymacs.progiciels-bpi.ca/archives/
 
-If you feel in play mood, there is a reachable copy of my own sandbox
-repository for Pymacs.  I experiment with it, branches may be reset at
-any time.  The server might not even be up (then just tell me!).  To get
-your own copy, try::
+There is a reachable copy of my own sandbox repository for Pymacs.  I
+experiment with it, and branches may be reset at any time.  The server
+might not even be up (then just tell me!).  To get your own copy, try::
 
     git clone git://pymacs.progiciels-bpi.ca/pymacs
 
