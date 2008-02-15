@@ -3,6 +3,9 @@
 	* pymacs.el: Avoid with-local-quit, not portable to Emacs 21.
 	Reported by Ali Gholami Rudi.
 
+	* pymacs.py (zombie): Correct two bugs.
+	Reported by Ali Gholami Rudi.
+
 2008-02-11  François Pinard  <pinard@iro.umontreal.ca>
 
 	* contrib/Perez: New.

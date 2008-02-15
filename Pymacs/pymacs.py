@@ -103,15 +103,13 @@ Arguments are added to the search path for Python modules.
 run = Main()
 main = run.main
 
-# The following declaration is logically inside to the Protocol class.
-# Having it outside has the slight inconvenience of polluting the global
-# name space, but it has the advantage of making the remainder of the code
-# a bit easier to write and read.  Not a big deal! :-)
-
 if old_style_exception:
     ProtocolError = 'ProtocolError'
+    ZombieError = 'ZombieError'
 else:
-    class ProtocolError(Exception): pass
+    class error(Exception): pass
+    class ProtocolError(error): pass
+    class ZombieError(error): pass
 
 class Protocol:
 
@@ -330,8 +328,10 @@ def zombie(*arguments):
     # disappeared with a previous Pymacs helper process, so calling
     # such a function from Emacs will trigger a decipherable diagnostic.
     diagnostic = "Object vanished when the Pymacs helper was killed"
-    if lisp.pymacs_dreadful_zombies:
-        error(diagnostic)
+    if lisp.pymacs_dreadful_zombies.value():
+        if old_style_exception:
+            raise ZombieError, diagnostic
+        raise ZombieError(diagnostic)
     lisp.message(diagnostic)
 
 ## Emacs services for Python applications.
