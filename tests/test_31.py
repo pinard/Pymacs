@@ -8,6 +8,9 @@ from Pymacs import lisp, pymacs
 
 def setup_module(module):
     setup.start_emacs()
+    setup.ask_emacs('(defun print-for-eval-expanded (expression)\n'
+                    '  (let ((pymacs-forget-mutability t))\n'
+                    '    (pymacs-print-for-eval expression)))\n')
 
 def teardown_module(module):
     setup.stop_emacs()
@@ -15,9 +18,10 @@ def teardown_module(module):
 def test_1():
 
     def validate(input, expected):
+        output = setup.ask_emacs(input, 'prin1')
         output = re.sub(r'\(pymacs-(defun|python) [0-9]*',
                         r'(pymacs-\1 0',
-                        setup.ask_emacs(input, 'prin1'))
+                        output)
         assert output == expected, (output, expected)
 
     for quotable, input, output in (
@@ -78,13 +82,13 @@ def test_1():
         pymacs.print_lisp(input, fragments.append, True)
         yield validate, '\'' + ''.join(fragments), output
 
-def notest_2():
+def test_2():
 
     def validate(input, expected):
-        import re
+        output = setup.ask_emacs(input, 'print-for-eval-expanded')
         output = re.sub(r'\(pymacs-(defun|python) [0-9]*',
                         r'(pymacs-\1 0',
-                        setup.ask_emacs(input, 'pymacs-print-for-eval'))
+                        output)
         assert output == expected, (output, expected)
 
     for quotable, input, output in (
@@ -107,51 +111,36 @@ def notest_2():
             (False, 'g\fz', '"g\x0cz"'),
             (False, 'h\nz', r'"h\nz"'),
             (False, 'i\rz', '"i\rz"'),
-            (False, 'j\r\nz', '"j\r\nz"'),
+            (False, 'j\r\nz', '"j\r\\nz"'),
             (False, 'k\tz', '"k\tz"'),
             (False, 'l\x1bz', '"l\x1bz"'),
-            (False, (), '[]'),
-            (False, (0,), '[0]'),
-            (False, (0.0,), '[0.0]'),
-            (False, ('a',), '["a"]'),
-            (False, (0, 0.0, "a"), '[0 0.0 "a"]'),
-            (True, [], 'nil'),
-            (True, [0], '(0)'),
-            (True, [0.0], '(0.0)'),
-            (True, ['a'], '("a")'),
-            (True, [0, 0.0, "a"], '(0 0.0 "a")'),
-            (False, lisp['nil'], 'nil'),
-            (True, lisp['t'], 't'),
-            (True, lisp['ab_cd'], 'ab_cd'),
-            (True, lisp['ab-cd'], 'ab-cd'),
-            (True, lisp['lambda'], 'lambda'),
-            (False, lisp.nil, 'nil'),
-            (True, lisp.t, 't'),
-            (True, lisp.ab_cd, 'ab-cd'),
+            (False, (), '()'),
+            (False, (0,), '(0,)'),
+            (False, (0.0,), '(0.0,)'),
+            (False, ('a',), '("a",)'),
+            (False, (0, 0.0, "a"), '(0, 0.0, "a")'),
+            (True, [], 'None'),
+            (True, [0], '[0]'),
+            (True, [0.0], '[0.0]'),
+            (True, ['a'], '["a"]'),
+            (True, [0, 0.0, "a"], '[0, 0.0, "a"]'),
+            (False, lisp['nil'], 'None'),
+            (True, lisp['t'], 'True'),
+            (True, lisp['ab_cd'], 'lisp["ab_cd"]'),
+            (True, lisp['ab-cd'], 'lisp["ab-cd"]'),
+            (True, lisp['lambda'], 'lisp["lambda"]'),
+            (False, lisp.nil, 'None'),
+            (True, lisp.t, 'True'),
+            (True, lisp.ab_cd, 'lisp["ab-cd"]'),
             # TODO: Lisp and derivatives
             ):
         fragments = []
         pymacs.print_lisp(input, fragments.append, quotable)
-        yield (validate,
-               ('(let ((pymacs-forget-mutability t)\n'
-                '   (pymacs-print-for-eval %s)))\n'
-                % ''.join(fragments)),
-               output)
-    for input, output in (
-            (ord, '(pymacs-defun 0 nil)'),
-            (object(), '(pymacs-python 0)'),
-            ):
-        fragments = []
-        pymacs.print_lisp(input, fragments.append, True)
-        yield validate, '\'' + ''.join(fragments), output
-
-def notest_3():
-    value = setup.ask_emacs('nil\n', 'prin1')
-    assert value == '8', repr(value)
-
-#def test_pymacs_print_for_eval():
-#    yield output, '3 + 5', '3 + 5'
-#
-#def test_pymacs_eval():
-#    yield output_eval, '3 + 5', 8
-#    yield output_eval, '`3 + 5`', '8'
+        yield validate, ''.join(fragments), output
+    #for input, output in (
+    #        (ord, '(pymacs-defun 0 nil)'),
+    #        (object(), '(pymacs-python 0)'),
+    #        ):
+    #    fragments = []
+    #    pymacs.print_lisp(input, fragments.append, True)
+    #    yield validate, '\'' + ''.join(fragments), output

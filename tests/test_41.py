@@ -96,11 +96,10 @@ def test_2():
            '(pymacs-eval "lisp(\'(pymacs-eval \\"repr(2L**111)\\")\')")',
            '"2596148429267413814265248164610048L"')
 
-def notest_3():
+def test_3():
 
     setup.ask_emacs('(pymacs-exec "import os\nimport sys")')
 
-def notest_4():
-
+def test_4():
     # Try ``list.buffer_string()`` in a multi-byte buffer.
     pass
