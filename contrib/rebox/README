@@ -9,7 +9,10 @@ Handling of boxed comments in various box styles
 .. sectnum::
 
 This page documents the :file:`contrib/rebox/` subdirectory of the
-Pymacs distribution.
+Pymacs distribution.  First install Pymacs from the top-level of the
+distribution, this has the side-effect of adjusting a few files in this
+directory.  Once this done, return to this directory, then run ``python
+setup.py install``.  Also read `Emacs usage`_ below.
 
 Introduction
 ============

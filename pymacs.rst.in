@@ -305,8 +305,9 @@ Some later versions of Emacs 20 silently create ordinary tables when
 asked for weak hash tables.  Older Emacses do not have hash tables.
 
 The :file:`Pymacs` Python package holds a single :file:`pymacs.py` file
-(and the mandatory :file:`__init__.py`).  Programmers might elect to
-install their own Pymacs applications as sub-packages of this one.
+(and the mandatory :file:`__init__.py`).  Programmers might elect, but
+are not required, to install their own Pymacs applications either as
+sub-modules or sub-packages on :file:`Pymacs`.
 
 Emacs Lisp structures and Python objects
 ========================================

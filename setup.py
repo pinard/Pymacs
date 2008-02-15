@@ -22,6 +22,8 @@ def adjust(input, output):
     os.chmod(output, 0444)
 
 adjust('__init__.py.in', 'Pymacs/__init__.py')
+adjust('__init__.py.in', 'contrib/rebox/Pymacs/__init__.py')
+adjust('contrib/rebox/setup.py.in', 'contrib/rebox/setup.py')
 adjust('pymacs.el.in', 'pymacs.el')
 adjust('pymacs.rst.in', 'pymacs.rst')
 

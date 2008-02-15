@@ -19,7 +19,7 @@ may themselves use Emacs services, and handle Emacs Lisp objects kept in
 Emacs Lisp space.
 
 The Pymacs manual offers installation instructions, a detailed
-description of the API usage, examples, and also pointers to other
+description of the API usage, pointers to documented examples, other
 Pymacs sites or projects.  Both HTML and PDF formats may be found here:
 
   + http://pymacs.progiciels-bpi.ca/pymacs.html
@@ -29,9 +29,9 @@ The latest *official* Pymacs distribution may be fetched from:
 
   + http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz
 
-*Beware* that it does not currently work with Python 2.5.  This is
-solved with the incoming release.  Other distributions, either older,
-or beta tests for the next one, are available in this directory:
+*Beware* that this one does not currently work with Python 2.5.  This is
+solved with the incoming release.  Other distributions, either older, or
+beta tests for the next one, are available in this directory:
 
   + http://pymacs.progiciels-bpi.ca/archives/
 

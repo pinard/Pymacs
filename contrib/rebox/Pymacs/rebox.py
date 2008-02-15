@@ -481,7 +481,7 @@ Use both Knuth algorithm and protection for full stops at end of sentences.
             text = process.read()
             os.remove(name)
             if process.close() is None:
-                return [line.expandtabs() for line in text.split('\n')[:-1])]
+                return [line.expandtabs() for line in text.split('\n')[:-1]]
 
 class Refiller_Textwrap(Refiller):
     """\

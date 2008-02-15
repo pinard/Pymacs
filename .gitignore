@@ -2,6 +2,8 @@
 .stamp
 Pymacs/__init__.py
 build
+contrib/rebox/Pymacs/__init__.py
+contrib/rebox/setup.py
 pymacs.el
 pymacs.pdf
 pymacs.rst
