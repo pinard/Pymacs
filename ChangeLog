@@ -1,4 +1,11 @@
+2008-02-15  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs:el: Provide a set-buffer-multibyte replacement for XEmacs.
+	Reported by Neal Becker.
+
 2008-02-14  François Pinard  <pinard@iro.umontreal.ca>
+
+	* : Release 0.23.
 
 	* pymacs.el: Avoid with-local-quit, not portable to Emacs 21.
 	Reported by Ali Gholami Rudi.
@@ -94,7 +101,7 @@
 	* emacs.el.in: New name for emacs.el.
 
 	* tests/: New validation suite, or some start of it.
-
+
 2003-06-30  François Pinard  <pinard@iro.umontreal.ca>
 
 	* : Release 0.22.

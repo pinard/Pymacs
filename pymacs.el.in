@@ -28,7 +28,13 @@
       (defalias 'pymacs-multibyte-string-p 'multibyte-string-p)
     (defun pymacs-multibyte-string-p (string)
       "Tell XEmacs if STRING should be handled as multibyte."
-      (not (equal (find-charset-string string) '(ascii))))))
+      (not (member (find-charset-string string) '(nil (ascii))))))
+
+  (if (fboundp 'set-buffer-multibyte)
+      (defalias 'pymacs-set-buffer-multibyte 'set-buffer-multibyte)
+    (defun pymacs-set-buffer-multibyte (flag)
+      "For use in Emacs 20.2 or earlier.  No-operation under XEmacs."
+      (setq enable-multibyte-characters flag))))
 
 (defalias 'pymacs-report-error (symbol-function 'error))
 
@@ -473,7 +479,7 @@ The timer is used only if `post-gc-hook' is not available.")
   (let ((buffer (get-buffer-create "*Pymacs*")))
     (with-current-buffer buffer
       (buffer-disable-undo)
-      (set-buffer-multibyte nil)
+      (pymacs-set-buffer-multibyte nil)
       (set-buffer-file-coding-system 'raw-text)
       (save-match-data
         ;; Launch the Pymacs helper.
