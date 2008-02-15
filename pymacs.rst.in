@@ -110,6 +110,11 @@ order):
 
     + http://www.princeton.edu/%7Egdetre/software/freex/docs/index.html
 
+The QaTeX project was influenced by Pymacs, according to its author:
+
+  + http://qatex.sourceforge.net/
+  + http://www.pytex.org/doc/index.html#eurotex2005
+
 Other resources
 ---------------
 
@@ -1143,12 +1148,12 @@ integers, nor has an internal representation for them.  This is why I
 use the :code:`repr` function, so Python returns a string representation
 of the result, instead of the result itself.  Here is a trace for this
 example.  Imagine that Emacs stands on the left and that Python stands
-on the right.  The ``<`` character flags a message going from Python
-to Emacs, while the ``>`` character flags a message going from Emacs
-to Python.  The number gives the length of the message, including the
-end of line.  (Acute readers may notice that the first number is likely
-incorrect, this is because the version number is replaced in the example
-while this manual is being produced.)
+on the right.  The ``<`` character flags a message going from Python to
+Emacs, while the ``>`` character flags a message going from Emacs to
+Python.  The number gives the length of the message, including the end
+of line.  (Acute readers may notice that the first number is incorrect,
+as the version number gets replaced in the example while this manual is
+being produced.)
 
 ::
 
