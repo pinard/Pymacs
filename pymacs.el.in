@@ -582,14 +582,16 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
                      (setq action "return"
                            inserter `(pymacs-print-for-eval ',value))
                    (setq action "raise"
-                         inserter `(princ ,value))))
+                         inserter `(let ((pymacs-forget-mutability t))
+                                     (pymacs-print-for-eval ,value)))))
                 ((eq action 'expand)
                  (if success
                      (setq action "return"
                            inserter `(let ((pymacs-forget-mutability t))
                                        (pymacs-print-for-eval ,value)))
                    (setq action "raise"
-                         inserter `(princ ,value))))
+                         inserter `(let ((pymacs-forget-mutability t))
+                                     (pymacs-print-for-eval ,value)))))
                 ((eq action 'return)
                  (if success
                      (setq done t)
