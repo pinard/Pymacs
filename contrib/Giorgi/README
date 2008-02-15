@@ -7,10 +7,15 @@ Giovanni Giorgi's files
 .. contents::
 .. sectnum::
 
-The :file:`contrib/Giorgi/` subdirectory of the Pymacs distribution
-contains miscellaneous files contributed by Giovanni Giorgi, to be
-sorted, documented, maybe deleted, at least pondered in one way or
-another.  The remainder of this page comes from Giovanni's writing,
+This page documents the :file:`contrib/Giorgi/` subdirectory of the
+Pymacs distribution.  First install Pymacs from the top-level of the
+distribution, this has the side-effect of adjusting a few files in this
+directory.  Once this done, return to this directory, then run ``python
+setup.py install``.
+
+Here, you'll find miscellaneous files contributed by Giovanni Giorgi,
+to be sorted, documented, maybe deleted, at least pondered in one way
+or another.  The remainder of this page comes from Giovanni's writing,
 waiting for Giovanni to revise its contents.
 
 Introduction
