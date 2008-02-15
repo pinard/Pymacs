@@ -12,7 +12,7 @@ Extending Emacs with Python
 
   :Author: François Pinard
   :Email: pinard@iro.umontreal.ca
-  :Copyright: © Progiciels Bourbeau-Pinard inc., Montréal 2003
+  :Copyright: © Progiciels Bourbeau-Pinard inc., Montréal 2003, 2008
 
 .. contents::
 .. sectnum::
@@ -288,40 +288,25 @@ buffer, as returned by the :code:`os.getcwd` Python function.
 Porting and caveats
 -------------------
 
-Pymacs has been developed on Linux, Python 1.5.2, and Emacs (20 and 21).
-It is expected to work out of the box on most other Unices, newer Python
-and Emacs releases, and also with XEmacs.  However, from Pymacs 0.23 and
-upwards, Python 2.2 or better is likely needed.  I now use Python 2.5
-and Emacs 22, so I rely on testers or users for portability issues for
-older Python and Emacs versions.  This applies for the Pymacs proper,
-the validation suite is different.  For the validation suite (and only
-it) Python 2.4 or better is needed, and I'll leave it that way unless
-someone contributes the back porting.
+Pymacs has been initially developed on Linux, Python 1.5.2, and Emacs
+20, and currently on Python 2.5, Emacs 22.1 and XEmacs 21.5.  It is
+expected to work out of the box on many flavours of Unix, MS Windows and
+Mac OSX, and also on many version of Python, Emacs and XEmacs.
 
-Syver Enstad reports that Pymacs could be made to work on Windows-2000
-(win2k), he suspects it should equally work with NT and XP.  The little
-shell stunts which were once needed should not be anymore.
+From Pymacs 0.23 and upwards, Python 2.2 or better is likely needed,
+and for the Pymacs proper, I rely on testers or users for portability
+issues.  However, the validation suite itself requires Python 2.4 or
+better, someone might choose to contribute the back porting.
 
-Jiva DeVoe reports that Pymacs seems to work fine on Mac OSX.
+Pymacs uses Emacs weak hash tables.  It can run without them, but then,
+complex Python objects transmitted to Emacs will tie Python memory
+forever.  It should not be a practical problem in most simple cases.
+Some later versions of Emacs 20 silently create ordinary tables when
+asked for weak hash tables.  Older Emacses do not have hash tables.
 
-Some later versions of Emacs 20 silently ignore the request for creating
-weak hash tables, they create an ordinary table instead.  Older Emacses
-just do not have hash tables.  Pymacs should run on all, yet for
-these, memory will leak on the Python side whenever complex objects
-get transmitted to Emacs, as these objects will not be reclaimed on
-the Python side once Emacs is finished with them.  It should not be a
-practical problem in most simple cases.
-
-Nowadays, the :file:`Pymacs` package contains a single :file:`pymacs.py`
-file (and the mandatory :file:`__init__.py`).  That's overkill, yet I'm
-pondering with the idea that people might want to add their own Pymacs
-applications as sub-packages of this one.  See the :file:`contrib/`
-directory structure for examples, with included :file:`Pymacs/` and
-such.  I am not fully sure this is the good direction to take or to
-suggest.  If :file:`Pymacs` package was not to receive sub-packages,
-it would be better replaced by a mere :file:`Pymacs.py` file (named as
-such for compatibility), with simple trickery so to be compatible with
-previous Pymacs versions.
+The :file:`Pymacs` Python package holds a single :file:`pymacs.py` file
+(and the mandatory :file:`__init__.py`).  Programmers might elect to
+install their own Pymacs applications as sub-packages of this one.
 
 Emacs Lisp structures and Python objects
 ========================================
