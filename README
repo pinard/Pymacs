@@ -10,9 +10,9 @@ README file for Pymacs
    <!--: Faire
        import socket
        if socket.gethostname() == 'phenix':
-           site = ':8080'
+           bpi = ':8080'
        else:
-           site = '.progiciels-bpi.ca'
+           bpi = '.progiciels-bpi.ca'
    :-->
    <!-- Traiter! -->
 
@@ -31,25 +31,25 @@ installation instructions, a full description of the API, pointers
 to documented examples, to resources, and to other Pymacs sites or
 projects.
 
-__ http://pymacs%(site)s/pymacs.html
-__ http://pymacs%(site)s/pymacs.pdf
+__ http://pymacs%(bpi)s/pymacs.html
+__ http://pymacs%(bpi)s/pymacs.pdf
 
 The official distribution (read the `release notice`__) is available at:
 
-  + http://pymacs%(site)s/archives/Pymacs.tar.gz
+  + http://pymacs%(bpi)s/archives/Pymacs.tar.gz
 
-__ http://pymacs%(site)s/courriel/latest/1
+__ http://pymacs%(bpi)s/courriel/latest/1
 
 Some older distributions, and maybe beta pre-releases for testers,
 *might* be available in this directory:
 
-  + http://pymacs%(site)s/archives/
+  + http://pymacs%(bpi)s/archives/
 
 There is a reachable copy of my own sandbox repository for Pymacs.  I
 experiment with it, and branches may be reset at any time.  The server
 might not even be up (then just tell me!).  To get your own copy, try::
 
-    git clone git://pymacs%(site)s/pymacs
+  git clone git://pymacs%(bpi)s/pymacs
 
 Please report problems, comments and suggestions to `François Pinard`__
 at ``pinard@iro.umontreal.ca``.

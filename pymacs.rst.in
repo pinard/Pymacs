@@ -99,8 +99,8 @@ order):
 
   + Ropemacs -- Features like refactoring and code-assists:
 
-    + http://rope.sf.net/
-    + http://rope.sf.net/hg/rpymacs
+    + http://rope.sf.net/ropemacs.html
+    + http://rope.sf.net/hg/ropemacs
 
   + Bicycle Repair Man -- A Refactoring Tool for Python:
 
@@ -133,10 +133,6 @@ has one of them:
   + http://blog.objectsroot.com/projects/pymacs/
 
 __ http://blog.objectsroot.com/
-
-There is also `revised pymacs`, part of the Ropemacs project:
-
-  + http://rope.sourceforge.net/ropemacs.html
 
 Installation
 ============
