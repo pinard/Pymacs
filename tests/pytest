@@ -14,6 +14,7 @@ Options:
   -n   Do not capture stdout nor stderr.
   -p   Profile validation suite (through "lsprof").
 
+  -f PREFIX     Use PREFIX instead of "test_" for file names.
   -s FILE       Save ordinals of failed tests, one per line.
   -o ORDINALS   Only consider tests having these execution ordinals.
   -k PATTERN    Only retain tests which names match PATTERN.
@@ -49,6 +50,7 @@ class Limit_Reached(Exception):
     pass
 
 class Main:
+    prefix = 'test_'
     pattern = []
     exclusion = []
     ordinals = []
@@ -69,9 +71,11 @@ class Main:
             sys.stdout = Friendly_StreamWriter(sys.stdout)
             sys.stderr = Friendly_StreamWriter(sys.stderr)
         import getopt
-        options, arguments = getopt.getopt(arguments, u'hk:l:no:ps:vx:')
+        options, arguments = getopt.getopt(arguments, u'f:hk:l:no:ps:vx:')
         for option, value in options:
-            if option == u'-h':
+            if option == u'-f':
+                self.prefix = value
+            elif option == u'-h':
                 sys.stdout.write(__doc__)
                 return
             elif option == u'-k':
@@ -244,13 +248,13 @@ class Main:
                 directory = stack.pop(0)
                 for base in sorted(os.listdir(directory)):
                     file_name = os.path.join(directory, base)
-                    if base.startswith(u'test_') and base.endswith(u'.py'):
+                    if base.startswith(self.prefix) and base.endswith(u'.py'):
                         yield file_name
                     elif os.path.isdir(file_name):
                         stack.append(file_name)
         else:
             directory, base = os.path.split(path)
-            if base.startswith(u'test_') and base.endswith(u'.py'):
+            if base.startswith(self.prefix) and base.endswith(u'.py'):
                 yield path
 
     def handle_module(self, prefix, module):
