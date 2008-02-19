@@ -327,4 +327,6 @@ printer tools like :code:`enscript`.
 
 After Emacs could be extended with Python, in 2001, I translated
 :file:`rebox.el` into :file:`rebox.py`, and added the facility to use it
-as a batch script.
+as a batch script.  The least old copy I could find of :file:`rebox.el`
+is also provided here, to ease pondering and comparisons with the Python
+translation and adaptation.
