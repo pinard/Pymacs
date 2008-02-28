@@ -1,3 +1,11 @@
+2008-02-28  François Pinard  <pinard@iro.umontreal.ca>
+
+	* pymacs.el: Silence a compiler diagnostic by moving configuration
+	code within eval-and-compile.
+
+	* pymacs.el: XEmacs does not always have Mule compiled in.
+	Reported by Henk van Dorp.
+
 2008-02-15  François Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs:el: Provide a set-buffer-multibyte replacement for XEmacs.

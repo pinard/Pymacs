@@ -24,11 +24,27 @@
 
 (eval-and-compile
 
-  (if (fboundp 'multibyte-string-p)
-      (defalias 'pymacs-multibyte-string-p 'multibyte-string-p)
-    (defun pymacs-multibyte-string-p (string)
-      "Tell XEmacs if STRING should be handled as multibyte."
-      (not (member (find-charset-string string) '(nil (ascii))))))
+  (cond ((fboundp 'multibyte-string-p)
+         (defalias 'pymacs-multibyte-string-p 'multibyte-string-p))
+        ((fboundp 'find-charset-string)
+         (defun pymacs-multibyte-string-p (string)
+           "Tell XEmacs if STRING should be handled as multibyte."
+           (not (member (find-charset-string string) '(nil (ascii))))))
+        (t
+         (defun pymacs-multibyte-string-p (string)
+           "Tell XEmacs that STRING is unibyte, because Mule is not around!"
+           nil)))
+
+  (cond ((fboundp 'set-process-query-on-exit-flag)
+         (defun pymacs-kill-without-query (process)
+           "Tell recent Emacs how to quickly destroy PROCESS while exiting."
+           (set-process-query-on-exit-flag process nil)))
+        ((fboundp 'process-kill-without-query-process)
+         (defalias 'pymacs-kill-without-query 'process-kill-without-query))
+        (t
+         (defun pymacs-kill-without-query (process)
+           "Tell nothing when there is no way to speak."
+           nil)))
 
   (if (fboundp 'set-buffer-multibyte)
       (defalias 'pymacs-set-buffer-multibyte 'set-buffer-multibyte)
@@ -493,10 +509,7 @@ The timer is used only if `post-gc-hook' is not available.")
                                    " from Pymacs.pymacs import main;"
                                    " main(*sys.argv[1:])")
                       (mapcar 'expand-file-name pymacs-load-path))))
-          (cond ((fboundp 'set-process-query-on-exit-flag)
-                 (set-process-query-on-exit-flag process nil))
-                ((fboundp 'process-kill-without-query-process)
-                 (process-kill-without-query process)))
+          (pymacs-kill-without-query process)
           ;; Receive the synchronising reply.
           (while (progn
                    (goto-char (point-min))
