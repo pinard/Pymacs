@@ -5,7 +5,7 @@ import os, sys
 from distutils.core import setup
 
 package = 'Pymacs'
-version = '0.23'
+version = '0.24-beta1'
 
 def adjust(input, output):
     if os.path.exists(output):
