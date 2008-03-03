@@ -24,6 +24,24 @@
 
 (eval-and-compile
 
+  ;; pymacs-cancel-timer
+  (defalias 'pymacs-cancel-timer
+    (cond ((fboundp 'cancel-timer) 'cancel-timer)
+          ;; XEmacs case - yet having post-gc-hook, this is unused.
+          ((fboundp 'delete-itimer) 'delete-itimer)
+          (t 'ignore)))
+
+  ;; pymacs-kill-without-query
+  (if (fboundp 'set-process-query-on-exit-flag)
+      (defun pymacs-kill-without-query (process)
+        "Tell recent Emacs how to quickly destroy PROCESS while exiting."
+        (set-process-query-on-exit-flag process nil))
+    (defalias 'pymacs-kill-without-query
+      (if (fboundp 'process-kill-without-query-process)
+          'process-kill-without-query-process
+        'ignore)))
+
+  ;; pymacs-multibyte-string-p
   (cond ((fboundp 'multibyte-string-p)
          (defalias 'pymacs-multibyte-string-p 'multibyte-string-p))
         ((fboundp 'find-charset-string)
@@ -31,28 +49,27 @@
            "Tell XEmacs if STRING should be handled as multibyte."
            (not (member (find-charset-string string) '(nil (ascii))))))
         (t
-         (defun pymacs-multibyte-string-p (string)
-           "Tell XEmacs that STRING is unibyte, because Mule is not around!"
-           nil)))
+         ; Tell XEmacs that STRING is unibyte, when Mule is not around!
+         (defalias 'pymacs-multibyte-string-p 'ignore)))
 
-  (cond ((fboundp 'set-process-query-on-exit-flag)
-         (defun pymacs-kill-without-query (process)
-           "Tell recent Emacs how to quickly destroy PROCESS while exiting."
-           (set-process-query-on-exit-flag process nil)))
-        ((fboundp 'process-kill-without-query-process)
-         (defalias 'pymacs-kill-without-query 'process-kill-without-query))
-        (t
-         (defun pymacs-kill-without-query (process)
-           "Tell nothing when there is no way to speak."
-           nil)))
+  ;; pymacs-report-error
+  (defalias 'pymacs-report-error (symbol-function 'error))
 
+  ;; pymacs-set-buffer-multibyte
   (if (fboundp 'set-buffer-multibyte)
       (defalias 'pymacs-set-buffer-multibyte 'set-buffer-multibyte)
     (defun pymacs-set-buffer-multibyte (flag)
-      "For use in Emacs 20.2 or earlier.  No-operation under XEmacs."
-      (setq enable-multibyte-characters flag))))
+      "For use in Emacs 20.2 or earlier.  Under XEmacs: no operation."
+      (setq enable-multibyte-characters flag)))
 
-(defalias 'pymacs-report-error (symbol-function 'error))
+  ;; pymacs-timerp
+  (defalias 'pymacs-timerp
+    (cond ((fboundp 'timerp) 'timerp)
+         ; XEmacs case - yet having post-gc-hook, this is unused.
+          ((fboundp 'itimerp) 'itimerp)
+          (t 'ignore)))
+
+  )
 
 ;;; Published variables and functions.
 
@@ -414,8 +431,7 @@ The timer is used only if `post-gc-hook' is not available.")
                (princ (mapconcat 'identity
                                  (split-string (prin1-to-string text) "\n")
                                  "\\n"))
-               (when (and multibyte
-                          (not (equal (find-charset-string text) '(ascii))))
+               (when multibyte
                  (princ ".decode('UTF-8')")))
              (setq done t)))
           ((symbolp expression)
@@ -562,8 +578,8 @@ The timer is used only if `post-gc-hook' is not available.")
 Killing the Pymacs helper might create zombie objects.  Kill? "))
     (cond ((boundp 'post-gc-hook)
            (remove-hook 'post-gc-hook 'pymacs-schedule-gc))
-          ((timerp pymacs-gc-timer)
-           (cancel-timer pymacs-gc-timer)))
+          ((pymacs-timerp pymacs-gc-timer)
+           (pymacs-cancel-timer pymacs-gc-timer)))
     (when pymacs-transit-buffer
       (kill-buffer pymacs-transit-buffer))
     (setq pymacs-gc-running nil

@@ -1,3 +1,11 @@
+2008-03-03  François Pinard  <pinard@iro.umontreal.ca>
+
+	Mini-cleanup within eval-and-compile.
+	* pymacs.el (pymacs-print-for-eval): Avoid spurious call to
+	find-charset-string, move pymacs-report-error within, also
+	parameterize timerp and cancel-timer.
+	Reported by Henk van Dorp.
+
 2008-02-28  François Pinard  <pinard@iro.umontreal.ca>
 
 	* pymacs.el: Silence a compiler diagnostic by moving configuration
