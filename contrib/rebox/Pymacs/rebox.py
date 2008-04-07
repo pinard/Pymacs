@@ -57,7 +57,9 @@ def main(*arguments):
     if len(arguments) == 0:
         text = sys.stdin.read()
     elif len(arguments) == 1:
-        text = open(arguments[0]).read()
+        handle = file(arguments[0])
+        text = handle.read()
+        handle.close()
     else:
         sys.stderr.write("Invalid usage, try `rebox --help' for help.\n")
         sys.exit(1)
@@ -476,11 +478,13 @@ Use both Knuth algorithm and protection for full stops at end of sentences.
         if self.available:
             import tempfile, os
             name = tempfile.mktemp()
-            open(name, 'w').write('\n'.join(lines) + '\n')
-            process = os.popen('fmt -cuw %d %s' % (width, name))
-            text = process.read()
+            handle = file(name, 'w')
+            handle.write('\n'.join(lines) + '\n')
+            handle.close()
+            handle = os.popen('fmt -cuw %d %s' % (width, name))
+            text = handle.read()
             os.remove(name)
-            if process.close() is None:
+            if handle.close() is None:
                 return [line.expandtabs() for line in text.split('\n')[:-1]]
 
 class Refiller_Textwrap(Refiller):

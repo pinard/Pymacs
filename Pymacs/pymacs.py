@@ -91,12 +91,16 @@ Arguments are added to the search path for Python modules.
 
     def generic_handler(self, number, frame):
         if self.signal_file:
-            file(self.signal_file, 'a').write('%d\n' % number)
+            handle = file(self.signal_file, 'a')
+            handle.write('%d\n' % number)
+            handle.close()
 
     def interrupt_handler(self, number, frame):
         if self.signal_file:
             star = (' *', '')[self.inhibit_quit]
-            file(self.signal_file, 'a').write('%d%s\n' % (number, star))
+            handle = file(self.signal_file, 'a')
+            handle.write('%d%s\n' % (number, star))
+            handle.close()
         if not self.inhibit_quit:
             self.original_handler(number, frame)
 
@@ -204,7 +208,9 @@ class Protocol:
             prefix += character
         text = sys.stdin.read(int(prefix[1:-1]))
         if run.debug_file is not None:
-            file(run.debug_file, 'a').write(prefix + text)
+            handle = file(run.debug_file, 'a')
+            handle.write(prefix + text)
+            handle.close()
         return text.split(None, 1)
 
     def send(self, action, text):
@@ -218,7 +224,9 @@ class Protocol:
             text = '(%s %s)\n' % (action, text)
         prefix = '<%d\t' % len(text)
         if run.debug_file is not None:
-            file(run.debug_file, 'a').write(prefix + text)
+            handle = file(run.debug_file, 'a')
+            handle.write(prefix + text)
+            handle.close()
         sys.stdout.write(prefix + text)
         sys.stdout.flush()
 

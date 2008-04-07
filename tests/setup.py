@@ -62,18 +62,23 @@ class Emacs(Launch):
             time.sleep(0.01)
         self.popen.poll()
         assert self.popen.returncode is None, self.popen.returncode
-        return file('_reply').read()
+        handle = file('_reply')
+        buffer = handle.read()
+        handle.close()
+        return buffer
 
     def send(self, text):
         if self.popen is None:
-            file('_reply', 'w')
+            file('_reply', 'w').close()
             emacs = os.environ.get('PYMACS_EMACS') or 'emacs'
             command = emacs, '-batch', '-q', '-l', 'setup.el'
             import subprocess
             self.popen = subprocess.Popen(command)
         self.popen.poll()
         assert self.popen.returncode is None, self.popen.returncode
-        file('_request', 'w').write(text)
+        handle = file('_request', 'w')
+        handle.write(text)
+        handle.close()
         os.remove('_reply')
 
 def start_emacs():
