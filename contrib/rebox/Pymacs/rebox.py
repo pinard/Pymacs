@@ -211,76 +211,78 @@ Find and return the limits of the block of comments following or enclosing
 the cursor, or return an error if the cursor is not within such a block
 of comments.  Extend it as far as possible in both directions.
 """
-        let = Let()
-        let.push_excursion()
-        # Find the start of the current or immediately following comment.
-        lisp.beginning_of_line()
-        lisp.skip_chars_forward(' \t\n')
-        lisp.beginning_of_line()
-        if not language_matcher[0](self.remainder_of_line()):
-            temp = lisp.point()
-            if not lisp.re_search_forward('\\*/', None, lisp.t):
-                lisp.error("outside any comment block")
-            lisp.re_search_backward('/\\*')
-            if lisp.point() > temp:
-                lisp.error("outside any comment block")
-            temp = lisp.point()
+        let = Let().push_excursion()
+        try:
+            # Find the start of the current or immediately following comment.
             lisp.beginning_of_line()
-            lisp.skip_chars_forward(' \t')
-            if lisp.point() != temp:
-                lisp.error("text before start of comment")
+            lisp.skip_chars_forward(' \t\n')
             lisp.beginning_of_line()
-        start = lisp.point()
-        language = guess_language(self.remainder_of_line())
-        # Find the end of this comment.
-        if language == 2:
-            lisp.search_forward('*/')
-            if not lisp.looking_at('[ \t]*$'):
-                lisp.error("text after end of comment")
-        lisp.end_of_line()
-        if lisp.eobp():
-            lisp.insert('\n')
-        else:
-            lisp.forward_char(1)
-        end = lisp.point()
-        # Try to extend the comment block backwards.
-        lisp.goto_char(start)
-        while not lisp.bobp():
-            if language == 2:
-                lisp.skip_chars_backward(' \t\n')
-                if not lisp.looking_at('[ \t]*\n[ \t]*/\\*'):
-                    break
-                if lisp.point() < 2:
-                    break
-                lisp.backward_char(2)
-                if not lisp.looking_at('\\*/'):
-                    break
+            if not language_matcher[0](self.remainder_of_line()):
+                temp = lisp.point()
+                if not lisp.re_search_forward('\\*/', None, lisp.t):
+                    lisp.error("outside any comment block")
                 lisp.re_search_backward('/\\*')
+                if lisp.point() > temp:
+                    lisp.error("outside any comment block")
                 temp = lisp.point()
                 lisp.beginning_of_line()
                 lisp.skip_chars_forward(' \t')
                 if lisp.point() != temp:
-                    break
+                    lisp.error("text before start of comment")
                 lisp.beginning_of_line()
-            else:
-                lisp.previous_line(1)
-                if not language_matcher[language](self.remainder_of_line()):
-                    break
             start = lisp.point()
-        # Try to extend the comment block forward.
-        lisp.goto_char(end)
-        while language_matcher[language](self.remainder_of_line()):
+            language = guess_language(self.remainder_of_line())
+            # Find the end of this comment.
             if language == 2:
-                lisp.re_search_forward('[ \t]*/\\*')
-                lisp.re_search_forward('\\*/')
-                if lisp.looking_at('[ \t]*$'):
+                lisp.search_forward('*/')
+                if not lisp.looking_at('[ \t]*$'):
+                    lisp.error("text after end of comment")
+            lisp.end_of_line()
+            if lisp.eobp():
+                lisp.insert('\n')
+            else:
+                lisp.forward_char(1)
+            end = lisp.point()
+            # Try to extend the comment block backwards.
+            lisp.goto_char(start)
+            while not lisp.bobp():
+                if language == 2:
+                    lisp.skip_chars_backward(' \t\n')
+                    if not lisp.looking_at('[ \t]*\n[ \t]*/\\*'):
+                        break
+                    if lisp.point() < 2:
+                        break
+                    lisp.backward_char(2)
+                    if not lisp.looking_at('\\*/'):
+                        break
+                    lisp.re_search_backward('/\\*')
+                    temp = lisp.point()
                     lisp.beginning_of_line()
+                    lisp.skip_chars_forward(' \t')
+                    if lisp.point() != temp:
+                        break
+                    lisp.beginning_of_line()
+                else:
+                    lisp.previous_line(1)
+                    if not language_matcher[language](self.remainder_of_line()):
+                        break
+                start = lisp.point()
+            # Try to extend the comment block forward.
+            lisp.goto_char(end)
+            while language_matcher[language](self.remainder_of_line()):
+                if language == 2:
+                    lisp.re_search_forward('[ \t]*/\\*')
+                    lisp.re_search_forward('\\*/')
+                    if lisp.looking_at('[ \t]*$'):
+                        lisp.beginning_of_line()
+                        lisp.forward_line(1)
+                        end = lisp.point()
+                else:
                     lisp.forward_line(1)
                     end = lisp.point()
-            else:
-                lisp.forward_line(1)
-                end = lisp.point()
-        return start, end
+            return start, end
+        finally:
+            let.pops()
 
     def remainder_of_line(self):
         """\
