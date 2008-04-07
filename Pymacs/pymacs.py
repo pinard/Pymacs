@@ -66,23 +66,27 @@ Arguments are added to the search path for Python modules.
             if os.path.isdir(argument):
                 sys.path.insert(0, argument)
         # Inhibit signals.
-        import signal
-        self.original_handler = signal.signal(
-                signal.SIGINT, self.interrupt_handler)
-        for counter in range(1, signal.NSIG):
-            if counter == signal.SIGINT:
-                self.original_handler = signal.signal(counter,
-                                                      self.interrupt_handler)
+        try:
+            import signal
+        except ImportError:
+            pass # Jython case
+        else:
+            self.original_handler = signal.signal(
+                    signal.SIGINT, self.interrupt_handler)
+            for counter in range(1, signal.NSIG):
+                if counter == signal.SIGINT:
+                    self.original_handler = signal.signal(
+                            counter, self.interrupt_handler)
 
-            # The following few lines of code are reported to create IO
-            # problems within the Pymacs helper itself, so I merely comment
-            # them for now, until we know better.
+                # The following few lines of code are reported to create IO
+                # problems within the Pymacs helper itself, so I merely comment
+                # them for now, until we know better.
 
-            #else:
-            #    try:
-            #        signal.signal(counter, self.generic_handler)
-            #    except RuntimeError:
-            #        pass
+                #else:
+                #    try:
+                #        signal.signal(counter, self.generic_handler)
+                #    except RuntimeError:
+                #        pass
         self.inhibit_quit = True
         # Start protocol and services.
         from Pymacs import __version__
@@ -232,14 +236,15 @@ class Protocol:
 
 def pymacs_load_helper(file_without_extension, prefix):
     # This function imports a Python module, then returns a Lisp expression
-    # which, when later evaluated, will install trampoline definitions in
-    # Emacs for accessing the Python module facilities.  MODULE may be a
-    # full path, yet without the `.py' or `.pyc' extension, in which case
-    # the directory is temporarily added to the Python search path for
-    # the sole duration of that import.  All defined symbols on the Lisp
-    # side have have PREFIX prepended, and have Python underlines in Python
-    # turned into dashes.  If PREFIX is None, it then defaults to the base
-    # name of MODULE with underlines turned to dashes, followed by a dash.
+    # which, when later evaluated, will install trampoline definitions
+    # in Emacs for accessing the Python module facilities.  Module, given
+    # through FILE_WITHOUT_EXTENSION, may be a full path, yet without the
+    # `.py' or `.pyc' suffix, in which case the directory is temporarily
+    # added to the Python search path for the sole duration of that import.
+    # All defined symbols on the Lisp side have have PREFIX prepended,
+    # and have Python underlines in Python turned into dashes.  If PREFIX
+    # is None, it then defaults to the base name of MODULE with underlines
+    # turned to dashes, followed by a dash.
     directory, module_name = os.path.split(file_without_extension)
     module_components = module_name.split('.')
     if prefix is None:
@@ -627,7 +632,7 @@ print_lisp_quoted_specials = {
 def print_lisp(value, write, quoted):
     if value is None:
         write('nil')
-    elif isinstance(value, bool):
+    elif isinstance(bool, type) and isinstance(value, bool):
         write(('nil', 't')[value])
     elif isinstance(value, int):
         write(repr(value))
@@ -638,7 +643,7 @@ def print_lisp(value, write, quoted):
         if isinstance(value, unicode):
             try:
                 value = value.encode('ASCII')
-            except UnicodeEncodeError:
+            except UnicodeError:
                 value = value.encode('UTF-8')
                 multibyte = True
         if multibyte:
