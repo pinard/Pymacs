@@ -110,7 +110,12 @@ class Python(Launch):
         # Receive a Lisp expression from the Pymacs helper.
         text = self.output.read(3)
         if not text or text[0] != '<':
-            raise pymacs.ProtocolError("'<' expected, got %r" % text)
+            if text == 'Tra':
+                # Likely a traceback, and the Pymacs helper terminated.
+                diagnostic = 'got:\n' + text + self.output.read()
+            else:
+                diagnostic = 'got ' + repr(text)
+            raise pymacs.ProtocolError("'<' expected, %s\n" % diagnostic)
         while text[-1] != '\t':
             text = text + self.output.read(1)
         return self.output.read(int(text[1:-1]))
