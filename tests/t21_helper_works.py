@@ -20,10 +20,16 @@ def test_1():
                         setup.ask_python('eval ' + input))
         assert output == expected, (output, expected)
 
+    if isinstance(bool, type):
+        false_string = 'nil'
+        true_string = 't'
+    else:
+        false_string = '0'
+        true_string = '1'
     for quotable, input, output in (
             (False, None, 'nil'),
-            (False, False, 'nil'),
-            (False, True, 't'),
+            (False, False, false_string),
+            (False, True, true_string),
             (False, 3, '3'),
             (False, 0, '0'),
             (False, -3, '-3'),
