@@ -911,24 +911,25 @@ call for a single :code:`Let` instance, they stack within that instance.
 Each ``let.pop()`` will undo one and only one ``let.push()`` from the
 stack, in the reverse order or the pushes.
 
-When the :code:`Let` instance disappears, either because the programmer
-does ``del let`` or ``let = None``, or just because the Python
-:code:`let` variable goes out of scope, all remaining ``let.pop()`` get
-automatically executed, so the :code:`try`/:code:`finally` statement
-may be omitted in practice.  For this omission to work flawlessly, the
-programmer should be careful at not keeping extra references to the
-:code:`Let` instance.
+A single call to ``let.pops()`` automatically does all pending
+``let.pop()`` at once, in the correct reverse order.  When the
+:code:`Let` instance disappears, either because the programmer does
+``del let`` or ``let = None``, or just because the Python :code:`let`
+variable goes out of scope, ``let.pops()`` gets executed under the
+scene, so the :code:`try`/:code:`finally` statement may be omitted in
+practice.  For this omission to work flawlessly, the programmer should
+be careful at not keeping extra references to the :code:`Let` instance.
 
 The constructor call ``let = Let()`` also has an implied initial
-``.push()`` over all given arguments, so the explicit ``let.push()`` may
-be omitted as well.  In practice, this sums up and the above code could
-be reduced to a mere::
+``.push()`` over all given arguments, given there is any, so the
+explicit ``let.push()`` may be omitted as well.  In practice, this sums
+up and the above code could be reduced to a mere::
 
   let = Let(transient_mark_mode=None)
   ... USER CODE ...
 
 Be careful at assigning the result of the constructor to some Python
-variable.  Otherwise, the instance would disappear immediately after
+variable.  Otherwise, the instance might disappear immediately after
 having been created, restoring the Emacs Lisp variable much too soon.
 
 Any variable to be bound with :code:`Let` should have been bound in

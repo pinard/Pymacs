@@ -344,15 +344,19 @@ class Let:
         # METHOD may not be bound to the instance, as this would induce
         # reference cycles, and then, __del__ would not be called timely.
         self.stack = []
-        self.push(**keywords)
+        if keywords:
+            self.push(**keywords)
 
     def __del__(self):
-        while self.stack:
-            self.stack[-1][0](self)
+        self.pops()
 
     def __nonzero__(self):
         # So stylistic `if let:' executes faster.
         return True
+
+    def pops(self):
+        while self.stack:
+            self.stack[-1][0](self)
 
     def push(self, **keywords):
         data = []
