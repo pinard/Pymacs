@@ -39,6 +39,26 @@ least one such failed test, the return status of this program is non-zero.
 # excellent Codespeak's py.test, at a time I really needed py.test to be
 # more Unicode-aware.
 
+## Beginning of Jython portability issues.
+
+from __future__ import generators
+
+try:
+    import locale
+except ImportError:
+    locale = None
+
+try:
+    sorted
+except NameError:
+
+    def sorted(sequence):
+        sequence = list(sequence)
+        sequence.sort()
+        return sequence
+
+## End of Jython portability issues.
+
 __metaclass__ = type
 import inspect, os, sys, time, traceback
 from StringIO import StringIO
@@ -215,9 +235,10 @@ class Main:
                        % (text, time.time() - start_time))
             write(summary)
         if self.save:
-            write = file(self.save, u'w').write
+            handle = file(self.save, u'w')
             for ordinal in self.failures:
-                write(u'%d\n' % ordinal)
+                handle.write(u'%d\n' % ordinal)
+            handle.close()
         else:
             write = sys.stdout.write
             for (ordinal, prefix, function, arguments, stdout, stderr,
@@ -415,8 +436,12 @@ class Friendly_StreamWriter:
     # UTF-8 str strings to be written (given our sources are all UTF-8).
 
     def __init__(self, stream):
-        import codecs, locale
-        writer = codecs.getwriter(locale.getpreferredencoding())
+        if locale is None:
+            encoding = 'UTF-8'
+        else:
+            encoding = locale.getpreferredencoding()
+        import codecs
+        writer = codecs.getwriter(encoding)
         self.stream = writer(stream, 'backslashreplace')
 
     def write(self, text):

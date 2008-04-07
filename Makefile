@@ -14,7 +14,8 @@ check:
 	$(PYSETUP) clean
 	touch .stamp
 	cd tests && \
-	  PYMACS_EMACS=$(emacs) PYMACS_PYTHON=$(python) ./pytest -f t $(TEST)
+	  PYMACS_EMACS=$(emacs) PYMACS_PYTHON=$(python) \
+	  $${python-python} pytest -f t $(TEST)
 
 install:
 	$(PYSETUP) install
