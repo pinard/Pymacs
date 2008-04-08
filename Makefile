@@ -14,7 +14,7 @@ check:
 	$(PYSETUP) clean
 	touch .stamp
 	cd tests && \
-	  PYMACS_EMACS=$(emacs) PYMACS_PYTHON=$(python) \
+	  PYMACS_EMACS="$(emacs)" PYMACS_PYTHON="$(python)" \
 	  $${python-python} pytest -f t $(TEST)
 
 install:
@@ -22,6 +22,7 @@ install:
 
 clean:
 	rm -rf build* Pymacs/*.pyc tests/*.pyc
+	rm -rf Pymacs/*py.class tests/*py.class
 	rm -f pymacs.el pymacs.rst pymacs.pdf Pymacs/__init__.py
 
 pymacs.pdf: pymacs.rst.in
