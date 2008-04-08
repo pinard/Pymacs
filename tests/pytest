@@ -39,25 +39,24 @@ least one such failed test, the return status of this program is non-zero.
 # excellent Codespeak's py.test, at a time I really needed py.test to be
 # more Unicode-aware.
 
-## Beginning of Jython portability issues.
-
+# Jython misses the yield keyword.
 from __future__ import generators
 
 try:
     import locale
 except ImportError:
+    # Jython misses this module.
     locale = None
 
 try:
     sorted
 except NameError:
+    # Jython misses this function.
 
     def sorted(sequence):
         sequence = list(sequence)
         sequence.sort()
         return sequence
-
-## End of Jython portability issues.
 
 __metaclass__ = type
 import inspect, os, sys, time, traceback

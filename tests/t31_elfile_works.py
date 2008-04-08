@@ -8,9 +8,6 @@ from Pymacs import lisp, pymacs
 
 def setup_module(module):
     setup.start_emacs()
-    setup.ask_emacs('(defun print-for-eval-expanded (expression)\n'
-                    '  (let ((pymacs-forget-mutability t))\n'
-                    '    (pymacs-print-for-eval expression)))\n')
 
 def teardown_module(module):
     setup.stop_emacs()
@@ -91,7 +88,11 @@ def test_1():
 def test_2():
 
     def validate(input, expected):
-        output = setup.ask_emacs(input, 'print-for-eval-expanded')
+        output = setup.ask_emacs(
+            input,
+            '(lambda (expression)\n'
+            '  (let ((pymacs-forget-mutability t))\n'
+            '    (pymacs-print-for-eval expression)))\n')
         output = re.sub(r'\(pymacs-(defun|python) [0-9]*',
                         r'(pymacs-\1 0',
                         output)

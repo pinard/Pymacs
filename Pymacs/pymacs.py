@@ -32,6 +32,12 @@ See the Pymacs documentation (in `README') for more information.
 __metaclass__ = type
 import os, sys
 
+try:
+    import signal
+except ImportError:
+    # Jython does not have signal.
+    signal = None
+
 old_style_exception = not isinstance(Exception, type)
 
 ## Python services for Emacs applications.
@@ -66,11 +72,7 @@ Arguments are added to the search path for Python modules.
             if os.path.isdir(argument):
                 sys.path.insert(0, argument)
         # Inhibit signals.
-        try:
-            import signal
-        except ImportError:
-            pass # Jython case
-        else:
+        if signal is not None:
             self.original_handler = signal.signal(
                     signal.SIGINT, self.interrupt_handler)
             for counter in range(1, signal.NSIG):
