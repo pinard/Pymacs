@@ -10,7 +10,7 @@ README file for Pymacs
    <!--: Faire
        import socket
        if socket.gethostname() == 'phenix':
-           bpi = ':8080'
+           bpi = ':8000'
        else:
            bpi = '.progiciels-bpi.ca'
    :-->
