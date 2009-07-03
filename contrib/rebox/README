@@ -31,6 +31,32 @@ As a user tool
 Box styles
 ----------
 
+First, a quick reminder:
+
+  ======   ===============================================
+  Number   Meaning
+  ======   ===============================================
+  100      Language: unknown
+  200      Language: /* and \*\ /
+  300      Language: //
+  400      Language: #
+  500      Language: ;
+  600      Language: %
+  010      Quality: straight, or 1-wide
+  020      Quality: rounded, or 2-wide
+  030      Quality: starred, or 3-wide
+  040      Quality: starred, or 4-wide
+  001      Type: left \|-shaped border
+  002      Type: U-shaped border, simple lines
+  003      Type: O-shaped border, simple lines
+  004      Type: U-shaped border, doubled lines
+  005      Type: O-shaped border, doubled lines
+  006      Type: [-shaped border, simple lines
+  007      Type: [-shaped border, doubled lines
+  111      No box at all
+  221      Usual simple C comments
+  ======   ===============================================
+
 Each supported box style has a number associated with it.  This number is
 arbitrary, yet by *convention*, it holds three non-zero digits such the the
 hundreds digit roughly represents the programming language, the tens digit
