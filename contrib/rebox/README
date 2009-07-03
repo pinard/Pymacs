@@ -52,7 +52,7 @@ taken if the parsing fails.
 A programming language is associated with comment delimiters.  Values are
 100 for none or unknown, 200 for ``/*`` and ``*/`` as in plain C, 300 for ``//``
 as in C++, 400 for ``#`` as in most scripting languages, 500 for ``;`` as in
-Lisp or assembler and 600 for ``%`` as in TeX or PostScript.
+Lisp, Scheme, assembler and 600 for ``%`` as in TeX, PostScript, Erlang.
 
 Box quality differs according to language. For unknown languages (100) or
 for the C language (200), values are 10 for simple, 20 for rounded, and
