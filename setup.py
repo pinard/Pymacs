@@ -32,7 +32,7 @@ adjust('contrib/rebox/setup.py.in', 'contrib/rebox/setup.py')
 adjust('__init__.py.in', 'contrib/rebox/Pymacs/__init__.py')
 
 setup(name=package, version=version,
-      description="Interface between Emacs Lisp and Python.",
+      description="Interface between Emacs Lisp and Python",
       author='François Pinard', author_email='pinard@iro.umontreal.ca',
       url='http://pymacs.progiciels-bpi.ca',
       packages=['Pymacs'])
