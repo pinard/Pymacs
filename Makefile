@@ -49,10 +49,15 @@ pymacs.el pymacs.rst Pymacs/__init__.py: .stamp
 
 # The following goals for the maintainer of the Pymacs Web site.
 
-VERSION = `grep '^version' setup.py | sed -e "s/'$$//" -e "s/.*'//"`
+push: local
+	find -name '*~' | xargs rm -fv
+	push alcyon -d entretien/pymacs
+	ssh alcyon 'make-web -C entretien/pymacs/web'
 
 local: pymacs.pdf pymacs.rst
-	ajuster-web web
+	make-web -C web
+
+VERSION = `grep '^version' setup.py | sed -e "s/'$$//" -e "s/.*'//"`
 
 publish:
 	version=$(VERSION) && \
@@ -63,10 +68,3 @@ official: publish
 	rm -f web/archives/Pymacs.tar.gz
 	version=$(VERSION) && \
 	  ln -s Pymacs-$$version.tar.gz web/archives/Pymacs.tar.gz
-
-synchro: local
-	du -s .git
-	git gc --prune
-	du -s .git
-	find -name '*~' | xargs rm -fv
-	synchro -PD alcyon entretien
