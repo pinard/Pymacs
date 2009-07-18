@@ -20,10 +20,14 @@ check:
 install:
 	$(PYSETUP) install
 
-clean:
-	rm -rf build* Pymacs/*.pyc tests/*.pyc
-	rm -rf Pymacs/*py.class tests/*py.class
-	rm -f pymacs.el pymacs.rst pymacs.pdf Pymacs/__init__.py
+clean: clean-setup
+	rm -rf build* contrib/rebox/build
+	rm -f */*py.class */*.pyc pymacs.pdf
+
+clean-setup:
+	rm -f .stamp Pymacs/__init__.py pymacs.el pymacs.rst
+	cd contrib/Giorgi && rm -f setup.py Pymacs/__init__.py
+	cd contrib/rebox && rm -f setup.py Pymacs/__init__.py
 
 pymacs.pdf: pymacs.rst.in
 	$(PYSETUP) clean
@@ -37,7 +41,7 @@ pymacs.pdf: pymacs.rst.in
 	mv -f tmp-pdf/pymacs.pdf $@
 	rm -rf tmp-pdf
 
-# (Note: python setup.py clean is the most no-op thing I could find.)
+# (Note: python setup.py clean is the most no-op setup.py I could find.)
 pymacs.el pymacs.rst Pymacs/__init__.py: .stamp
 .stamp: pymacs.el.in pymacs.rst.in __init__.py.in
 	$(PYSETUP) clean
