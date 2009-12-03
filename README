@@ -45,11 +45,10 @@ Some older distributions, and maybe beta pre-releases for testers,
 
   + http://pymacs%(bpi)s/archives/
 
-There is a reachable copy of my own sandbox repository for Pymacs.  I
-experiment with it, and branches may be reset at any time.  The server
-might not even be up (then just tell me!).  To get your own copy, try::
+There is a reachable copy of my own sandbox repository for Pymacs.  To
+get your own copy, use::
 
-  git clone git://pymacs%(bpi)s/pymacs
+  git clone git://github.com/pinard/Pymacs.git
 
 Please report problems, comments and suggestions to `François Pinard`__
 at ``pinard@iro.umontreal.ca``.
