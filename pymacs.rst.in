@@ -1456,12 +1456,11 @@ of the story: I never heard of it again. :-)
 Speed issues
 ------------
 
-Doug Bagley's shoot out project compares the relative speed of many
-popular languages, and this might interest Pymacs users.  The first URL
-points to the original, the second points to a newer version oriented
-towards Win32 systems, the third is more recent but Debian-oriented:
+Shoot out projects compare the relative speed of many popular languages,
+and the relative merits of Lisp and Python might interest Pymacs users.
+The first URL points to a version oriented towards Win32 systems, the
+second is more recent but Debian-oriented:
 
-  + http://www.bagley.org/~doug/shootout/
   + http://dada.perl.it/shootout/index.html
   + http://shootout.alioth.debian.org/
 
