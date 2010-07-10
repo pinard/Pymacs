@@ -5,19 +5,6 @@
 README file for Pymacs
 ======================
 
-.. raw:: html
-
-   <!--: Faire
-       import socket
-       if socket.gethostname() == 'phenix':
-           bpi = ':8000'
-       else:
-           bpi = '.progiciels-bpi.ca'
-   :-->
-   <!-- Traiter! -->
-
-..
-
 Pymacs is a powerful tool which, once started from Emacs, allows
 both-way communication between Emacs Lisp and Python.  Pymacs aims
 Python as an extension language for Emacs rather than the other way
@@ -31,19 +18,19 @@ installation instructions, a full description of the API, pointers
 to documented examples, to resources, and to other Pymacs sites or
 projects.
 
-__ http://pymacs%(bpi)s/pymacs.html
-__ http://pymacs%(bpi)s/pymacs.pdf
+__ http://pymacs.progiciels-bpi.ca/pymacs.html
+__ http://pymacs.progiciels-bpi.ca/pymacs.pdf
 
 The official distribution (read the `release notice`__) is available at:
 
-  + http://pymacs%(bpi)s/archives/Pymacs.tar.gz
+  + http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz
 
-__ http://pymacs%(bpi)s/courriel/latest/1
+__ http://pymacs.progiciels-bpi.ca/courriel/latest/1
 
 Some older distributions, and maybe beta pre-releases for testers,
 *might* be available in this directory:
 
-  + http://pymacs%(bpi)s/archives/
+  + http://pymacs.progiciels-bpi.ca/archives/
 
 There is a reachable copy of my own sandbox repository for Pymacs.  To
 get your own copy, use::
