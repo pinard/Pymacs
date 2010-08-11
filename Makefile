@@ -3,6 +3,7 @@
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
 PYSETUP = python setup.py
+RST2LATEX = rst2latex
 
 emacs = $(PYMACS_EMACS)
 python = $(PYMACS_PYTHON)
@@ -34,7 +35,7 @@ pymacs.pdf: pymacs.rst.in
 	touch .stamp
 	rm -rf tmp-pdf
 	mkdir tmp-pdf
-	rst2latex.py --use-latex-toc --input-encoding=UTF-8 \
+	$(RST2LATEX) --use-latex-toc --input-encoding=UTF-8 \
 	  pymacs.rst tmp-pdf/pymacs.tex
 	cd tmp-pdf && pdflatex pymacs.tex
 	cd tmp-pdf && pdflatex pymacs.tex
