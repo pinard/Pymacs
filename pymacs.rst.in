@@ -60,7 +60,7 @@ than Emacs Lisp.  People have widely varying approaches in writing
 
   + On the other hand, for more sophisticated usages, people cannot
     really escape knowing the Emacs Lisp API to some extent, because they
-    should be programming-wise familiarity with what is a buffer, a point,
+    should be familiar, programming-wise, with what is a buffer, a point,
     a mark, etc. and what are the allowed operations on those.
 
 While Pymacs examples are no substitute for a careful reading of the
@@ -445,7 +445,7 @@ or more simply::
 So, in case speed is especially important and many modifications
 happen in a row on the same side, while order of elements ought to
 be preserved, some ``(nreverse ...)`` on the Emacs Lisp side or
-``.reverse()`` on the Python side side might be needed.  Surely, proper
+``.reverse()`` on the Python side might be needed.  Surely, proper
 lists in Emacs Lisp and lists in Python are the normal structure for
 which length is easily modified.
 
@@ -630,7 +630,7 @@ anything on the Python side.  Of course, Python imports the module
 before making it available for Emacs, but there is no Pymacs ready
 variable on the Python side holding that module.  If you need to import
 :var:`MODULE` in a variable on the Python side, the proper incantation
-is ``(pymacs-exec "import MODULE")``.  And of course, that this latter
+is ``(pymacs-exec "import MODULE")``.  And of course, this latter
 statement does not declare anything on the Emacs Lisp side.
 
 Whenever :code:`pymacs_load_hook` is defined in the loaded
@@ -1032,7 +1032,7 @@ Emacs side.  Here is how the preceding example should be written for an
 older version of Python, or when portability is at premium::
 
   from Pymacs import lisp
-  interactions = @{@}
+  interactions = {}
 
   def hello_world():
       "`Hello world' from Python."
@@ -1063,14 +1063,12 @@ letter, produces a character which ordinal is the result of subtracting
 0x80 to the ordinal of following described character.  So people can
 use self-inserting non-ASCII characters, ``\M-`` is given another
 representation, which is to replace the addition of 0x80 by prefixing
-with \`ESC', that is 0x1b.
+with Escape, that is 0x1b.  So ``\C-x`` in Emacs is ``\x18`` in Python.
+This is easily found, using an interactive Python session, by giving it:
+``chr(ord('X') - ord('A') + 1)``.
 
-.. `
-
-So ``\C-x`` in Emacs is '\x18' in Python.  This is easily found, using
-an interactive Python session, by giving it: chr(ord('X') - ord('A') +
-1).  An easier way would be using the :code:`kbd` function on the Emacs
-Lisp side, like with lisp.kbd('C-x w') or lisp.kbd('M-<f2>').
+An easier way would be using the :code:`kbd` function on the Emacs Lisp
+side, like with ``lisp.kbd('C-x w')`` or ``lisp.kbd('M-<f2>')``.
 
 To bind the F1 key to the :code:`helper` function in some
 :code:`module`::
@@ -1089,56 +1087,58 @@ Debugging
 On the communication protocol
 -----------------------------
 
-Initially, the Pymacs communication protocol was rather simple deep
-down, merely using evaluation on arrival on both sides.  All the rest
-was recursion trickery over that simple idea.  But the magic was fragile
-to interruption requests, so the protocol has been revisited a bit so
-each message action could be recognized before evaluation is attempted.
-The idea (not fully implemented yet) is to make the protocol part immune
-to interruptions, but to allow evaluations themselves to be interrupted.
+The Pymacs communication protocol is rather simple deep down, merely
+using evaluation on arrival on both sides.  All the rest is recursion
+trickery over that simple idea.
 
-  + As it is more easy to generate than to parse, and also because Emacs
-    has a Lisp parser and Python has a Python parser, Emacs generates
-    Python code when preparing a message to the Pymacs helper, and Python
-    generates Emacs Lisp expressions when preparing a message for Emacs.
++ It is more easy to generate than to parse.  Moreover, Emacs has a Lisp
+  parser and Python has a Python parser.  So, when preparing a message
+  to the Pymacs helper, Emacs generates Python code for Python to parse,
+  and when preparing a message for Emacs, Python generates Emacs Lisp
+  expressions for Emacs to parse.
 
-  + Messages are exchanged in strictly alternating directions (from
-    Python to Emacs, from Emacs to Python, etc.), the first message being
-    sent by the Pymacs helper just after it started, identifying the
-    current Pymacs version.
++ Messages are exchanged in strictly alternating directions (from
+  Python to Emacs, from Emacs to Python, etc.), the first message being
+  sent by the Pymacs helper just after it started, identifying the
+  current Pymacs version.
 
-  + Messages in both directions have a similar envelope.  Each physical
-    message has a prefix, the message contents, and a newline.  The
-    prefix starts with either ``<`` or ``>`` to mark the directionality,
-    immediately followed by the decimal expression of the contents length
-    counted in characters, immediately followed by a single horizontal
-    tab.  The count excludes the prefix, but includes the newline.
++ Messages in both directions have a similar envelope.  Each physical
+  message has a prefix, the message contents, and a newline.  The
+  prefix starts with either ``<`` or ``>`` to mark the directionality,
+  immediately followed by the decimal expression of the contents length
+  counted in characters, immediately followed by a single horizontal
+  tab.  The count excludes the prefix, but includes the newline.
 
-  + In each direction, messages are made up of two elements: an action
-    keyword and a single argument (yet the argument may sometimes be
-    complex).  As a special case, memory cleanup messages, from Python
-    to Emacs, use four elements: the atom :code:`free`, a list of slot
-    numbers to free, and then the real action and argument.  This is
-    because the cleanup is delayed and piggy-backed over some other
-    message from Python to Emacs.
++ In each direction, messages are made up of two elements: an action
+  keyword and a single argument (yet the argument may sometimes be
+  complex).  As a special case, memory cleanup messages, from Python
+  to Emacs, use four elements: the atom :code:`free`, a list of slot
+  numbers to free, and then the real action and argument.  This is
+  because the cleanup is delayed and piggy-backed over some other
+  message from Python to Emacs.
 
-  + For Emacs originated messages, the action and the argument are
-    separated by a space.  For Python originated messages, the action and
-    the argument are made into a Lisp list.
++ For Emacs originated messages, the action and the argument are
+  separated by a space.  For Python originated messages, the action and
+  the argument are made into a Lisp list.
 
-  + Most actions in the following table are available in both
-    directions, unless noted.  The first three actions *start* a new level
-    of Pymacs evaluation, the remaining actions end the current level.
++ Most actions in the following table are available in both
+  directions, unless noted.  The first three actions *start* a new level
+  of Pymacs evaluation, the remaining actions end the current level.
 
-    + :code:`eval` requests the evaluation of its expression argument.
-    + :code:`exec` requests the execution of its statement argument (this may
-      only be received on the Python side).
-    + :code:`expand` requests the opening of an Emacs Lisp structure (this may
-      only be received on the Emacs side).
-    + :code:`return` represents the normal reply to a request, the argument
-      holds the value to be returned (:code:`nil` in case of :code:`exec`).
-    + :code:`raise` represents the error reply to a request, the argument
-      then holds a diagnostic string.
+  + :code:`eval` requests the evaluation of its expression argument.
+  + :code:`exec` requests the execution of its statement argument (this may
+    only be received on the Python side).
+  + :code:`expand` requests the opening of an Emacs Lisp structure (this may
+    only be received on the Emacs side).
+  + :code:`return` represents the normal reply to a request, the argument
+    holds the value to be returned (:code:`nil` in case of :code:`exec`).
+  + :code:`raise` represents the error reply to a request, the argument
+    then holds a diagnostic string.
+
+The protocol may be fragile to interruption requests, so it tries to
+recognize each message action before evaluation is attempted.  The idea
+(not fully implemented yet) is to make the protocol part immune to
+interruptions, but to allow evaluations themselves to be interrupted.
 
 The :code:`*Pymacs*` buffer
 ---------------------------
@@ -1356,14 +1356,15 @@ Pymacs and me!
 
 Pymacs has been fairly stable since the early versions.  I surely used
 it a great deal, constantly, magically, in my daily works, to the point
-of forgetting that was it there all the time.  It was fairly complete,
+of forgetting that it was there all the time.  It was fairly complete,
 at least for my own needs, and did not move much anymore.
 
 Some time later, someone begged me to consider Vim, and not only Emacs,
-for some tools I was then writing.  Looking at Vim more closely, I
-discovered that it is a worth editor, with Python nicely integrated,
-enough for me to switch.  In a `Web article`__ (which many enjoyed, as
-they told me), I detailed my feelings on these matters.
+for some tools I was then writing (in the area of musical scores).
+Looking at Vim more closely, I discovered that it is a worth editor,
+with Python nicely integrated, enough for me to switch.  In a `Web
+article`__ (which many enjoyed, as they told me), I detailed my feelings
+on these matters.
 
 __ http://pinard.progiciels-bpi.ca/opinions/editors.html
 
