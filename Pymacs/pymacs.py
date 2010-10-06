@@ -32,6 +32,15 @@ See the Pymacs documentation (in `README') for more information.
 __metaclass__ = type
 import os, sys
 
+
+def fixup_icanon():
+    # otherwise sys.stdin.read hangs for large inputs in emacs 24
+    # see comment in emacs source code sysdep.c
+    import termios
+    a = termios.tcgetattr(1)
+    a[3] &= ~termios.ICANON
+    termios.tcsetattr(1, termios.TCSANOW, a)
+
 try:
     import signal
 except ImportError:
@@ -61,12 +70,18 @@ Arguments are added to the search path for Python modules.
         arguments = (os.environ.get('PYMACS_OPTIONS', '').split()
                      + list(arguments))
         import getopt
-        options, arguments = getopt.getopt(arguments, 'd:s:')
+        options, arguments = getopt.getopt(arguments, 'fd:s:')
         for option, value in options:
             if option == '-d':
                 self.debug_file = value
             elif option == '-s':
                 self.signal_file = value
+            elif option == '-f':
+                try:
+                    fixup_icanon()
+                except:
+                    pass
+
         arguments.reverse()
         for argument in arguments:
             if os.path.isdir(argument):
