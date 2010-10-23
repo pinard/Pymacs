@@ -1,8 +1,10 @@
-`rebox' has been written by François Pinard.  Here is the list of
-contributors.  Also see `ChangeLog-rebox' for a more details.
+**rebox** has been written by François Pinard.  Here is the list of
+contributors.  Also see ``ChangeLog-rebox`` for a more details.
 
-Akim Demaille           demaille@inf.enst.fr
-Marc Feeley             feeley@iro.umontreal.ca
-Paul Eggert             eggert@twinsun.com
-Paul Provost            provost@virtualprototypes.ca
-Ulrich Drepper          drepper@gnu.org
+======================= ======================================================
+Akim Demaille           | demaille at inf dot enst dot fr
+Marc Feeley             | feeley at iro dot umontreal dot ca
+Paul Eggert             | eggert at twinsun dot com
+Paul Provost            | provost at virtualprototypes dot ca
+Ulrich Drepper          | drepper at gnu dot org
+======================= ======================================================

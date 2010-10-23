@@ -1,44 +1,46 @@
 Pymacs has been written by François Pinard after an idea from Cedric Adjih,
 and much influenced by Brian McErlean.  Here is the list of contributors.
 
-Ali Gholami Rudi        aligrudi@gmail.com
-Brian McErlean          b.mcerlean@kainos.com
-Brian van den Broek     bvande@po-box.mcgill.ca
-                        http://home.cc.umanitoba.ca/~broek/
-Carel Fellinger         carel.fellinger@chello.nl
-Carey Evans             careye@spamcop.net
-Cedric Adjih            adjih-pam@crepuscule.com
-                        http://www.crepuscule.com/pyemacs/
-Christian Tanzer        tanzer@swing.co.at
-Dave Sellars            dsellars@windriver.com
-Dirk Vleugels           dvl@2scale.net
-Eli Zaretskii           eliz@is.elta.co.il
-Eyal Lotem              eyal.lotem@gmail.com
-Fernando Pérez          fperez528@yahoo.com
-François Pinard         pinard@iro.umontreal.ca
-                        http://pinard.progiciels-bpi.ca
-Gerd Möllmann           gerd@gnu.org
-Giovanni Giorgi         jj@objectsroot.com
-Greg Detre              gdetre@princeton.edu
-                        http://www.gregdetre.co.uk
-Henk van Dorp           h.d.vandorp@alumnus.utwente.nl
-                        http://home.orange.nl/vandorp
-John Wiegley            johnw@gnu.org
-Lukasz Pankowski        lupan@zamek.gda.pl
-Marcin Qrczak Kowalczyk qrczak@knm.org.pl
-Marco Gidde             mgidde@compuserve.de
-Neal Becker             ndbecker2@gmail.com
-Nirmal J. Patel         merik@cc.gatech.edu
-Paul Foley              mycroft@actrix.gen.nz
-                        http://users.actrix.co.nz/mycroft/
-Paul Winkler            slinkp23@yahoo.com
-Richard Stallman        rms@gnu.org
-Sebastian Waschik       sebastian.waschik@gmx.de
-Skip Montanaro          skip@pobox.com
-                        http://www.webfast.com/~skip/
-Stefan Reichör          xsteve@riic.at
-Steffen Ries            steffen.ries@sympatico.ca
-Stéphane Rollandin      lecteur@zogotounga.net
-                        http://www.zogotounga.net/comp/index.html
-Syver Enstad            syver.enstad@asker.online.no
-Ulrich Müller           ulm@gentoo.org
+======================= ===================================================
+Ali Gholami Rudi        | aligrudi at gmail dot com
+Brian McErlean          | b dot mcerlean at kainos dot com
+Brian van den Broek     | bvande at po-box dot mcgill dot ca
+                        | http://home.cc.umanitoba.ca/~broek/
+Carel Fellinger         | carel dot fellinger at chello dot nl
+Carey Evans             | careye at spamcop dot net
+Cedric Adjih            | adjih-pam at crepuscule dot com
+                        | http://www.crepuscule.com/pyemacs/
+Christian Tanzer        | tanzer at swing dot co dot at
+Dave Sellars            | dsellars at windriver dot com
+Dirk Vleugels           | dvl at 2scale dot net
+Eli Zaretskii           | eliz at is dot elta dot co dot il
+Eyal Lotem              | eyal dot lotem at gmail dot com
+Fernando Pérez          | fperez528 at yahoo dot com
+François Pinard         | pinard at iro dot umontreal dot ca
+                        | http://pinard.progiciels-bpi.ca
+Gerd Möllmann           | gerd at gnu dot org
+Giovanni Giorgi         | jj at objectsroot dot com
+Greg Detre              | gdetre at princeton dot edu
+                        | http://www.gregdetre.co.uk
+Henk van Dorp           | h dot d dot vandorp at alumnus dot utwente dot nl
+                        | http://home.orange.nl/vandorp
+John Wiegley            | johnw at gnu dot org
+Lukasz Pankowski        | lupan at zamek dot gda dot pl
+Marcin Qrczak Kowalczyk | qrczak at knm dot org dot pl
+Marco Gidde             | mgidde at compuserve dot de
+Neal Becker             | ndbecker2 at gmail dot com
+Nirmal J. Patel         | merik at cc dot gatech dot edu
+Paul Foley              | mycroft at actrix dot gen dot nz
+                        | http://users.actrix.co.nz/mycroft/
+Paul Winkler            | slinkp23 at yahoo dot com
+Richard Stallman        | rms at gnu dot org
+Sebastian Waschik       | sebastian dot waschik at gmx dot de
+Skip Montanaro          | skip at pobox dot com
+                        | http://www.webfast.com/~skip/
+Stefan Reichör          | xsteve at riic dot at
+Steffen Ries            | steffen dot ries at sympatico dot ca
+Stéphane Rollandin      | lecteur at zogotounga dot net
+                        | http://www.zogotounga.net/comp/index.html
+Syver Enstad            | syver dot enstad at asker dot online dot no
+Ulrich Müller           | ulm at gentoo dot org
+======================= ===================================================
