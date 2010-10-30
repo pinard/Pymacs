@@ -12,7 +12,7 @@ Extending Emacs with Python
 
   :Author: François Pinard
   :Email: pinard@iro.umontreal.ca
-  :Copyright: © Progiciels Bourbeau-Pinard inc., Montréal 2003, 2008
+  :Copyright: © Progiciels Bourbeau-Pinard inc., Montréal 2003, 2008, 2010
 
 .. contents::
 .. sectnum::
@@ -169,43 +169,34 @@ The following notes, for MS Windows, have been provided by Greg Detre.
 
   from somewhere besides your scripts directory.
 
-Select Emacs and Python
------------------------
-
-The environment variable ``PYMACS_PYTHON`` is usually left unset or
-empty, in which case ``python`` is implied.  It has the purpose of
-naming the Python interpreter program to be called for starting the
-Pymacs helper.  It may be set to give the full path of the executable if
-the Python program exists at some location outside the program search
-path.  It may also be given when the interpreter name is different,
-for exemple when the Python version is part of the program name.
-
-The similar environment variable ``PYMACS_EMACS`` is usually left unset
-or empty, in which case ``emacs`` is implied.  It has the purpose of
-naming the Emacs editor, yet this is only meaningful for the validation
-(see next section).  For normal Pymacs usage, Emacs is launched by the
-user long before Pymacs is itself started, and consequently, there
-is absolutely no need to tell Pymacs which Emacs is needed.  For the
-validation suite however, it may be set to give the full path of the
-executable if the Emacs program exists at some location outside the
-program search path.  It may also be given when the editor name is
-different, for example when the Emacs version is part of the program
-name, or when this is a different editor (like the value ``xemacs`` to
-call XEmacs).
-
 Check if Pymacs would work
 --------------------------
 
-To know, before installing Pymacs, if it would work on your system,
-try the validation suite by running ``make check``.  The suite is
-fairly elementary, but nevertheless, it is able to detect some common
-show stoppers.  As a convenience for those who want to quickly try
-various Emacs and Python combinations, ``make check emacs=SOME_EMACS
-python=SOME_PYTHON`` temporarily overrides the environment variables
-``PYMACS_EMACS`` and ``PYMACS_PYTHON``.  For example, ``make check
+To know, before installing Pymacs, if it would work on your system, try
+the validation suite by running ``make check``.  The suite is fairly
+elementary, but nevertheless, it is able to detect some common show
+stoppers.  To check a particular Emacs and Python combination, use
+``make check emacs=SOME_EMACS python=SOME_PYTHON``.
+
+If ``python`` is left unset or empty, then the command for starting the
+Pymacs helper is ``python``.  Otherwise, it may be set to give the full
+path of the Python executable if it exists at some location outside the
+program search path.  It may also be given when the interpreter name is
+different, for exemple when the Python version is part of the program
+name.
+
+If ``emacs`` is left unset or empty, then the command for starting the
+Emacs editor is ``emacs``.  For normal Pymacs usage, Emacs is launched
+by the user long before Pymacs is itself started, and consequently,
+there is absolutely no need to tell Pymacs which Emacs is needed.  For
+the validation suite however, it may be set to give the full path of
+the executable if the Emacs program exists at some location outside
+the program search path.  It may also be given when the editor name is
+different, for example when the Emacs version is part of the program
+name, or when this is a different editor.  For example, ``make check
 emacs=xemacs`` runs the validation suite using ``xemacs`` for an editor.
 
-The remaining of this section may be safely be skipped, for mere Pymacs
+The remaining of this section may be safely be skipped for mere Pymacs
 installation.
 
 I did not base the validation suite on Junit (the Python unit testing
@@ -220,14 +211,14 @@ that I would want, and has (or at least had) flaws on the Unicode side,
 so I rewrote my own, as a simple single file.  I merely translated it
 from French to English, to make it more distributable within Pymacs.
 
-It has not been fruitful, trying to use Emacs stdin and stdout for
-communicating expressions to evaluate and getting back results from
-within the validation suite.  After some fight, I reluctantly put this
-avenue aside.  Currently, the suite writes problems in files, for Emacs
-to read, and Emacs writes replies in files, for the suite to check.
-Busy waiting (with small sleep added in the loops) is used on both
-sides.  This is all too heavy, and it slows down the suite.  Hopefully,
-the suite is not run often, this is not a real problem.
+I initially tried using Emacs stdin and stdout for communicating
+expressions to evaluate and getting back results, from within the
+validation suite.  This did not prove useful so, so after some fight, I
+reluctantly put this avenue aside.  Currently, the suite writes problems
+in files, for Emacs to read, and Emacs writes replies in files, for the
+suite to check.  Busy waiting (with small sleep added in the loops) is
+used on both sides.  This is all too heavy, and it slows down the suite.
+Hopefully, the suite is not run often, this is not a real problem.
 
 Install the Pymacs proper
 -------------------------
@@ -238,12 +229,15 @@ be installed in turn.  Always start with the Python file.
 
 + For the Python part
 
-  At the top-level of the Pymacs distribution, then execute ``python
-  setup.py install``.  First, the script copies a few source files while
-  presetting the version strings in them.  Second, it installs the
-  Python package through the Python standard Distutils tool.  To get
-  an option reminder, do ``python setup.py install --help``.  Consult
-  the Distutils documentation if you need more information about this.
+  From the top-level of the Pymacs distribution, execute ``make
+  install``.  If the Python interpreter has a non-standard name or
+  location, rather do ``make install python=SOME_PYTHON`` (see the
+  previous section for a discussion).  First, the script copies a few
+  source files while presetting the version strings in them, as well as
+  the command name for the Python interpreter.  Second, it installs the
+  Python package through the Python standard Distutils tool.  To get an
+  option reminder, do ``python setup.py install --help``.  Consult the
+  Distutils documentation if you need more information about this.
 
   That's all to it.  To check that :file:`pymacs.py` is properly
   installed, start an interactive Python session and type ``from Pymacs
@@ -272,6 +266,9 @@ be installed in turn.  Always start with the Python file.
   receive any error.
 
 Some features from previous Pymacs releases have been dropped:
+
++ Environment variable ``PYMACS_EMACS`` is gone, and environment
+  variable ``PYMACS_PYTHON`` is usually not needed.
 
 + There used to be a script for installing the Emacs Lisp file.  As it
   was difficult to get it right in all circumstances; the script grew
@@ -1470,15 +1467,17 @@ depending on how one uses it, and how much one uses declarations.  Some
 Lisp systems have really excellent compilers, that give very fast code
 when properly hinted.
 
-Python itself may be slow or fast, once again depending on how one
-uses it.  With the proper bend, one can develop the habit of writing
-Python which shows honest speed.  And there is always Pyrex, which is
-Python complemented with explicit declarations (a bit like some Lisp
-implementations), and which can buy a lot of speed.
+Python itself may be slow or fast, once again depending on how one uses
+it.  With the proper bend, one can develop the habit of writing Python
+which shows honest speed.  And there is always Pyrex (and the very
+similar Cython), which is Python complemented with explicit declarations
+(a bit like some Lisp implementations), and which can buy a lot of
+speed.
 
 This is quite likely that one can have fast programs while using Python,
-or a mix of Python and Pyrex (or even Psyco sometimes), that is, within
-Python paradigms, without feeling any need of resorting to Lisp.
+or a mix of Python and either Pyrex or Cython (or even Psyco sometimes),
+that is, within Python paradigms, without feeling any need of resorting
+to Lisp.
 
 If Python looks like being slow while being used with Emacs, the problem
 probably lies in Emacs-Python communication which Pymacs implements.

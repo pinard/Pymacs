@@ -2,28 +2,32 @@
 # Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
-PYSETUP = python setup.py
-RST2LATEX = rst2latex
+emacs = emacs
+python = python
 
-emacs = $(PYMACS_EMACS)
-python = $(PYMACS_PYTHON)
+PYSETUP = python=$(python) $(python) setup.py
+RST2LATEX = rst2latex
 
 all:
 	$(PYSETUP) build
 
-check:
+check: clean-debug
 	$(PYSETUP) clean
 	touch .stamp
 	cd tests && \
-	  PYMACS_EMACS="$(emacs)" PYMACS_PYTHON="$(python)" \
-	  $${python-python} pytest -f t $(TEST)
+	  emacs="$(emacs)" python="$(python)" \
+	  PYMACS_OPTIONS="-d debug-protocol -s debug-signals" \
+	  $(python) pytest -f t $(TEST)
 
 install:
 	$(PYSETUP) install
 
-clean: clean-setup
+clean: clean-setup clean-debug
 	rm -rf build* contrib/rebox/build
 	rm -f */*py.class */*.pyc pymacs.pdf
+
+clean-debug:
+	rm -f tests/debug-protocol tests/debug-signals
 
 clean-setup:
 	rm -f .stamp Pymacs/__init__.py pymacs.el pymacs.rst

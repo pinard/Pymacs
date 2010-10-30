@@ -52,8 +52,8 @@ class Emacs(Launch):
         self.cleanup()
         import atexit
         atexit.register(self.cleanup)
-        emacs = os.environ.get('PYMACS_EMACS') or 'emacs'
-        self.command = emacs, '-batch', '-q', '-l', 'setup.el'
+        emacs = os.environ.get('emacs') or 'emacs'
+        self.command = emacs, '-batch', '--no-site', '-q', '-l', 'setup.el'
         if subprocess is None:
             self.command = self.command + ('-f', 'run-one-request')
         else:
@@ -122,41 +122,44 @@ class Python(Launch):
     def __init__(self):
         Launch.__init__(self)
         # Start a Pymacs helper subprocess for executing Python code.
-        python = os.environ.get('PYMACS_PYTHON') or 'python'
-        command = python + ' -c "from Pymacs.pymacs import main; main(\'..\')"'
-        import popen2
-        self.output, self.input = popen2.popen4(command)
+        import subprocess
+        self.process = subprocess.Popen(
+                [os.environ.get('python') or 'python',
+                    '-c', 'from Pymacs.pymacs import main; main(\'..\')'],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         text = self.receive()
         from Pymacs import __version__
         assert text == '(version "%s")\n' % __version__, repr(text)
 
     def receive(self):
         # Receive a Lisp expression from the Pymacs helper.
-        text = self.output.read(3)
+        stdout = self.process.stdout
+        text = stdout.read(3)
         if not text or text[0] != '<':
             if text == 'Tra':
                 # Likely a traceback, and the Pymacs helper terminated.
-                diagnostic = 'got:\n' + text + self.output.read()
+                diagnostic = 'got:\n' + text + stdout.read()
             else:
                 diagnostic = 'got ' + repr(text)
             raise pymacs.ProtocolError("'<' expected, %s\n" % diagnostic)
         while text[-1] != '\t':
-            text = text + self.output.read(1)
-        return self.output.read(int(text[1:-1]))
+            text = text + stdout.read(1)
+        return stdout.read(int(text[1:-1]))
 
     def send(self, text):
         # Send TEXT, a Python expression, to the Pymacs helper.
+        stdin = self.process.stdin
         if text[-1] == '\n':
-            self.input.write('>%d\t%s' % (len(text), text))
+            stdin.write('>%d\t%s' % (len(text), text))
         else:
-            self.input.write('>%d\t%s\n' % (len(text) + 1, text))
-        self.input.flush()
+            stdin.write('>%d\t%s\n' % (len(text) + 1, text))
+        stdin.flush()
 
 def start_python():
     Python.services = Python()
 
 def stop_python():
-    Python.services.input.close()
+    Python.services.process.kill()
 
 def ask_python(text):
     Python.services.send(text)

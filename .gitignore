@@ -10,3 +10,4 @@ contrib/rebox/setup.py
 pymacs.el
 pymacs.pdf
 pymacs.rst
+tests/debug-*

@@ -6,6 +6,7 @@ from distutils.core import setup
 
 package = 'Pymacs'
 version = '0.24-beta1'
+python = os.getenv('python') or 'python'
 
 def adjust(input, output):
     if os.path.exists(output):
@@ -17,8 +18,10 @@ def adjust(input, output):
         os.chmod(output, 0644)
         os.remove(output)
     sys.stdout.write('adjusting %s -> %s\n' % (input, output))
-    buffer = file(input).read()
-    file(output, 'w').write(buffer.replace('@VERSION@', version))
+    buffer = open(input).read()
+    open(output, 'w').write(buffer
+                            .replace('@PYTHON@', python)
+                            .replace('@VERSION@', version))
     os.chmod(output, 0444)
 
 adjust('__init__.py.in', 'Pymacs/__init__.py')
