@@ -2,11 +2,13 @@
 # Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
-emacs = emacs
-python = python
-
+EMACS = emacs
+PYTHON = python
 PYSETUP = python=$(python) $(python) setup.py
 RST2LATEX = rst2latex
+
+emacs = $(EMACS)
+python = $(PYTHON)
 
 all:
 	$(PYSETUP) build
@@ -17,7 +19,7 @@ check: clean-debug
 	cd tests && \
 	  emacs="$(emacs)" python="$(python)" \
 	  PYMACS_OPTIONS="-d debug-protocol -s debug-signals" \
-	  $(python) pytest -f t $(TEST)
+	  $(PYTHON) pytest -f t $(TEST)
 
 install:
 	$(PYSETUP) install

@@ -239,9 +239,14 @@ be installed in turn.  Always start with the Python file.
   option reminder, do ``python setup.py install --help``.  Consult the
   Distutils documentation if you need more information about this.
 
-  That's all to it.  To check that :file:`pymacs.py` is properly
-  installed, start an interactive Python session and type ``from Pymacs
-  import lisp``: you should not receive any error.
+  That's normally all to it.  To check that :file:`pymacs.py` is
+  properly installed, start an interactive Python session and type
+  ``from Pymacs import lisp``: you should not receive any error.
+
+  A special difficulty arises when the particular Python you use
+  does not have Distutils already installed.  In such a case, ``make
+  install`` prints a warning, leaving to you the task of figuring out
+  where the ``Pymacs/`` directory is best copied, and making that copy.
 
 + For the Emacs part
 
