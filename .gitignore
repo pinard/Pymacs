@@ -11,3 +11,4 @@ pymacs.el
 pymacs.pdf
 pymacs.rst
 tests/debug-*
+tests/pytest
