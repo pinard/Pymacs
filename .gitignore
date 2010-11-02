@@ -1,7 +1,7 @@
 *~
 *.pyc
-.stamp
 Pymacs/__init__.py
+Pymacs/pymacs.py
 build
 contrib/Giorgi/Pymacs/__init__.py
 contrib/Giorgi/setup.py

@@ -52,7 +52,7 @@ class Emacs(Launch):
         self.cleanup()
         import atexit
         atexit.register(self.cleanup)
-        emacs = os.environ.get('emacs') or 'emacs'
+        emacs = os.environ.get('EMACS') or 'emacs'
         self.command = emacs, '-batch', '--no-site', '-q', '-l', 'setup.el'
         if subprocess is None:
             self.command = self.command + ('-f', 'run-one-request')
@@ -124,7 +124,7 @@ class Python(Launch):
         # Start a Pymacs helper subprocess for executing Python code.
         import subprocess
         self.process = subprocess.Popen(
-                [os.environ.get('python') or 'python',
+                [os.environ.get('PYTHON') or 'python',
                     '-c', 'from Pymacs.pymacs import main; main(\'..\')'],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         text = self.receive()

@@ -4,41 +4,36 @@
 
 EMACS = emacs
 PYTHON = python
-PYSETUP = python=$(python) $(python) setup.py
 RST2LATEX = rst2latex
 
-emacs = $(EMACS)
-python = $(PYTHON)
+PYSETUP = $(PYTHON) setup.py
+P4 = $(PYTHON) p4 -c p4config.py
 
 all:
+	$(P4) *.in Pymacs
 	$(PYSETUP) build
 
 check: clean-debug
-	$(PYSETUP) clean
-	touch .stamp
+	$(P4) *.in Pymacs tests
 	cd tests && \
-	  emacs="$(emacs)" python="$(python)" \
+	  EMACS="$(EMACS)" PYTHON="$(PYTHON)" \
 	  PYMACS_OPTIONS="-d debug-protocol -s debug-signals" \
 	  $(PYTHON) pytest -f t $(TEST)
 
 install:
+	$(P4) *.in Pymacs contrib
 	$(PYSETUP) install
 
-clean: clean-setup clean-debug
+clean: clean-debug
 	rm -rf build* contrib/rebox/build
 	rm -f */*py.class */*.pyc pymacs.pdf
+	$(P4) -C *.in Pymacs contrib tests
 
 clean-debug:
 	rm -f tests/debug-protocol tests/debug-signals
 
-clean-setup:
-	rm -f .stamp Pymacs/__init__.py pymacs.el pymacs.rst
-	cd contrib/Giorgi && rm -f setup.py Pymacs/__init__.py
-	cd contrib/rebox && rm -f setup.py Pymacs/__init__.py
-
 pymacs.pdf: pymacs.rst.in
-	$(PYSETUP) clean
-	touch .stamp
+	$(P4) pymacs.rst.in
 	rm -rf tmp-pdf
 	mkdir tmp-pdf
 	$(RST2LATEX) --use-latex-toc --input-encoding=UTF-8 \
@@ -47,12 +42,6 @@ pymacs.pdf: pymacs.rst.in
 	cd tmp-pdf && pdflatex pymacs.tex
 	mv -f tmp-pdf/pymacs.pdf $@
 	rm -rf tmp-pdf
-
-# (Note: python setup.py clean is the most no-op setup.py I could find.)
-pymacs.el pymacs.rst Pymacs/__init__.py: .stamp
-.stamp: pymacs.el.in pymacs.rst.in __init__.py.in
-	$(PYSETUP) clean
-	touch .stamp
 
 # The following goals for the maintainer of the Pymacs Web site.
 

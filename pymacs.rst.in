@@ -176,16 +176,16 @@ To know, before installing Pymacs, if it would work on your system, try
 the validation suite by running ``make check``.  The suite is fairly
 elementary, but nevertheless, it is able to detect some common show
 stoppers.  To check a particular Emacs and Python combination, use
-``make check emacs=SOME_EMACS python=SOME_PYTHON``.
+``make check EMACS=some_Emacs PYTHON=some_Python``.
 
-If ``python`` is left unset or empty, then the command for starting the
+If ``PYTHON`` is left unset or empty, then the command for starting the
 Pymacs helper is ``python``.  Otherwise, it may be set to give the full
 path of the Python executable if it exists at some location outside the
 program search path.  It may also be given when the interpreter name is
 different, for exemple when the Python version is part of the program
 name.
 
-If ``emacs`` is left unset or empty, then the command for starting the
+If ``EMACS`` is left unset or empty, then the command for starting the
 Emacs editor is ``emacs``.  For normal Pymacs usage, Emacs is launched
 by the user long before Pymacs is itself started, and consequently,
 there is absolutely no need to tell Pymacs which Emacs is needed.  For
@@ -194,7 +194,7 @@ the executable if the Emacs program exists at some location outside
 the program search path.  It may also be given when the editor name is
 different, for example when the Emacs version is part of the program
 name, or when this is a different editor.  For example, ``make check
-emacs=xemacs`` runs the validation suite using ``xemacs`` for an editor.
+EMACS=xemacs`` runs the validation suite using ``xemacs`` for an editor.
 
 The remaining of this section may be safely be skipped for mere Pymacs
 installation.
@@ -231,13 +231,15 @@ be installed in turn.  Always start with the Python file.
 
   From the top-level of the Pymacs distribution, execute ``make
   install``.  If the Python interpreter has a non-standard name or
-  location, rather do ``make install python=SOME_PYTHON`` (see the
+  location, rather do ``make install PYTHON=Some_Python`` (see the
   previous section for a discussion).  First, the script copies a few
-  source files while presetting the version strings in them, as well as
-  the command name for the Python interpreter.  Second, it installs the
-  Python package through the Python standard Distutils tool.  To get an
-  option reminder, do ``python setup.py install --help``.  Consult the
-  Distutils documentation if you need more information about this.
+  source files while configuring them: it presets the version string and
+  the name of the Python interpreter, it also adapts the Python source
+  code which might differ, for example, between Python 2 and Python 3).
+  Second, it installs the Python package through the Python standard
+  Distutils tool.  To get an option reminder, do ``python setup.py
+  install --help``.  Consult the Distutils documentation if you need
+  more information about this.
 
   That's normally all to it.  To check that :file:`pymacs.py` is
   properly installed, start an interactive Python session and type

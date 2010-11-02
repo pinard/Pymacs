@@ -32,7 +32,6 @@ See the Pymacs documentation (in `README') for more information.
 __metaclass__ = type
 import os, sys
 
-
 def fixup_icanon():
     # otherwise sys.stdin.read hangs for large inputs in emacs 24
     # see comment in emacs source code sysdep.c
@@ -46,8 +45,6 @@ try:
 except ImportError:
     # Jython does not have signal.
     signal = None
-
-old_style_exception = not isinstance(Exception, type)
 
 ## Python services for Emacs applications.
 
@@ -128,7 +125,7 @@ Arguments are added to the search path for Python modules.
 run = Main()
 main = run.main
 
-if old_style_exception:
+if OLD_EXCEPTIONS:
     ProtocolError = 'ProtocolError'
     ZombieError = 'ZombieError'
 else:
@@ -191,9 +188,10 @@ class Protocol:
                     action = 'raise'
                     value = 'Emacs: ' + text
                 else:
-                    if old_style_exception:
+                    if OLD_EXCEPTIONS:
                         raise ProtocolError, "Unknown action %r" % action
-                    raise ProtocolError("Unknown action %r" % action)
+                    else:
+                        raise ProtocolError("Unknown action %r" % action)
             except KeyboardInterrupt:
                 if done:
                     raise
@@ -217,15 +215,17 @@ class Protocol:
         # Receive a Python expression from Emacs, return (ACTION, TEXT).
         prefix = sys.stdin.read(3)
         if not prefix or prefix[0] != '>':
-            if old_style_exception:
+            if OLD_EXCEPTIONS:
                 raise ProtocolError, "`>' expected."
-            raise ProtocolError("`>' expected.")
+            else:
+                raise ProtocolError("`>' expected.")
         while prefix[-1] != '\t':
             character = sys.stdin.read(1)
             if not character:
-                if old_style_exception:
+                if OLD_EXCEPTIONS:
                     raise ProtocolError, "Empty stdin read."
-                raise ProtocolError("Empty stdin read.")
+                else:
+                    raise ProtocolError("Empty stdin read.")
             prefix += character
         text = sys.stdin.read(int(prefix[1:-1]))
         if run.debug_file is not None:
@@ -359,9 +359,10 @@ def zombie(*arguments):
     # such a function from Emacs will trigger a decipherable diagnostic.
     diagnostic = "Object vanished when the Pymacs helper was killed"
     if lisp.pymacs_dreadful_zombies.value():
-        if old_style_exception:
+        if OLD_EXCEPTIONS:
             raise ZombieError, diagnostic
-        raise ZombieError(diagnostic)
+        else:
+            raise ZombieError(diagnostic)
     lisp.message(diagnostic)
 
 ## Emacs services for Python applications.
@@ -546,9 +547,10 @@ class List(Lisp):
     def __getitem__(self, key):
         value = lisp._eval('(nth %d %s)' % (key, self))
         if value is None and key >= len(self):
-            if old_style_exception:
+            if OLD_EXCEPTIONS:
                 raise IndexError, key
-            raise IndexError(key)
+            else:
+                raise IndexError(key)
         return value
 
     def __setitem__(self, key, value):
@@ -614,16 +616,18 @@ class Lisp_Interface:
 
     def __getattr__(self, name):
         if name[0] == '_':
-            if old_style_exception:
+            if OLD_EXCEPTIONS:
                 raise AttributeError, name
-            raise AttributeError(name)
+            else:
+                raise AttributeError(name)
         return self[name.replace('_', '-')]
 
     def __setattr__(self, name, value):
         if name[0] == '_':
-            if old_style_exception:
+            if OLD_EXCEPTIONS:
                 raise AttributeError, name
-            raise AttributeError(name)
+            else:
+                raise AttributeError(name)
         self[name.replace('_', '-')] = value
 
     def __getitem__(self, name):
