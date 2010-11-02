@@ -309,13 +309,15 @@ it with the above lines.  You are now all set to use Pymacs.
 
 To check this, start a fresh Emacs session, and type ``M-x
 pymacs-eval RET``.  Emacs should prompt you for a Python expression.
-Try ``repr(2L**111) RET``.  The mini buffer should display
-`"2596148429267413814265248164610048L"`. ``M-x pymacs-load RET`` should
-prompt you for a Python module name.  Reply ``os RET RET`` (the second
-``RET`` is for accepting the default prefix.  This should have the
-effect of importing the Python :code:`os` module within Emacs.  Typing
-``M-: (os-getcwd) RET`` should echo the current directory in the message
-buffer, as returned by the :code:`os.getcwd` Python function.
+Try ``repr(2L**111) RET`` (rather use ``repr(2**111) RET``
+if you are using Python 3).  The mini buffer should display
+`"2596148429267413814265248164610048L"` (yet there is no ``L`` suffix
+in Python 3). ``M-x pymacs-load RET`` should prompt you for a Python
+module name.  Reply ``os RET RET`` (the second ``RET`` is for accepting
+the default prefix.  This should have the effect of importing the Python
+:code:`os` module within Emacs.  Typing ``M-: (os-getcwd) RET`` should
+echo the current directory in the message buffer, as returned by the
+:code:`os.getcwd` Python function.
 
 Porting and caveats
 -------------------
@@ -1156,7 +1158,8 @@ default, this buffer gets erased before each transaction.  To make good
 debugging use of it, first set :code:`pymacs-trace-transit` to either
 :code:`t` or to some ``(KEEP . LIMIT)``.  As it is sometimes helpful to
 understand the communication protocol, it is briefly explained here,
-using an artificially complex example to do so.  Consider::
+using an artificially complex example to do so.  Consider (this example
+assumes Python 2)::
 
   (pymacs-eval "lisp('(pymacs-eval \"repr(2L**111)\")')")
   "2596148429267413814265248164610048L"
@@ -1535,8 +1538,8 @@ test suite should grow up, we should collect more examples.  Pymacs
 should aim seamless integration with :file:`.el` files and with
 transparent :code:`autoload` (my little tries were not so successful).
 On the Python side, Pymacs *might* fake primitives like :code:`getindex`
-and :code:`putindex`, better support iterators and some newer Python
-features, and at least consider Python 3.0.
+and :code:`putindex`, and better support iterators and some newer Python
+features.
 
 Pymacs is not much geared towards Python threads.  It is not clear yet if
 it would be reasonably tractable to better support them.

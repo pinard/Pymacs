@@ -4,6 +4,8 @@ Pymacs/__init__.py
 Pymacs/pymacs.py
 build
 contrib/Giorgi/Pymacs/__init__.py
+contrib/Giorgi/rpcTest.py
+contrib/Giorgi/rpcserver.py
 contrib/Giorgi/setup.py
 contrib/rebox/Pymacs/__init__.py
 contrib/rebox/setup.py
@@ -12,3 +14,8 @@ pymacs.pdf
 pymacs.rst
 tests/debug-*
 tests/pytest
+tests/setup.py
+tests/t11_pyfile_works.py
+tests/t21_helper_works.py
+tests/t31_elfile_works.py
+tests/t41_pymacs_works.py

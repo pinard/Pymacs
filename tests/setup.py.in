@@ -2,20 +2,23 @@
 
 # Python side of the testing protocol.
 
-__metaclass__ = type
-import os
+if PYTHON3:
+    import os, signal, subprocess
+else:
+    __metaclass__ = type
+    import os
 
-try:
-    import signal
-except ImportError:
-    # Jython misses this module.
-    signal = None
+    try:
+        import signal
+    except ImportError:
+        # Jython misses this module.
+        signal = None
 
-try:
-    import subprocess
-except ImportError:
-    # Jython misses this module.
-    subprocess = None
+    try:
+        import subprocess
+    except ImportError:
+        # Jython misses this module.
+        subprocess = None
 
 # Make sure that ../Pymacs will be found within this process.
 import sys
@@ -74,7 +77,7 @@ class Emacs(Launch):
 
     def receive(self):
         if subprocess is None:
-            handle = file('_reply')
+            handle = open('_reply')
             buffer = handle.read()
             handle.close()
         else:
@@ -85,13 +88,19 @@ class Emacs(Launch):
                 time.sleep(0.01)
             self.popen.poll()
             assert self.popen.returncode is None, self.popen.returncode
-            handle = file('_reply')
+            if PYTHON3:
+                handle = open('_reply', newline='')
+            else:
+                handle = open('_reply')
             buffer = handle.read()
             handle.close()
         return buffer
 
     def send(self, text):
-        handle = file('_request', 'w')
+        if PYTHON3:
+            handle = open('_request', 'w', newline='')
+        else:
+            handle = open('_request', 'w')
         handle.write(text)
         handle.close()
         if subprocess is None:
@@ -131,29 +140,66 @@ class Python(Launch):
         from Pymacs import __version__
         assert text == '(version "%s")\n' % __version__, repr(text)
 
-    def receive(self):
-        # Receive a Lisp expression from the Pymacs helper.
-        stdout = self.process.stdout
-        text = stdout.read(3)
-        if not text or text[0] != '<':
-            if text == 'Tra':
-                # Likely a traceback, and the Pymacs helper terminated.
-                diagnostic = 'got:\n' + text + stdout.read()
-            else:
-                diagnostic = 'got ' + repr(text)
-            raise pymacs.ProtocolError("'<' expected, %s\n" % diagnostic)
-        while text[-1] != '\t':
-            text = text + stdout.read(1)
-        return stdout.read(int(text[1:-1]))
+    if PYTHON3:
 
-    def send(self, text):
-        # Send TEXT, a Python expression, to the Pymacs helper.
-        stdin = self.process.stdin
-        if text[-1] == '\n':
-            stdin.write('>%d\t%s' % (len(text), text))
-        else:
-            stdin.write('>%d\t%s\n' % (len(text) + 1, text))
-        stdin.flush()
+        def receive(self):
+            # Receive a Lisp expression from the Pymacs helper.
+            stdout = self.process.stdout
+            data = stdout.read(3)
+            if not data or data[0] != ord(b'<'):
+                if data == b'Tra':
+                    # Likely a traceback, and the Pymacs helper terminated.
+                    diagnostic = (
+                            'got:\n' + (data + stdout.read()).decode('UTF-8'))
+                else:
+                    diagnostic = 'got ' + repr(data)
+                raise pymacs.ProtocolError("'<' expected, %s\n" % diagnostic)
+            while data[-1] != ord('\t'):
+                data += stdout.read(1)
+            return str(stdout.read(int(data[1:-1])), 'UTF-8')
+
+    else:
+
+        def receive(self):
+            # Receive a Lisp expression from the Pymacs helper.
+            stdout = self.process.stdout
+            data = stdout.read(3)
+            if not data or data[0] != '<':
+                if data == 'Tra':
+                    # Likely a traceback, and the Pymacs helper terminated.
+                    diagnostic = 'got:\n' + data + stdout.read()
+                else:
+                    diagnostic = 'got ' + repr(data)
+                raise pymacs.ProtocolError("'<' expected, %s\n" % diagnostic)
+            while data[-1] != '\t':
+                data += stdout.read(1)
+            return stdout.read(int(data[1:-1]))
+
+    if PYTHON3:
+
+        def send(self, text):
+            # Send TEXT, a Python expression, to the Pymacs helper.
+            stdin = self.process.stdin
+            data = text.encode('UTF-8')
+            if text[-1] == '\n':
+                stdin.write(('>%d\t' % len(data)).encode('ASCII'))
+                stdin.write(data)
+            else:
+                stdin.write(('>%d\t' % (len(data) + 1)).encode('ASCII'))
+                stdin.write(data)
+                stdin.write(b'\n')
+            stdin.flush()
+
+    else:
+
+        def send(self, text):
+            # Send TEXT, a Python expression, to the Pymacs helper.
+            stdin = self.process.stdin
+            if text[-1] == '\n':
+                stdin.write('>%d\t%s' % (len(text), text))
+            else:
+                stdin.write('>%d\t%s\n' % (len(text) + 1, text))
+            stdin.flush()
 
 def start_python():
     Python.services = Python()

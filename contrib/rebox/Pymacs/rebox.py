@@ -401,7 +401,7 @@ def guess_template(lines):
 Find the heaviest box template matching LINES.
 """
     best_template = None
-    for template in template_registry.values():
+    for template in list(template_registry.values()):
         if best_template is None or template > best_template:
             if template.match(lines):
                 best_template = template
@@ -561,7 +561,7 @@ by faking that all IGNORABLE characters before POSITION were removed.
             ignore[character] = None
         counter = 0
         for character in text[:position]:
-            if ignore.has_key(character):
+            if character in ignore:
                 counter = counter + 1
         self.position = position - counter
 
@@ -579,7 +579,7 @@ If LATEST is true, return the biggest possible value instead of the smallest.
         position = 0
         if latest:
             for character in text:
-                if ignore.has_key(character):
+                if character in ignore:
                     counter = counter + 1
                 else:
                     if position == self.position:
@@ -587,7 +587,7 @@ If LATEST is true, return the biggest possible value instead of the smallest.
                     position = position + 1
         elif self.position > 0:
             for character in text:
-                if ignore.has_key(character):
+                if character in ignore:
                     counter = counter + 1
                 else:
                     position = position + 1
@@ -616,7 +616,7 @@ first line of the comment text.  If the third line is shorter, it represents
 an end comment string to be bundled at the end of the comment text, and
 refilled with it.
 """
-        assert not template_registry.has_key(style), \
+        assert style not in template_registry, \
                "Style %d defined more than once" % style
         self.style = style
         self.weight = weight

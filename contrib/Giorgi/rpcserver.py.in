@@ -1,5 +1,9 @@
-import xmlrpclib
-from SimpleXMLRPCServer import SimpleXMLRPCServer
+if PYTHON3:
+    import xmlrpc.client
+    from xmlrpc.server import SimpleXMLRPCServer
+else:
+    import xmlrpclib
+    from SimpleXMLRPCServer import SimpleXMLRPCServer
 from Pymacs import lisp
 import time
 interactions={}
