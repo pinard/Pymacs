@@ -14,6 +14,7 @@ General options:
   -m   Produce, on standard output, a merged version
   -C   Clean files which would normally have been produced
   -v   Be verbose about written (or deleted) files
+  -f   Force deletion of rewriting, even if files were modified
 
 Context setting options:
   -c FILE       Evaluate Python FILE for preparing context
@@ -70,10 +71,11 @@ class Main:
     verbose = False
     clean = False
     synclines = True
+    force = False
 
     def main(self, *arguments):
         import getopt
-        options, arguments = getopt.getopt(arguments, 'CD:c:hi:mno:ps:v')
+        options, arguments = getopt.getopt(arguments, 'CD:c:fhi:mno:ps:v')
         for option, value in options:
             if option == '-C':
                 self.clean = True
@@ -89,6 +91,8 @@ class Main:
                 self.context[name] = value
             elif option == '-c':
                 exec(compile(open(value).read(), value, 'exec'), self.context)
+            elif option == '-f':
+                self.force = True
             elif option == '-h':
                 sys.stdout.write(__doc__)
                 return
@@ -224,6 +228,11 @@ class Main:
         else:
             output = input
         for input, output in self.each_pair(input, output):
+            if not self.force:
+                if (os.path.exists(output)
+                        and os.path.getmtime(output) > os.path.getmtime(input)):
+                    sys.exit("ERROR: %s has been modified, keeping it!\n"
+                             % output)
             if self.clean:
                 if os.path.exists(output):
                     if self.verbose:
@@ -235,6 +244,8 @@ class Main:
                     sys.stderr.write("writing %s\n" % output)
                 self.transform_file(
                         input, open(input), open(output, 'w').write)
+                os.utime(output, (os.path.getatime(input),
+                                  os.path.getmtime(input)))
 
     def each_pair(self, input, output):
         stack = []

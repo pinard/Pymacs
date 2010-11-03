@@ -196,9 +196,8 @@ argument), *all* the files it contains become eligible, including all
 files of its subdirectories, recursively.
 
 Now, that ``.in`` suffix may be changed to something else, using the
-``-s`` :var:`NAME` suffix option.  For example::
-
-  p4 -s '.p4input' ...
+``-s`` :var:`NAME` suffix option.  The period is part of the option
+value.  For example, ``-s '.in'`` is equivalent to not specifying it.
 
 Each eligible file is pre-processed and written on another file, the
 name of which is related to the name of the file being read.  That
@@ -238,6 +237,17 @@ input line yields many output lines, line synchronisation may be lost.
 :code:`p4` then inhibits the production of replacement white lines until
 the line synchronisation is recovered.  Option ``-n`` wholly inhibits
 the production of any white line only meant for synchronisation.
+
+Because tracebacks mention the file name after pre-processing, and not
+the original source before pre-processing, users are likely to inspect
+the resulting file, and after a while, start modifying it without
+realizing ther mistake: a resulting file might be overwritten by a later
+invocation of :code:`p4`, so loosing user's modifications.  To play
+safe, :code:`p4` normally attempts to detect when some resulting file
+has been modified by the user.  To do so, it copies the modification
+time from the original into the copy, and then does not delete nor
+rewrite a resulting file which is newer than the original source.  To
+force the deletion or rewriting nevertheless, use option ``-f``.
 
 Cleaning out files
 ------------------
