@@ -10,7 +10,7 @@ PYSETUP = $(PYTHON) setup.py
 P4 = $(PYTHON) p4 -c p4config.py
 
 all:
-	$(P4) *.in Pymacs
+	$(P4) *.in Pymacs contrib tests
 	$(PYSETUP) build
 
 check: clean-debug
@@ -21,7 +21,7 @@ check: clean-debug
 	  $(PYTHON) pytest -f t $(TEST)
 
 install:
-	$(P4) *.in Pymacs contrib
+	$(P4) *.in Pymacs contrib tests
 	$(PYSETUP) install
 
 clean: clean-debug

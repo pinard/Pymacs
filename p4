@@ -4,7 +4,7 @@
 # François Pinard <pinard@iro.umontreal.ca>, 2010.
 
 """\
-Poor Python Pre Processor (p4).
+Poor's Python Pre-Processor (p4).
 
 Usage: p4 -m [OPTION]... FILE1 FILE2
   or:  p4 [OPTION]... [FILE]...
@@ -257,39 +257,56 @@ class Main:
                 yield input_path, output_path
 
     def transform_file(self, name, lines, write):
+
         # MARGIN is the number of spaces preceding the previous "if" line.
         # A virtual "if True:" is assumed above and left of the whole module.
         margin = -1
 
-        # STATE is True when copying the block of code following an "if"
-        # with a True expression, or when copying the block of code following
-        # an "else:" after an "if" with a False expression.  STATE is False
-        # when skipping over the block of code following an "if" with a
-        # False expression.  STATE is None when skipping over all remaining
-        # branches of an "if" block, or when skipping a whole "if" altogether
-        # (when an "if" is nested within a block of code already skipped).
-        state = True
+        # REMOVE is the number of leading spaces to delete on copied lines.
+        remove = 0
 
-        # STACK saves the previous (MARGIN, STATE) whenever a nested "if"
-        # is met, and restores it when the actual margin goes left enough.
+        # STATE drives the copying or skipping of code.  When the test
+        # expression of an "if" statement is known to be True, known to be
+        # False, or cannot be evaluated, STATE becomes TRUE, FALSE or UNKNOWN
+        # respectively (an "else" clause exchanges TRUE and FALSE, but leaves
+        # UNKNOWN undisturbed).  FALSE2 is a special case of FALSE, for when
+        # some "if UNKNOWN:" is followed by "elif FALSE:", an "else:" clause
+        # might then be needed before resuming copy.  STATE is SKIP when some
+        # "if" or "elif" clause has been known to be True, meaning that all
+        # following clauses may be removed.  STATE becomes SKIP as well for a
+        # whole embedded "if" within some code which was already being skipped.
+        TRUE = 'TRUE'
+        FALSE = 'FALSE'
+        FALSE2 = 'FALSE2'
+        UNKNOWN = 'UNKNOWN'
+        SKIP = 'SKIP'
+        state = TRUE
+
+        # STACK saves the previous (MARGIN, REMOVE, STATE) whenever a nested
+        # "if" is met, and restores it when the actual margin goes left enough.
         # A nested "if" is ignored unless its expression can be evaluated.
-        # Whenever STATE is True, the length of STACK also happens to be
-        # the number of needed de-indents.
         stack = []
 
-        def expression_value(match):
+        def expression_value(text):
             try:
-                value = eval(match.group(1),
-                             {'__builtins__': {}},
-                             self.context)
+                value = eval(text, {'__builtins__': {}}, self.context)
             except:
-                return None
+                return UNKNOWN
             else:
-                return bool(value)
+                if value:
+                    return TRUE
+                return FALSE
+
+        def write_shifted(line):
+            assert remove >= 0, (remove, line)
+            assert line[:remove] == ' ' * remove, (remove, line)
+            write(line[remove:])
 
         python = (self.python
                 or name.endswith('.py') or name.endswith('.py' + self.suffix))
         for counter, line in enumerate(self.each_substituded_line(lines)):
+            #print('\n%d  %r\nmargin %d  remove %d   %s   %r'
+            #      % (counter, line, margin, remove, state, stack))
             if counter == 0 and line.startswith('#!') and 'ython' in line:
                 python = True
             if not python:
@@ -297,47 +314,70 @@ class Main:
                 continue
             short = line.lstrip()
             if not short:
-                if state:
+                if state in (TRUE, UNKNOWN):
                     write(line)
                 continue
             width = len(line) - len(short)
             while width < margin:
-                margin, state = stack.pop()
+                margin, remove, state = stack.pop()
             if width == margin:
                 match = re.match('else: *$', short)
                 if match:
-                    if state is False:
-                        state = True
-                    else:
-                        state = None
+                    if state is TRUE:
+                        state = FALSE
+                    elif state is FALSE:
+                        state = TRUE
+                    elif state is FALSE2:
+                        write_shifted(line)
+                        state = TRUE
+                    elif state in UNKNOWN:
+                        write_shifted(line)
                     continue
                 match = re.match('elif (.*): *$', short)
                 if match:
-                    if state is False:
-                        value = expression_value(match)
-                        if value is not None:
-                            state = value
-                            continue
-                        line = ' ' * width + 'if ' + match.group(1) + ':\n'
-                        margin, state = stack.pop()
-                    else:
-                        state = None
-                        continue
-                else:
-                    margin, state = stack.pop()
+                    if state is TRUE:
+                        state = SKIP
+                    elif state is FALSE:
+                        value = expression_value(match.group(1))
+                        if value is UNKNOWN:
+                            remove -= self.indent
+                            write_shifted(' ' * width + 'if' + short[4:])
+                        state = value
+                    elif state is FALSE2:
+                        value = expression_value(match.group(1))
+                        if value is UNKNOWN:
+                            write_shifted(line)
+                        else:
+                            write(' ' * width + 'else:\n')
+                            #remove += self.indent
+                        state = value
+                    elif state is UNKNOWN:
+                        value = expression_value(match.group(1))
+                        if value is TRUE:
+                            write_shifted(' ' * width + 'else:\n')
+                            state = TRUE
+                        elif value is FALSE:
+                            state = FALSE2
+                        elif value is UNKNOWN:
+                            write_shifted(line)
+                    continue
+                margin, remove, state = stack.pop()
             match = re.match('if (.*): *$', short)
             if match:
-                value = expression_value(match)
-                if value is not None:
-                    stack.append((margin, state))
-                    margin = width
-                    if state:
-                        state = value
+                stack.append((margin, remove, state))
+                margin = width
+                if state in (TRUE, UNKNOWN):
+                    value = expression_value(match.group(1))
+                    if value is UNKNOWN:
+                        write_shifted(line)
                     else:
-                        state = None
-                    continue
-            if state and not short.startswith(endif_p4):
-                write(line[len(stack) * self.indent:])
+                        remove += self.indent
+                    state = value
+                else:
+                    state = SKIP
+                continue
+            if state in (UNKNOWN, TRUE) and not short.startswith(endif_p4):
+                write_shifted(line)
 
     def each_substituded_line(self, lines):
         if self.context:

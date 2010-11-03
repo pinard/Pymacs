@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-# Checking if the Poor Python Pre Processor works.
+# Checking if the Poor's Python Pre-Processor works.
 
 exec(compile(open('../p4').read(), '../p4', 'exec'))
 
 def setup_module(module):
-    run.context = {'YES': True, 'YES2': True, 'YES3': True,
-                   'NO': False, 'NO2': False, 'NO3': False}
+    run.context = {'YES': True, 'YES2': True, 'NO': False, 'NO2': False}
 
 def validate(input, expected):
 
@@ -23,92 +22,108 @@ def validate(input, expected):
             ''.join([prefix + line for line in expected.splitlines(True)]))
 
 def test_none():
+
     yield (validate,
             '',
+
             '')
+
     yield (validate,
             'line1\n',
+
             'line1\n')
+
     yield (validate,
             'line1\n'
             'line2\n',
+
             'line1\n'
             'line2\n')
+
+def test_yes():
+
     yield (validate,
-            'line1\n'
+            'if YES:\n'
+            '    line1\n'
             'line2\n'
             'line3\n',
+
             'line1\n'
             'line2\n'
             'line3\n')
 
-def test_yes():
-    yield (validate,
-            'if YES:\n'
-            '    line1\n'
-            'line2\n'
-            'line3\n',
-            'line1\n'
-            'line2\n'
-            'line3\n')
     yield (validate,
             'if YES:\n'
             '    line1\n'
             '    line2\n'
             'line3\n',
+
             'line1\n'
             'line2\n'
             'line3\n')
+
     yield (validate,
             'if YES:\n'
             '    line1\n'
             '    line2\n'
             '    line3\n',
+
             'line1\n'
             'line2\n'
             'line3\n')
+
     yield (validate,
             'line1\n'
             'if YES:\n'
             '    line2\n'
             'line3\n',
+
             'line1\n'
             'line2\n'
             'line3\n')
+
     yield (validate,
             'line1\n'
             'if YES:\n'
             '    line2\n'
             '    line3\n',
+
             'line1\n'
             'line2\n'
             'line3\n')
+
     yield (validate,
             'line1\n'
             'line2\n'
             'if YES:\n'
             '    line3\n',
+
             'line1\n'
             'line2\n'
             'line3\n')
+
     yield (validate,
             'if YES:\n'
             '    line1\n'
             'if YES:\n'
             '    line2\n'
             'line3\n',
+
             'line1\n'
             'line2\n'
             'line3\n')
+
     yield (validate,
             'if YES:\n'
             '    line1\n'
             'line2\n'
             'if YES:\n'
             '    line3\n',
+
             'line1\n'
             'line2\n'
             'line3\n')
+
     yield (validate,
             'if YES:\n'
             '    line1\n'
@@ -116,157 +131,225 @@ def test_yes():
             '    line2\n'
             'if YES:\n'
             '    line3\n',
+
             'line1\n'
             'line2\n'
             'line3\n')
+
     yield (validate,
             'line1\n'
             'if YES:\n'
             '    line2\n'
             'if YES:\n'
             '    line3\n',
+
             'line1\n'
             'line2\n'
             'line3\n')
 
 def test_no():
+
     yield (validate,
             'if NO:\n'
             '    line1\n'
             'line2\n'
             'line3\n',
+
             'line2\n'
             'line3\n')
+
     yield (validate,
             'if NO:\n'
             '    line1\n'
             '    line2\n'
             'line3\n',
+
             'line3\n')
+
     yield (validate,
             'if NO:\n'
             '    line1\n'
             '    line2\n'
             '    line3\n',
+
             '')
+
     yield (validate,
             'line1\n'
             'if NO:\n'
             '    line2\n'
             'line3\n',
+
             'line1\n'
             'line3\n')
+
     yield (validate,
             'line1\n'
             'if NO:\n'
             '    line2\n'
             '    line3\n',
-            'line1\n')
-    yield (validate,
-            'line1\n'
-            'line2\n'
-            'if NO:\n'
-            '    line3\n',
-            'line1\n'
-            'line2\n')
-    yield (validate,
-            'if NO:\n'
-            '    line1\n'
-            'if NO:\n'
-            '    line2\n'
-            'line3\n',
-            'line3\n')
-    yield (validate,
-            'if NO:\n'
-            '    line1\n'
-            'line2\n'
-            'if NO:\n'
-            '    line3\n',
-            'line2\n')
-    yield (validate,
-            'if NO:\n'
-            '    line1\n'
-            'if NO:\n'
-            '    line2\n'
-            'if NO:\n'
-            '    line3\n',
-            '')
-    yield (validate,
-            'line1\n'
-            'if NO:\n'
-            '    line2\n'
-            'if NO:\n'
-            '    line3\n',
+
             'line1\n')
 
+    yield (validate,
+            'line1\n'
+            'line2\n'
+            'if NO:\n'
+            '    line3\n',
+
+            'line1\n'
+            'line2\n')
+
+    yield (validate,
+            'if NO:\n'
+            '    line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'line3\n',
+
+            'line3\n')
+
+    yield (validate,
+            'if NO:\n'
+            '    line1\n'
+            'line2\n'
+            'if NO:\n'
+            '    line3\n',
+
+            'line2\n')
+
+    yield (validate,
+            'if NO:\n'
+            '    line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'if NO:\n'
+            '    line3\n',
+
+            '')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'if NO:\n'
+            '    line3\n',
+
+            'line1\n')
+
+def test_unknown():
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'line3\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'line3\n')
+
+    yield (validate,
+            'if UNKNOWN:\n'
+            '    line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'if UNKNOWN:\n'
+            '    line3\n',
+
+            'if UNKNOWN:\n'
+            '    line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'if UNKNOWN:\n'
+            '    line3\n')
+
 def test_yes_else():
+
     yield (validate,
             'if YES:\n'
             '    line1\n'
             'else:\n'
             '    line2\n'
             'line3\n',
+
             'line1\n'
             'line3\n')
+
     yield (validate,
             'if YES:\n'
             '    line1\n'
             '    line2\n'
             'else:\n'
             '    line3\n',
+
             'line1\n'
             'line2\n')
+
     yield (validate,
             'line1\n'
             'if YES:\n'
             '    line2\n'
             'else:\n'
             '    line3\n',
+
             'line1\n'
             'line2\n')
-    yield (validate,
-            'if YES:\n'
-            '    line1\n'
-            'if YES:\n'
-            '    line2\n'
-            'else:\n'
-            '    line3\n',
-            'line1\n'
-            'line2\n')
+
     yield (validate,
             'if YES:\n'
             '    line1\n'
+            'if YES:\n'
+            '    line2\n'
+            'else:\n'
+            '    line3\n',
+
+            'line1\n'
+            'line2\n')
+
+    yield (validate,
+            'if YES:\n'
+            '    line1\n'
             'else:\n'
             '    line2\n'
             'if YES:\n'
             '    line3\n',
+
             'line1\n'
             'line3\n')
 
 def test_no_else():
+
     yield (validate,
             'if NO:\n'
             '    line1\n'
             'else:\n'
             '    line2\n'
             'line3\n',
+
             'line2\n'
             'line3\n')
+
     yield (validate,
             'if NO:\n'
             '    line1\n'
             '    line2\n'
             'else:\n'
             '    line3\n',
+
             'line3\n')
+
     yield (validate,
             'line1\n'
             'if NO:\n'
             '    line2\n'
             'else:\n'
             '    line3\n',
+
             'line1\n'
             'line3\n')
+
     yield (validate,
             'if NO:\n'
             '    line1\n'
@@ -274,7 +357,9 @@ def test_no_else():
             '    line2\n'
             'else:\n'
             '    line3\n',
+
             'line3\n')
+
     yield (validate,
             'if NO:\n'
             '    line1\n'
@@ -282,9 +367,695 @@ def test_no_else():
             '    line2\n'
             'if NO:\n'
             '    line3\n',
+
             'line2\n')
 
+def test_unknown_else():
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'else:\n'
+            '    line3\n'
+            'line4\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'else:\n'
+            '    line3\n'
+            'line4\n')
+
+def test_elif():
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            'elif YES:\n'
+            '    line3\n'
+            'elif YES:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line2\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            'elif YES:\n'
+            '    line3\n'
+            'elif NO:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line2\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            'elif YES:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line2\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            'elif NO:\n'
+            '    line3\n'
+            'elif YES:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line2\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            'elif NO:\n'
+            '    line3\n'
+            'elif NO:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line2\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            'elif NO:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line2\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'elif YES:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line2\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'elif NO:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line2\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line2\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'elif YES:\n'
+            '    line3\n'
+            'elif YES:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line3\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'elif YES:\n'
+            '    line3\n'
+            'elif NO:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line3\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'elif YES:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line3\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'elif NO:\n'
+            '    line3\n'
+            'elif YES:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line4\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'elif NO:\n'
+            '    line3\n'
+            'elif NO:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'line5\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'elif NO:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'elif YES:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line3\n'
+            'else:\n'
+            '    line4\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'elif NO:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line3\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif YES:\n'
+            '    line3\n'
+            'elif YES:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'else:\n'
+            '    line3\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif YES:\n'
+            '    line3\n'
+            'elif NO:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'else:\n'
+            '    line3\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif YES:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'else:\n'
+            '    line3\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif NO:\n'
+            '    line3\n'
+            'elif YES:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'else:\n'
+            '    line4\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif NO:\n'
+            '    line3\n'
+            'elif NO:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif NO:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'elif YES:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'else:\n'
+            '    line4\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'elif NO:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif UNKNOWN:\n'
+            '    line3\n'
+            'elif UNKNOWN:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n')
+
+def test_nesting():
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            '    if YES:\n'
+            '        line3\n'
+            '    else:\n'
+            '        line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n',
+
+            'line1\n'
+            'line2\n'
+            'line3\n'
+            'line5\n'
+            'line7\n')
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            '    if NO:\n'
+            '        line3\n'
+            '    else:\n'
+            '        line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n',
+
+            'line1\n'
+            'line2\n'
+            'line4\n'
+            'line5\n'
+            'line7\n')
+
+    yield (validate,
+            'line1\n'
+            'if YES:\n'
+            '    line2\n'
+            '    if UNKNOWN:\n'
+            '        line3\n'
+            '    else:\n'
+            '        line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n',
+
+            'line1\n'
+            'line2\n'
+            'if UNKNOWN:\n'
+            '    line3\n'
+            'else:\n'
+            '    line4\n'
+            'line5\n'
+            'line7\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            '    if YES:\n'
+            '        line3\n'
+            '    else:\n'
+            '        line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n',
+
+            'line1\n'
+            'line6\n'
+            'line7\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            '    if NO:\n'
+            '        line3\n'
+            '    else:\n'
+            '        line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n',
+
+            'line1\n'
+            'line6\n'
+            'line7\n')
+
+    yield (validate,
+            'line1\n'
+            'if NO:\n'
+            '    line2\n'
+            '    if UNKNOWN:\n'
+            '        line3\n'
+            '    else:\n'
+            '        line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n',
+
+            'line1\n'
+            'line6\n'
+            'line7\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            '    if YES:\n'
+            '        line3\n'
+            '    else:\n'
+            '        line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            '    line3\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            '    if NO:\n'
+            '        line3\n'
+            '    else:\n'
+            '        line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            '    line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            '    if UNKNOWN:\n'
+            '        line3\n'
+            '    else:\n'
+            '        line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            '    if UNKNOWN:\n'
+            '        line3\n'
+            '    else:\n'
+            '        line4\n'
+            '    line5\n'
+            'else:\n'
+            '    line6\n'
+            'line7\n')
+
 def test_regression():
+
     yield (validate,
             'if YES:\n'
             '    line1\n'
@@ -296,5 +1067,6 @@ def test_regression():
             '        line4\n'
             '    line5\n'
             'line6\n',
+
             'line1\n'
             'line6\n')
