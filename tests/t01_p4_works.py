@@ -6,7 +6,7 @@ exec(compile(open('../p4').read(), '../p4', 'exec'))
 
 def setup_module(module):
     run.synclines = False
-    run.context = {'YES': True, 'YES2': True, 'NO': False, 'NO2': False}
+    run.context = {'TRUE': True, 'FALSE': False}
 
 def validate(input, expected):
 
@@ -44,7 +44,7 @@ def test_none():
 def test_yes():
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
             'line2\n'
             'line3\n',
@@ -54,7 +54,7 @@ def test_yes():
             'line3\n')
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
             '    line2\n'
             'line3\n',
@@ -64,7 +64,7 @@ def test_yes():
             'line3\n')
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
             '    line2\n'
             '    line3\n',
@@ -75,7 +75,7 @@ def test_yes():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
             'line3\n',
 
@@ -85,7 +85,7 @@ def test_yes():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
             '    line3\n',
 
@@ -96,7 +96,7 @@ def test_yes():
     yield (validate,
             'line1\n'
             'line2\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line3\n',
 
             'line1\n'
@@ -104,9 +104,9 @@ def test_yes():
             'line3\n')
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
             'line3\n',
 
@@ -115,10 +115,10 @@ def test_yes():
             'line3\n')
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
             'line2\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line3\n',
 
             'line1\n'
@@ -126,11 +126,11 @@ def test_yes():
             'line3\n')
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line3\n',
 
             'line1\n'
@@ -139,9 +139,9 @@ def test_yes():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line3\n',
 
             'line1\n'
@@ -151,7 +151,7 @@ def test_yes():
 def test_no():
 
     yield (validate,
-            'if NO:\n'
+            'if FALSE:\n'
             '    line1\n'
             'line2\n'
             'line3\n',
@@ -160,7 +160,7 @@ def test_no():
             'line3\n')
 
     yield (validate,
-            'if NO:\n'
+            'if FALSE:\n'
             '    line1\n'
             '    line2\n'
             'line3\n',
@@ -168,7 +168,7 @@ def test_no():
             'line3\n')
 
     yield (validate,
-            'if NO:\n'
+            'if FALSE:\n'
             '    line1\n'
             '    line2\n'
             '    line3\n',
@@ -177,7 +177,7 @@ def test_no():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
             'line3\n',
 
@@ -186,7 +186,7 @@ def test_no():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
             '    line3\n',
 
@@ -195,45 +195,45 @@ def test_no():
     yield (validate,
             'line1\n'
             'line2\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line3\n',
 
             'line1\n'
             'line2\n')
 
     yield (validate,
-            'if NO:\n'
+            'if FALSE:\n'
             '    line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
             'line3\n',
 
             'line3\n')
 
     yield (validate,
-            'if NO:\n'
+            'if FALSE:\n'
             '    line1\n'
             'line2\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line3\n',
 
             'line2\n')
 
     yield (validate,
-            'if NO:\n'
+            'if FALSE:\n'
             '    line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line3\n',
 
             '')
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line3\n',
 
             'line1\n')
@@ -269,7 +269,7 @@ def test_unknown():
 def test_yes_else():
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
             'else:\n'
             '    line2\n'
@@ -279,7 +279,7 @@ def test_yes_else():
             'line3\n')
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
             '    line2\n'
             'else:\n'
@@ -290,7 +290,7 @@ def test_yes_else():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
             'else:\n'
             '    line3\n',
@@ -299,9 +299,9 @@ def test_yes_else():
             'line2\n')
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
             'else:\n'
             '    line3\n',
@@ -310,11 +310,11 @@ def test_yes_else():
             'line2\n')
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
             'else:\n'
             '    line2\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line3\n',
 
             'line1\n'
@@ -323,7 +323,7 @@ def test_yes_else():
 def test_no_else():
 
     yield (validate,
-            'if NO:\n'
+            'if FALSE:\n'
             '    line1\n'
             'else:\n'
             '    line2\n'
@@ -333,7 +333,7 @@ def test_no_else():
             'line3\n')
 
     yield (validate,
-            'if NO:\n'
+            'if FALSE:\n'
             '    line1\n'
             '    line2\n'
             'else:\n'
@@ -343,7 +343,7 @@ def test_no_else():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
             'else:\n'
             '    line3\n',
@@ -352,9 +352,9 @@ def test_no_else():
             'line3\n')
 
     yield (validate,
-            'if NO:\n'
+            'if FALSE:\n'
             '    line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
             'else:\n'
             '    line3\n',
@@ -362,11 +362,11 @@ def test_no_else():
             'line3\n')
 
     yield (validate,
-            'if NO:\n'
+            'if FALSE:\n'
             '    line1\n'
             'else:\n'
             '    line2\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line3\n',
 
             'line2\n')
@@ -392,11 +392,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line3\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -408,11 +408,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line3\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -424,9 +424,9 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line3\n'
             'elif UNKNOWN:\n'
             '    line4\n'
@@ -440,11 +440,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line3\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -456,11 +456,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line3\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -472,9 +472,9 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line3\n'
             'elif UNKNOWN:\n'
             '    line4\n'
@@ -488,11 +488,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
             'elif UNKNOWN:\n'
             '    line3\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -504,11 +504,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
             'elif UNKNOWN:\n'
             '    line3\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -520,7 +520,7 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
             'elif UNKNOWN:\n'
             '    line3\n'
@@ -536,11 +536,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line3\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -552,11 +552,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line3\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -568,9 +568,9 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line3\n'
             'elif UNKNOWN:\n'
             '    line4\n'
@@ -584,11 +584,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line3\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -600,11 +600,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line3\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -616,9 +616,9 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line3\n'
             'elif UNKNOWN:\n'
             '    line4\n'
@@ -635,11 +635,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
             'elif UNKNOWN:\n'
             '    line3\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -654,11 +654,11 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
             'elif UNKNOWN:\n'
             '    line3\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -673,7 +673,7 @@ def test_elif():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
             'elif UNKNOWN:\n'
             '    line3\n'
@@ -696,28 +696,9 @@ def test_elif():
             'line1\n'
             'if UNKNOWN:\n'
             '    line2\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line3\n'
-            'elif YES:\n'
-            '    line4\n'
-            'else:\n'
-            '    line5\n'
-            'line6\n',
-
-            'line1\n'
-            'if UNKNOWN:\n'
-            '    line2\n'
-            'else:\n'
-            '    line3\n'
-            'line6\n')
-
-    yield (validate,
-            'line1\n'
-            'if UNKNOWN:\n'
-            '    line2\n'
-            'elif YES:\n'
-            '    line3\n'
-            'elif NO:\n'
+            'elif TRUE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -734,7 +715,26 @@ def test_elif():
             'line1\n'
             'if UNKNOWN:\n'
             '    line2\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
+            '    line3\n'
+            'elif FALSE:\n'
+            '    line4\n'
+            'else:\n'
+            '    line5\n'
+            'line6\n',
+
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'else:\n'
+            '    line3\n'
+            'line6\n')
+
+    yield (validate,
+            'line1\n'
+            'if UNKNOWN:\n'
+            '    line2\n'
+            'elif TRUE:\n'
             '    line3\n'
             'elif UNKNOWN:\n'
             '    line4\n'
@@ -753,9 +753,9 @@ def test_elif():
             'line1\n'
             'if UNKNOWN:\n'
             '    line2\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line3\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -772,9 +772,9 @@ def test_elif():
             'line1\n'
             'if UNKNOWN:\n'
             '    line2\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line3\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -791,7 +791,7 @@ def test_elif():
             'line1\n'
             'if UNKNOWN:\n'
             '    line2\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line3\n'
             'elif UNKNOWN:\n'
             '    line4\n'
@@ -814,7 +814,7 @@ def test_elif():
             '    line2\n'
             'elif UNKNOWN:\n'
             '    line3\n'
-            'elif YES:\n'
+            'elif TRUE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -835,7 +835,7 @@ def test_elif():
             '    line2\n'
             'elif UNKNOWN:\n'
             '    line3\n'
-            'elif NO:\n'
+            'elif FALSE:\n'
             '    line4\n'
             'else:\n'
             '    line5\n'
@@ -877,9 +877,9 @@ def test_nesting():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
-            '    if YES:\n'
+            '    if TRUE:\n'
             '        line3\n'
             '    else:\n'
             '        line4\n'
@@ -896,9 +896,9 @@ def test_nesting():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
-            '    if NO:\n'
+            '    if FALSE:\n'
             '        line3\n'
             '    else:\n'
             '        line4\n'
@@ -915,7 +915,7 @@ def test_nesting():
 
     yield (validate,
             'line1\n'
-            'if YES:\n'
+            'if TRUE:\n'
             '    line2\n'
             '    if UNKNOWN:\n'
             '        line3\n'
@@ -937,9 +937,9 @@ def test_nesting():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
-            '    if YES:\n'
+            '    if TRUE:\n'
             '        line3\n'
             '    else:\n'
             '        line4\n'
@@ -954,9 +954,9 @@ def test_nesting():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
-            '    if NO:\n'
+            '    if FALSE:\n'
             '        line3\n'
             '    else:\n'
             '        line4\n'
@@ -971,7 +971,7 @@ def test_nesting():
 
     yield (validate,
             'line1\n'
-            'if NO:\n'
+            'if FALSE:\n'
             '    line2\n'
             '    if UNKNOWN:\n'
             '        line3\n'
@@ -990,7 +990,7 @@ def test_nesting():
             'line1\n'
             'if UNKNOWN:\n'
             '    line2\n'
-            '    if YES:\n'
+            '    if TRUE:\n'
             '        line3\n'
             '    else:\n'
             '        line4\n'
@@ -1012,7 +1012,7 @@ def test_nesting():
             'line1\n'
             'if UNKNOWN:\n'
             '    line2\n'
-            '    if NO:\n'
+            '    if FALSE:\n'
             '        line3\n'
             '    else:\n'
             '        line4\n'
@@ -1058,11 +1058,11 @@ def test_nesting():
 def test_regression():
 
     yield (validate,
-            'if YES:\n'
+            'if TRUE:\n'
             '    line1\n'
             'else:\n'
             '    line2\n'
-            '    if NO:\n'
+            '    if FALSE:\n'
             '        line3\n'
             '    else:\n'
             '        line4\n'
