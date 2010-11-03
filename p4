@@ -30,9 +30,6 @@ With -m, a single -Dname option is also required.  FILE1 and FILE2 are
 merged and the result written to standard output, augmented as needed
 with "if name:", "if not name:" and "else:" directives, such that FILE1
 is meant when "name" is False, FILE2 is meant when "name" is True.
-Beware that this is all done in a crude and approximative way, some
-fixup with a text editor is likely needed afterwards.  Especially check
-the surroundings of any line containing "#endif (p4)".
 
 Without -Cm, files go through an elementary pre-processing.  If no FILE
 is given, standard input is transformed and written to standard output.
@@ -55,9 +52,6 @@ A Python source has all its "if EXPR:", "elif EXPR:" and corresponding
 If "EXPR" is a valid Python expression for which primitives are either
 constants or names introduced through -D options, the "if" or "elif"
 line is removed and succeeding lines are either shifted or removed.
-Beware that this tool is easily fooled with multi-line strings, as it is
-driven only by textual line indentation.  It does not follow whether a
-line is part of multi-line string or not.
 """
 
 __metaclass__ = type
@@ -108,6 +102,9 @@ class Main:
                 self.suffix = value
             elif option == '-v':
                 self.verbose = True
+        if not self.suffix and not self.output:
+            sys.exit("Option -o is needed with an empty suffix.")
+
         if self.merge:
             if len(arguments) != 2 or len(self.context) != 1:
                 sys.exit("Try `%s -h' for help" % sys.argv[0])

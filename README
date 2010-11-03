@@ -13,27 +13,28 @@ Emacs Lisp code, one may load and use Python modules.  Python functions
 may themselves use Emacs services, and handle Emacs Lisp objects kept in
 Emacs Lisp space.
 
-The Pymacs manual (either the `HTML one`__ or the `PDF one`__) has
+The Pymacs manual (either in `HTML format`__ or `PDF format`__) has
 installation instructions, a full description of the API, pointers
-to documented examples, to resources, and to other Pymacs sites or
-projects.
+to documented examples, to resources, and to other Pymacs sites
+or projects.  The distribution also includes the Poor's Python
+Pre-Processor (**p4**) and its manual (either in `HTML format`__ or `PDF
+format`__).
 
 __ http://pymacs.progiciels-bpi.ca/pymacs.html
 __ http://pymacs.progiciels-bpi.ca/pymacs.pdf
+__ http://pymacs.progiciels-bpi.ca/p4.html
+__ http://pymacs.progiciels-bpi.ca/p4.pdf
 
-The official distribution (read the `release notice`__) is available at:
+The official distribution is available at:
 
   + http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz
-
-__ http://pymacs.progiciels-bpi.ca/courriel/latest/1
 
 Some older distributions, and maybe beta pre-releases for testers,
 *might* be available in this directory:
 
   + http://pymacs.progiciels-bpi.ca/archives/
 
-There is a reachable copy of my own sandbox repository for Pymacs.  To
-get your own copy, use::
+To get a copy of my sandbox repository for Pymacs, use::
 
   git clone git://github.com/pinard/Pymacs.git
 

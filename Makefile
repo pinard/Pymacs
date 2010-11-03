@@ -26,11 +26,22 @@ install:
 
 clean: clean-debug
 	rm -rf build* contrib/rebox/build
-	rm -f */*py.class */*.pyc pymacs.pdf
+	rm -f */*py.class */*.pyc p4.pdf pymacs.pdf
 	$(P4) -C *.in Pymacs contrib tests
 
 clean-debug:
 	rm -f tests/debug-protocol tests/debug-signals
+
+p4.pdf: p4.rst.in
+	$(P4) p4.rst.in
+	rm -rf tmp-pdf
+	mkdir tmp-pdf
+	$(RST2LATEX) --use-latex-toc --input-encoding=UTF-8 \
+	  p4.rst tmp-pdf/p4.tex
+	cd tmp-pdf && pdflatex p4.tex
+	cd tmp-pdf && pdflatex p4.tex
+	mv -f tmp-pdf/p4.pdf $@
+	rm -rf tmp-pdf
 
 pymacs.pdf: pymacs.rst.in
 	$(P4) pymacs.rst.in
@@ -50,7 +61,7 @@ push: local
 	push alcyon -d entretien/pymacs
 	ssh alcyon 'make-web -C entretien/pymacs/web'
 
-local: pymacs.pdf pymacs.rst
+local: p4.pdf pymacs.pdf pymacs.rst
 	make-web -C web
 
 VERSION = `grep '^version' setup.py | sed -e "s/'$$//" -e "s/.*'//"`
