@@ -228,6 +228,17 @@ consistently use an indentation step, and that the indentation step is 4
 columns.  This can be changed with the ``-i`` :var:`INDENT` option.  For
 example, ``-i 8`` means that the indentation step is 8 columns.
 
+By default, :code:`p4` generates white lines in the pre-processed
+results to replace any removed lines.  The idea is to guarantee usable
+line numbers in any later traceback, that is, numbers that refer to the
+correct position within the original file, before it was pre-processed.
+The file name would still differ by the ``.in`` suffix, of course, which
+is a lesser worse.  Whenever, as side-effect of substitutions, a single
+input line yields many output lines, line synchronisation may be lost.
+:code:`p4` then inhibits the production of replacement white lines until
+the line synchronisation is recovered.  Option ``-n`` wholly inhibits
+the production of any white line only meant for synchronisation.
+
 Cleaning out files
 ------------------
 

@@ -5,6 +5,7 @@
 exec(compile(open('../p4').read(), '../p4', 'exec'))
 
 def setup_module(module):
+    run.synclines = False
     run.context = {'YES': True, 'YES2': True, 'NO': False, 'NO2': False}
 
 def validate(input, expected):

@@ -25,6 +25,7 @@ Transformation options:
   -i INDENT   Indentation step, default value is 4
   -s SUFFIX   Suffix to mark transformable paths, if not '.in'
   -p          Force all files to be interpreted as Python
+  -n          Avoid trying to keep line numbers synchronized
 
 With -m, a single -Dname option is also required.  FILE1 and FILE2 are
 merged and the result written to standard output, augmented as needed
@@ -68,10 +69,11 @@ class Main:
     python = False
     verbose = False
     clean = False
+    synclines = True
 
     def main(self, *arguments):
         import getopt
-        options, arguments = getopt.getopt(arguments, 'CD:c:hi:mo:ps:v')
+        options, arguments = getopt.getopt(arguments, 'CD:c:hi:mno:ps:v')
         for option, value in options:
             if option == '-C':
                 self.clean = True
@@ -94,6 +96,8 @@ class Main:
                 self.indent = int(value)
             elif option == '-m':
                 self.merge = True
+            elif option == '-n':
+                self.synclines = False
             elif option == '-o':
                 self.output = value
             elif option == '-p':
@@ -297,22 +301,30 @@ class Main:
         def write_shifted(line):
             assert remove >= 0, (remove, line)
             assert line[:remove] == ' ' * remove, (remove, line)
-            write(line[remove:])
+            write_verbatim(line[remove:])
 
+        def write_verbatim(line):
+            write(line)
+            self.output_counter += line.count('\n')
+
+        self.output_counter = 0
         python = (self.python
                 or name.endswith('.py') or name.endswith('.py' + self.suffix))
-        for counter, line in enumerate(self.each_substituded_line(lines)):
-            #print('\n%d  %r\nmargin %d  remove %d   %s   %r'
-            #      % (counter, line, margin, remove, state, stack))
-            if counter == 0 and line.startswith('#!') and 'ython' in line:
+        for input_counter, line in enumerate(
+                self.each_substituded_line(lines)):
+            if (input_counter == 0
+                    and line.startswith('#!') and 'ython' in line):
                 python = True
+            if self.synclines:
+                while self.output_counter < input_counter:
+                    write_verbatim('\n')
             if not python:
-                write(line)
+                write_verbatim(line)
                 continue
             short = line.lstrip()
             if not short:
                 if state in (TRUE, UNKNOWN):
-                    write(line)
+                    write_verbatim(line)
                 continue
             width = len(line) - len(short)
             while width < margin:
@@ -345,8 +357,7 @@ class Main:
                         if value is UNKNOWN:
                             write_shifted(line)
                         else:
-                            write(' ' * width + 'else:\n')
-                            #remove += self.indent
+                            write_verbatim(' ' * width + 'else:\n')
                         state = value
                     elif state is UNKNOWN:
                         value = expression_value(match.group(1))
