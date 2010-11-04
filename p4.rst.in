@@ -128,7 +128,7 @@ commands::
   p4 [OPTION]... [ARGUMENT]...
 
 The operating mode of the program, and the meaning of arguments, depend
-on some options being used or not.  Option ``-C`` forces clean out
+on some options being used or not.  Option ``-c`` forces clean out
 mode, option ``-m`` forces merge mode.  Otherwise, the program uses the
 pre-processing mode.
 
@@ -143,17 +143,16 @@ Setting the context
 -------------------
 
 The context used for the pre-processing is initially empty.  It does not
-even have Python builtins.  It is then filled through the use of ``-c``
-or ``-D`` options.
+even have Python builtins.  It is then filled through the use of ``-C``
+or ``-D`` options, which may be repeated when there are many definitions
+to introduce, or when there is a need to override previous settings.
 
 Option ``-D`` :var:`name` adds :var:`name` into the context, associating
 it with the Python value ``True``.  Option ``-D`` :var:`name`\ ``=``\
-:var:`expr` adds :var:`name` into the context, associating with the value of
-the Python expression :var:`expr`.  ``-D`` option may be used more than
-once when there are many definitions to introduce.  Beware of Python
-characters which also have a meaning for the shell, proper quoting may
-be needed.  Here is, for example, how to define a string while calling
-:code:`p4`::
+:var:`expr` adds :var:`name` into the context, associating with the
+value of the Python expression :var:`expr`.  Beware of Python characters
+which also have a meaning for the shell, proper quoting may be needed.
+Here is, for example, how to define a string while calling :code:`p4`::
 
   p4 -D "version='0.24-beta2'" ...
 
@@ -182,7 +181,7 @@ might not be what you wanted.
 Pre-processing files
 --------------------
 
-Without options ``-C`` or ``-m``, the arguments to the program indicate
+Without options ``-c`` nor ``-m``, the arguments to the program indicate
 which files are going to be pre-processed.  If there is no argument
 at all, this is a special case by which standard input is read,
 pre-processed and then written to standard output.
@@ -253,7 +252,7 @@ Cleaning out files
 ------------------
 
 As a convenience for :file:`Makefile` writers, there is an option to
-help at cleaning out derived files.  With ``-C`` specified, any file that
+help at cleaning out derived files.  With ``-c`` specified, any file that
 would have been produced in pre-processing mode is removed instead.
 
 Of course, to be useful, the command arguments naming files or

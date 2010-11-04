@@ -12,14 +12,14 @@ Usage: p4 -m [OPTION]... FILE1 FILE2
 General options:
   -h   Print this help and do nothing else
   -m   Produce, on standard output, a merged version
-  -C   Clean files which would normally have been produced
+  -c   Clean files which would normally have been produced
   -v   Be verbose about written (or deleted) files
   -f   Force deletion of rewriting, even if files were modified
 
 Context setting options:
-  -c FILE       Evaluate Python FILE for preparing context
-  -Dname        Define "name" as True
-  -Dname=expr   Define "name" as the value of Python "expr"
+  -C FILE        Evaluate Python FILE for preparing context
+  -D name        Define "name" as True
+  -D name=expr   Define "name" as the value of Python "expr"
 
 Transformation options:
   -o OUTPUT   Collect output files into the OUTPUT directory
@@ -33,12 +33,11 @@ merged and the result written to standard output, augmented as needed
 with "if name:", "if not name:" and "else:" directives, such that FILE1
 is meant when "name" is False, FILE2 is meant when "name" is True.
 
-Without -Cm, files go through an elementary pre-processing.  If no FILE
+Without -cm, files go through an elementary pre-processing.  If no FILE
 is given, standard input is transformed and written to standard output.
-Otherwise, each FILE is either a file or a directory.  Directories are
-recursively traversed for the contained file names.  Whatever if a file
-is directly or indirectly named, it is retained for transformation only
-when it's full path name (starting at FILE and down) has a component for
+Otherwise, if FILE is a directory, it is recursively traversed for the
+files it contains.  A file is eligible for transformation only when
+it's full path name (starting at FILE and down) has a component for
 which there is a '.in' suffix.  The file receiving a transformed file
 is derived removing all such '.in' suffixes, and prepending OUTPUT as a
 directory if specified.  Output directories are created as needed.
@@ -75,22 +74,18 @@ class Main:
 
     def main(self, *arguments):
         import getopt
-        options, arguments = getopt.getopt(arguments, 'CD:c:fhi:mno:ps:v')
+        options, arguments = getopt.getopt(arguments, 'C:D:cfhi:mno:ps:v')
         for option, value in options:
             if option == '-C':
-                self.clean = True
+                exec(compile(open(value).read(), value, 'exec'), self.context)
             elif option == '-D':
                 if '=' in value:
                     name, value = value.split('=', 1)
-                    value = eval(value, {})
+                    self.context[name] = eval(value, {})
                 else:
-                    name = value
-                    value = True
-                if name in self.context and value != self.context[name]:
-                    sys.exit("More than one value for %s" % name)
-                self.context[name] = value
+                    self.context[name] = True
             elif option == '-c':
-                exec(compile(open(value).read(), value, 'exec'), self.context)
+                self.clean = True
             elif option == '-f':
                 self.force = True
             elif option == '-h':

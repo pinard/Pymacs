@@ -7,7 +7,7 @@ PYTHON = python
 RST2LATEX = rst2latex
 
 PYSETUP = $(PYTHON) setup.py
-P4 = $(PYTHON) p4 -c p4config.py
+P4 = $(PYTHON) p4 -C p4config.py
 
 all:
 	$(P4) *.in Pymacs contrib tests
@@ -27,7 +27,7 @@ install:
 clean: clean-debug
 	rm -rf build* contrib/rebox/build
 	rm -f */*py.class */*.pyc p4.pdf pymacs.pdf
-	$(P4) -C *.in Pymacs contrib tests
+	$(P4) -c *.in Pymacs contrib tests
 
 clean-debug:
 	rm -f tests/debug-protocol tests/debug-signals
