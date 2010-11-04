@@ -14,7 +14,7 @@ all:
 	$(PYSETUP) build
 
 check: clean-debug
-	$(P4) *.in Pymacs tests
+	$(P4) pymacs.el.in Pymacs tests
 	cd tests && \
 	  EMACS="$(EMACS)" PYTHON="$(PYTHON)" \
 	  PYMACS_OPTIONS="-d debug-protocol -s debug-signals" \
