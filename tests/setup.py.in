@@ -85,7 +85,7 @@ class Emacs(Launch):
             while os.path.exists('_request'):
                 self.popen.poll()
                 assert self.popen.returncode is None, self.popen.returncode
-                time.sleep(0.01)
+                time.sleep(0.005)
             self.popen.poll()
             assert self.popen.returncode is None, self.popen.returncode
             if PYTHON3:
