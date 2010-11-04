@@ -239,6 +239,12 @@ class Main:
                     sys.stderr.write("writing %s\n" % output)
                 self.transform_file(
                         input, open(input), open(output, 'w').write)
+                if output.endswith('.py'):
+                    pyc_file = output[:-2] + '.pyc'
+                    if os.path.exists(pyc_file):
+                        if self.verbose:
+                            sys.stderr.write("deleting %s\n" % pyc_file)
+                        os.remove(pyc_file)
                 os.utime(output, (os.path.getatime(input),
                                   os.path.getmtime(input)))
 
