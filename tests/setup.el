@@ -7,8 +7,8 @@
   (let ((buffer (get-buffer-create "*Tests*")))
     (with-current-buffer buffer
       (buffer-disable-undo)
-      (set-buffer-multibyte t)
-      (set-buffer-file-coding-system 'utf-8-unix)
+      (pymacs-set-buffer-multibyte t)
+      (set-buffer-file-coding-system 'utf-8)
       (insert-file-contents "_request")
       (let ((lisp-code (read (current-buffer)))
             (standard-output (current-buffer)))
@@ -20,8 +20,8 @@
   (let ((buffer (get-buffer-create "*Tests*")))
     (with-current-buffer buffer
       (buffer-disable-undo)
-      (set-buffer-multibyte t)
-      (set-buffer-file-coding-system 'utf-8-unix)
+      (pymacs-set-buffer-multibyte t)
+      (set-buffer-file-coding-system 'utf-8)
       (while t
         (while (file-exists-p "_reply")
           (sleep-for .005))
