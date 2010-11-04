@@ -35,7 +35,7 @@ file which can be compiled by both Python 2 and Python 3.  The languages
 are so similar that it is irritating to keep sources separate: this is
 too much a burden for maintenance, in my opinion.
 
-This :code:`p4` tool was written to help porting Pymacs to Python3.  I
+This :code:`p4` tool was written to help porting Pymacs to Python 3.  I
 guess it could be useful for other Python programs or packages.
 
 Report problems, documentation flaws, or suggestions to François Pinard:
@@ -247,7 +247,7 @@ safe, :code:`p4` normally attempts to detect when some resulting file
 has been modified by the user.  To do so, it copies the modification
 time from the original into the copy, and then does not delete nor
 rewrite a resulting file which is newer than the original source.  To
-force the deletion or rewriting nevertheless, use option ``-f``.
+force the deletion or rewriting regardless, use option ``-f``.
 
 Cleaning out files
 ------------------
