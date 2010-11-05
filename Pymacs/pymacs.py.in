@@ -71,6 +71,7 @@ Debugging options:
 
 Arguments are added to the search path for Python modules.
 """
+
         # Decode options.
         arguments = (os.environ.get('PYMACS_OPTIONS', '').split()
                      + list(arguments))
@@ -91,6 +92,7 @@ Arguments are added to the search path for Python modules.
         for argument in arguments:
             if os.path.isdir(argument):
                 sys.path.insert(0, argument)
+
         # Inhibit signals.  The Interrupt signal is temporary enabled, however,
         # while executing any Python code received from the Lisp side.
         if signal is not None:
@@ -109,6 +111,12 @@ Arguments are added to the search path for Python modules.
                         except RuntimeError:
                             pass
         self.inhibit_quit = True
+
+        if not PYTHON3:
+            # Re-open standard input and output in binary mode.
+            sys.stdin = os.fdopen(sys.stdin.fileno(), 'rb')
+            sys.stdout = os.fdopen(sys.stdout.fileno(), 'wb')
+
         # Start protocol and services.
         from Pymacs import __version__
         lisp._protocol.send('version', '"%s"' % __version__)
