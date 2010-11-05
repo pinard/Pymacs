@@ -91,24 +91,23 @@ Arguments are added to the search path for Python modules.
         for argument in arguments:
             if os.path.isdir(argument):
                 sys.path.insert(0, argument)
-        # Inhibit signals.
+        # Inhibit signals.  The Interrupt signal is temporary enabled, however,
+        # while executing any Python code received from the Lisp side.
         if signal is not None:
-            self.original_handler = signal.signal(
-                    signal.SIGINT, self.interrupt_handler)
-            for counter in range(1, signal.NSIG):
-                if counter == signal.SIGINT:
-                    self.original_handler = signal.signal(
-                            counter, self.interrupt_handler)
-
-                # The following few lines of code are reported to create IO
-                # problems within the Pymacs helper itself, so I merely comment
-                # them for now, until we know better.
-
-                #else:
-                #    try:
-                #        signal.signal(counter, self.generic_handler)
-                #    except RuntimeError:
-                #        pass
+            if IO_ERRORS_WITH_SIGNALS:
+                # See the comment for IO_ERRORS_WITH_SIGNALS in p4config.py.
+                self.original_handler = signal.signal(
+                        signal.SIGINT, self.interrupt_handler)
+            else:
+                for counter in range(1, signal.NSIG):
+                    if counter == signal.SIGINT:
+                        self.original_handler = signal.signal(
+                                counter, self.interrupt_handler)
+                    else:
+                        try:
+                            signal.signal(counter, self.generic_handler)
+                        except RuntimeError:
+                            pass
         self.inhibit_quit = True
         # Start protocol and services.
         from Pymacs import __version__
