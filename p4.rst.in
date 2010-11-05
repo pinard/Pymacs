@@ -213,13 +213,13 @@ You do not have to prepare intermediate directories to receive output
 files.  These are created on the fly, as needed.
 
 Pre-processing uses substitutions and conditionals.  Substitutions
-automatically occurs on all eligible files.  Conditionals, however, only
+automatically occur on all eligible files.  Conditionals, however, only
 apply for files which are known to be Python sources.  If option ``-p``
 is given, all files are considered to be Python sources.  Otherwise, a
 Python source has a file name which ends with ``.py`` or ``.py.in``, or
 appears to use a Python shebang line (the precise heuristic checks that
 the first line of the file starts with ``!#`` and has ``ython`` written
-somewhere).
+somewhere in it).
 
 The :code:`p4` tool assumes, by default, that the Python sources
 consistently use an indentation step, and that the indentation step is 4
@@ -241,13 +241,14 @@ Because tracebacks mention the file name after pre-processing, and not
 the original source before pre-processing, users are likely to inspect
 the resulting file, and after a while, start modifying it without
 realizing ther mistake: a resulting file might be overwritten by a later
-invocation of :code:`p4`, so loosing user's modifications. :code:`p4`
-attempts to detect this.  To play safe, it copies the modification
-time from the original into any resulting file it produces.  Then,
-whenever a resulting file is newer than the original source, it raises
-an error instead of deleting or rewriting it.  (Also, to trigger Python
-recompilation, it removes an already compiled Python file if any.)  To
-force deletions or rewritings regardless, use option ``-f``.
+invocation of :code:`p4`, so loosing user's modifications. To play safe,
+:code:`p4` attempts to detect this: it copies the modification time from
+the original into any resulting file it produces.  Then, whenever a
+resulting file is newer than the original source, :code:`p4` raises an
+error instead of deleting or rewriting it.  Finally, as a way to force
+Python recompilation in case the resulting file becomes different, it
+removes an already compiled Python file, if any.  If you want to force
+deletions or rewritings regardless, use option ``-f``.
 
 Cleaning out files
 ------------------
@@ -264,7 +265,7 @@ Merging versions
 
 As a way to help prepare a Python file for :code:`p4` pre-processing,
 the program offers a mode able to produce a pre-processable file out of
-two versions of Python source.  For example::
+two versions of a given Python source.  For example::
 
   p4 -mD VERSION2 script1.py script2.py > script.py.in
 

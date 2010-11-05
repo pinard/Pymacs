@@ -110,6 +110,10 @@ order):
 
     + http://www.princeton.edu/%7Egdetre/software/freex/docs/index.html
 
+  + PyJde -- Java dev source code browsing features in Emacs using Python:
+
+    + http://code.google.com/p/pyjde/ 
+
 The QaTeX project was influenced by Pymacs, according to its author:
 
   + http://qatex.sourceforge.net/
@@ -122,6 +126,7 @@ You are welcome writing to or joining the following mailing list, where
 there are a few people around likely to give you feedback:
 
   + mailto:pymacs-devel@googlegroups.com
+  + https://groups.google.com/group/pymacs-devel/
 
 If you have no fear of wider crowds :-), there still is:
 
@@ -133,6 +138,10 @@ has one of them:
   + http://blog.objectsroot.com/projects/pymacs/
 
 __ http://blog.objectsroot.com/
+
+There is an entry for Pymacs on Freshmeat:
+
+  + http://freshmeat.net/projects/pymacs/
 
 Installation
 ============
@@ -571,8 +580,24 @@ object.
 Usage on the Emacs Lisp side
 ============================
 
+Special Emacs Lisp functions
+----------------------------
+
+Pymacs is mainly launched and used through a few special functions,
+among all those added by Pymacs for Emacs Lisp.  These few imported
+functions are listed and detailed in the following subsections.  They
+really are the preferred way to call Python services with Pymacs.
+
+Even then, we do not expect that :code:`pymacs-exec`,
+:code:`pymacs-eval`, :code:`pymacs-call` or :code:`pymacs-apply` will be
+much used, if ever, in most Pymacs applications.  In practice, the Emacs
+Lisp side of a Pymacs application might call :code:`pymacs-load` a few
+times for linking into the Python modules, with the indirect effect of
+defining trampoline functions for these modules on the Emacs Lisp side,
+which can later be called like usual Emacs Lisp functions.
+
 :code:`pymacs-exec`
--------------------
+,,,,,,,,,,,,,,,,,,,
 
 Function ``(pymacs-exec TEXT)`` gets :var:`TEXT` executed as a Python
 statement, and its value is always :code:`nil`.  So, this function may
@@ -583,7 +608,7 @@ This function may also be called interactively::
   M-x pymacs-exec RET TEXT RET
 
 :code:`pymacs-eval`
--------------------
+,,,,,,,,,,,,,,,,,,,
 
 Function ``(pymacs-eval TEXT)`` gets :var:`TEXT` evaluated as a Python
 expression, and returns the value of that expression converted back to
@@ -594,7 +619,7 @@ This function may also be called interactively::
   M-x pymacs-eval RET TEXT RET
 
 :code:`pymacs-call`
--------------------
+,,,,,,,,,,,,,,,,,,,
 
 Function ``(pymacs-call FUNCTION ARGUMENT...)`` will get Python to
 apply the given :var:`FUNCTION` over zero or more :var:`ARGUMENT`.
@@ -606,7 +631,7 @@ before the function is called. :code:`pymacs-call` returns the resulting
 value of the function call, converted back to Emacs Lisp.
 
 :code:`pymacs-apply`
---------------------
+,,,,,,,,,,,,,,,,,,,,
 
 Function ``(pymacs-apply FUNCTION ARGUMENTS)`` will get Python to
 apply the given :var:`FUNCTION` over the given :var:`ARGUMENTS`.
@@ -616,7 +641,7 @@ instead of given separately, the function acts pretty much like
 :code:`pymacs-call`.
 
 :code:`pymacs-load`
--------------------
+,,,,,,,,,,,,,,,,,,,
 
 Function ``(pymacs-load MODULE PREFIX)`` imports the Python
 :var:`module` into Emacs Lisp space. :var:`MODULE` is the name of the
@@ -633,7 +658,7 @@ of :var:`MODULE` with underlines turned into dashes, and followed by a
 dash.
 
 Note that :code:`pymacs-load` has the effect of declaring the module
-variables and methods the Emacs Lisp side, but it does *not* declare
+variables and methods on the Emacs Lisp side, but it does *not* declare
 anything on the Python side.  Of course, Python imports the module
 before making it available for Emacs, but there is no Pymacs ready
 variable on the Python side holding that module.  If you need to import
@@ -664,19 +689,18 @@ This function may also be called interactively::
 
   M-x pymacs-load RET MODULE RET PREFIX RET
 
-Expected usage
---------------
+If you find yourself using :code:`pymacs-call` a lot for builtin Python
+functions, you might rather elect to import all Python builtin functions
+and definitions directly into Emacs Lisp space, and call them directly
+afterwards.  Here is a recipe (use the first line for Python 2, or the
+second line for Python 3)::
 
-We do not expect that :code:`pymacs-exec`, :code:`pymacs-eval`,
-:code:`pymacs-call` or :code:`pymacs-apply` will be much used, if
-ever, in most Pymacs applications.  In practice, the Emacs Lisp side
-of a Pymacs application might call :code:`pymacs-load` a few times for
-linking into the Python modules, with the indirect effect of defining
-trampoline functions for these modules on the Emacs Lisp side, which can
-later be called like usual Emacs Lisp functions.
+  M-x pymacs-load RET __builtin__ RET py- RET
+  M-x pymacs-load RET builtins RET py- RET
 
-These imported functions are usually those which are of interest for the
-user, and the preferred way to call Python services with Pymacs.
+After such a command, calling the function ``py-getattr``, say, with an
+opaque Python object and with a string naming an attribute, returns the
+value of that attribute for that object.
 
 Special Emacs Lisp variables
 ----------------------------
@@ -686,8 +710,8 @@ these are all documented here.  Except for :code:`pymacs-load-path`,
 which should be set before calling any Pymacs function, the value of
 these variables can be changed at any time.
 
-pymacs-load-path
-,,,,,,,,,,,,,,,,
+:code:`pymacs-load-path`
+,,,,,,,,,,,,,,,,,,,,,,,,
 
 Users might want to use special directories for holding their Python
 modules, when these modules are meant to be used from Emacs.  Best is to
@@ -701,8 +725,8 @@ These arguments are added at the beginning of :code:`sys.path`,
 or moved at the beginning if they were already on :code:`sys.path`.
 So in practice, nothing is removed from :code:`sys.path`.
 
-pymacs-trace-transit
-,,,,,,,,,,,,,,,,,,,,
+:code:`pymacs-trace-transit`
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 The :code:`*Pymacs*` buffer, within Emacs, holds a trace of transactions
 between Emacs and Python.  When :code:`pymacs-trace-transit` is
@@ -717,8 +741,8 @@ approximately :var:`KEEP` bytes whenever its size exceeds :var:`LIMIT`
 bytes, by deleting an integral number of lines from its beginning.  The
 default setting for :code:`pymacs-trace-transit` is ``(5000 . 30000)``.
 
-pymacs-forget-mutability
-,,,,,,,,,,,,,,,,,,,,,,,,
+:code:`pymacs-forget-mutability`
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 The default behaviour of Pymacs is to transmit Emacs Lisp objects to
 Python in such a way that they are fully modifiable from the Python
@@ -739,8 +763,8 @@ mutability is important for Python objects?  That would give Pymacs
 users the capability of restoring the symmetry somewhat, yet so far, in
 our experience, this has never been needed.
 
-pymacs-mutable-strings
-,,,,,,,,,,,,,,,,,,,,,,
+:code:`pymacs-mutable-strings`
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 Strictly speaking, Emacs Lisp strings are mutable. Yet, it does not
 come naturally to a Python programmer to modify a string *in-place*, as
@@ -777,8 +801,8 @@ expecting the first line of a reply.  The :code:`pymacs-timeout-at-line`
 variable, which defaults to 2, says how many seconds to wait without
 checking, while expecting a line of the reply after the first.
 
-pymacs-dreadful-zombies
-,,,,,,,,,,,,,,,,,,,,,,,
+:code:`pymacs-dreadful-zombies`
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 When the Pymacs helper dies, all useful Python objects it might contain
 also die with it.  However, if the death occurs unexpectedly, instead of
@@ -1309,24 +1333,11 @@ in a shell (presuming :code:`bash` here) and start Emacs from that shell.
 Then, when Emacs will launch the Pymacs helper, the above options will
 be obeyed.
 
-About and around Pymacs
-=======================
+Administrative miscellany
+=========================
 
-Known limitations
------------------
-
-Memory may leak in some theoretical circumstances (I say theoretical,
-because no one ever reported this as being an actual problem).  As
-Richard Stallman once put it (2002-08):
-
-  `I wonder, though, can this` [memory management] `technique fully handle
-  cycles that run between Lisp and Python?  Suppose Lisp object A refers
-  to Python object B, which refers to Lisp object A, and suppose nothing
-  else refers to either one of them.  Will you succeed in recognizing
-  these two objects as garbage?`
-
-History
--------
+Development history
+-------------------
 
 I once hungered for a Python-extensible editor, so much so that I
 pondered the idea of dropping Emacs for other avenues, but found nothing
@@ -1356,95 +1367,34 @@ mailto:brianmce@crosswinds.net.
 
 The initial throw at Pymacs has been written on 2001-09-05, and releases
 in the 0.x series followed in a rapid pace for a few months, and Pymacs
-became stable.  Since then, it did not need to move much, as bugs are
-not found often.  Yet, in my opinion, some missing features should be
-addressed before we dare some 1.0 release.
+soon became stable.  Reported bugs or suggestions were minor, and the
+feature set was fairly usable from the start.  For a long while, there
+was not enough new material to warrant other releases.
 
-Pymacs and me!
---------------
-
-Pymacs has been fairly stable since the early versions.  I surely used
-it a great deal, constantly, magically, in my daily works, to the point
-of forgetting that it was there all the time.  It was fairly complete,
-at least for my own needs, and did not move much anymore.
-
-Some time later, someone begged me to consider Vim, and not only Emacs,
-for some tools I was then writing (in the area of musical scores).
-Looking at Vim more closely, I discovered that it is a worth editor,
-with Python nicely integrated, enough for me to switch.  In a `Web
-article`__ (which many enjoyed, as they told me), I detailed my feelings
-on these matters.
+Later, someone begged me to consider Vim, and not only Emacs, for some
+tools I was then writing (in the area of musical scores).  Looking at
+Vim more closely, I discovered that it is a worth editor, with Python
+nicely integrated, enough for me to switch.  In a `Web article`__ (which
+many enjoyed, as they told me), I detailed my feelings on these matters.
 
 __ http://pinard.progiciels-bpi.ca/opinions/editors.html
 
-My viewpoint is that Pymacs, maybe after an initial flurry of a bit more
-than a dozen releases, soon became stable in its history.  Reported
-bugs or suggestions were minor, there was not enough new material to
-warrant other releases.  Nevertheless, when I switched from Emacs to
-Vim in my day-to-day habits, I felt that Pymacs needed a more credible
-maintainer than me.  Syver Enstad, who was an enthusiastic user and
-competent contributor, was kind enough to accept the duty (2003-10).
-Some more bugs and suggestions flowed in since then, but Syver did not
-elect to make any new release, and this did not bother me.  Syver then
-became unavailable, to the point I could not contact him in years.  I
-would loathe to see myself interfering with an official maintainer,
-but when I decided to return to some moderate Emacs usage, and because
-of the long silence, I considered resuming Pymacs maintenance as well
-(2007-11).  Then, I dived into it for real (2008-01).
+I switched from Emacs to Vim in my day-to-day habits, and because of
+this, felt that Pymacs needed a more credible maintainer than me.  Syver
+Enstad, who was an enthusiastic user and competent contributor, was kind
+enough to accept the duty (2003-10).  Syver then became unavailable,
+to the point I could not contact him in years.  I would loathe to see
+myself interfering with an official maintainer, but after I decided to
+return to some moderate Emacs usage, and because of the long silence, I
+considered resuming Pymacs maintenance (2007-11), and did it (2008-01).
 
 Giovanni Giorgi once (2007-03) wanted to expand on Pymacs and publish
 it on his own, and later felt like maintaining it whole (late 2007-12).
 I rather suggested an attempt at collaborative maintenance, and this
 experiment is still going on...
 
-Vim considerations
-------------------
-
-Emacs Lisp is deeply soldered into Emacs internals.  Vim has its own
-language, which people sometimes call Vimscript, similarly tightened
-into Vim.  My feeling is that Emacs Lisp allows for a more intimate
-handling of edit buffers and external processes than Vimscript does, yet
-this intimacy has a price in complexity, so all totalled, they may be
-perceived as comparable for most practical purposes.
-
-Pymacs allows customising Emacs with Python instead of Emacs Lisp, and
-then runs Python as a process external to Emacs, with a communication
-protocol between both processes.  Python may be built into Vim, and then
-both Python and Vim use a single process.  The same as Pymacs gives
-access to almost all of Emacs Lisp, Python within Vim gives access to
-almost all of Vimscript, but with a much smaller overhead than Pymacs.
-
-Pymacs is not Emacs Lisp, and Python in Vim is not Vimscript either,
-tweaks are needed in both cases for accessing some of the underlying
-scripting facilities.  Pymacs is rather elegant, Python in Vim is rather
-clean.  Python itself is both elegant and clean, but one strong point of
-Python for me is the legibility, which builds deeper roots on the clean
-side than on the elegant side.  All in all, despite I know how debatable
-it can be, I guess I now have a prejudice towards Python in Vim.
-
-I figured out a simple way to have the same Python source usable both
-within Pymacs or Vim.  However, Emacs is byte oriented, while Vim is
-line oriented.  In a few Pymacs applications of mine, I internally
-toggle between line orientation and byte orientation, keeping both for
-speed most probably, while I see things would be a bit simpler (and
-maybe slower) if I was pushing myself on the line-oriented side.  Each
-of Emacs and Vim have their own logic and elegance, and it is probable
-that we loose overall if we try to emulate one with the other.
-
-The idea traversed me to convert all the few Pymacs examples so they
-work both for Pymacs and Vim, and through the documentation, publicise
-how people writing Python extensions could write them for both editors
-at once.  Yet, while doing so, one has to stretch either towards Emacs
-or Vim, and I guess I would favour Vim over Emacs when the time comes to
-evaluate efficiency-related choices.
-
-I also thought about writing a Pymacs module for running Python scripts
-already written for Vim, by offering a compatibility layer.  The
-complexity of this might be unbounded, I should study actual Python
-scripts for Vim before knowing better if this is thinkable or not.
-
-Inclusion within Emacs
-----------------------
+Should it come with Emacs?
+--------------------------
 
 Gerd Möllman, who was maintaining Emacs at the time of Pymacs birth and
 development, retrofitted (2001-09) the idea of a :code:`post-gc-hook`
@@ -1462,6 +1412,43 @@ development team wrote again (2002-01) asking information about how
 to integrate Pymacs.  It was easy for me to write a good and thorough
 summary, after all these discussions with Richard.  And that's the end
 of the story: I never heard of it again. :-)
+
+The future of Pymacs
+--------------------
+
+Some people suggested important internal Pymacs changes.  In my opinion,
+new bigger features are better implemented in a careful way, first as
+examples or contributions, and moved closer to internal integration
+depending on how users use or appreciate them.  For now, Pymacs should
+concentrate at doing its own humble job well, and resist bloat.
+
+Before Pymacs closes to some version 1.0, some specifications should be
+revisited, user suggestions pondered, porting matters documented.  The
+test suite should grow up, we should collect more examples.  Pymacs
+should aim seamless integration with :file:`.el` files and with
+transparent :code:`autoload` (my little tries were not so successful).
+On the Python side, Pymacs *might* fake primitives like :code:`getindex`
+and :code:`putindex`, and better support iterators and some newer Python
+features.
+
+Pymacs is not much geared towards Python threads.  It is not clear yet if
+it would be reasonably tractable to better support them.
+
+Technical miscellany
+====================
+
+Known limitations
+-----------------
+
+Memory may leak in some theoretical circumstances (I say theoretical,
+because no one ever reported this as being an actual problem).  As
+Richard Stallman once put it (2002-08):
+
+  `I wonder, though, can this` [memory management] `technique fully handle
+  cycles that run between Lisp and Python?  Suppose Lisp object A refers
+  to Python object B, which refers to Lisp object A, and suppose nothing
+  else refers to either one of them.  Will you succeed in recognizing
+  these two objects as garbage?`
 
 Speed issues
 ------------
@@ -1525,23 +1512,223 @@ wrote within http://pinard.progiciels-bpi.ca/opinions/editors.html :
   algorithmic part in applications.  Moreover, if you do not consider
   speed issues, they bite you.`
 
-The future of Pymacs
+Suggestions to ponder
+---------------------
+
+Python-driven Pymacs
+,,,,,,,,,,,,,,,,,,,,
+
+I guess the most important improvement we could think to Pymacs would be
+some machinery by which Python programs, started outside Emacs, could
+access Pymacs, once it started.  That could be useful at least for
+testing or debugging, and maybe for more serious work as well.  These
+are mere thoughts, I do not plan working at this soon, unless I have an
+actual need.  But if the challenge interests someone, please go ahead!
+
+Here is how it could go.  Pymacs has a Python interpreter running as a
+sub-process of Emacs.  In fact, Emacs loads :file:`pymacs.el`, which
+in turn gets Python to execute :file:`pymacs.py`, and both communicate
+afterwards. :file:`pymacs.py` is only active whenever :file:`pymacs.el`
+calls it, otherwise it is blocked. :file:`pymacs.py` could, under some
+option, start another thread within itself.  The initial thread would
+block waiting for Emacs, as usual.  The second thread would block
+waiting to serve any Python client wanting to access Emacs.  When this
+occurs, the second thread would queue a request for the first thread,
+and then send a signal to Emacs so it triggers a Pymacs communication.
+At each communication opportunity, the first thread on the Python side
+might fully service the queue from the second thread.
+
+Autoloading interface
+,,,,,,,,,,,,,,,,,,,,,
+
+I once tried better interfacing to :code:`autoload`, and failed.  It got
+more intricate that I thought it would be.  I might revisit this, but in
+low priority.
+
+In the meantime, one may use a small :file:`.el` file, like this one, on
+the Emacs load path::
+
+   # File zorglub.el -- just load zorglub.py.
+   (pymacs-load "zorglub")
+   (provide 'zorglub)
+
+and then use either one of::
+
+   (require 'zorglub)             ; in Lisp
+   lisp.require(lisp.zorglub)     # in Python
+
+at the beginning of body for any function needing functions from
+:file:`zorglub.py`.  One may also write one or many::
+
+   (autoload 'FUNCTION-NAME "zorglub" nil t)
+
+to indirectly autoload :file:`zorglub.py` as needed.
+
+Handling more special forms
+,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+The discussion started about the lack of specifici Pymacs support, on
+the Python side, for the Emacs Lisp :code:`setq-default` function.
+People also mentioned :code:`defvar` and :code:`defcustom`, but there
+are really many other special forms in Emacs Lisp.  (A special form is
+any expression form in which all arguments are not all blindly evaluated
+before the function actually enters.  The function then receives the
+arguments unevaluated, and it is its responsibility to choose which
+arguments should be evaluated, and when.)
+
+The fact is that, besides :code:`setq` and some forms of :code:`defun`,
+functions, few special forms are supported in Pymacs.  One may think of
+:code:`let`, functions like :code:`save-excursion`, etc.  But that's
+all, and maybe debatable as too much already.  The real problem to solve
+is supporting special forms (and macros) at Pymacs level.  If we create
+special cases in Pymacs for each special form we happen to stumble upon,
+Pymacs might loose its elegance, and so, we have to stay a bit careful.
+
+All special forms require that the user somehow defeat the fact that
+Pymacs evaluate all function arguments before calling a Lisp function.
+I realise it might be a subtle point for people unfamiliar with
+Lisp. :code:`apply` on the Lisp side applies a function on a list of
+arguments, so the trick is to evaluate on the Python side something
+yielding a list, the contents of which are to be actual arguments.  I'm
+not fully sure this is the good direction to take, even if easy -- I
+mean here, that the real problem to solve is something else.
+
+On a related matter, Ali Gholami Rudi suggested that Pymacs supports Emacs
+so-called *keyword arguments*, and even provide a simple patch to do so::
+
+  diff --git a/Pymacs/pymacs.py b/Pymacs/pymacs.py
+  --- a/Pymacs/pymacs.py
+  +++ b/Pymacs/pymacs.py
+  @@ -453,13 +453,16 @@
+               write(') nil)')
+               lisp._eval(''.join(fragments))
+   
+  -    def __call__(self, *arguments):
+  +    def __call__(self, *arguments, **keywords):
+           fragments = []
+           write = fragments.append
+           write('(%s' % self.text)
+           for argument in arguments:
+               write(' ')
+               print_lisp(argument, write, True)
+  +        for kwd, value in keywords.items():
+  +            write(' :%s ' % kwd)
+  +            print_lisp(value, write, True)
+           write(')')
+           return lisp._eval(''.join(fragments))
+
+So far that I understand, there are just no keyword arguments in Emacs.
+I'm not aware of any standard Emacs reference explaining how keywords
+work, at the level of Emacs Lisp.  My impression is that keywords
+are nothing but a mirage created by ``defcustom`` only (is there any
+other?).  So I wonder if this isolated trickery, not even part of real
+Emacs Lisp, is important enough to warrant modifying something as
+fundamental as ``__call__`` in Pymacs.
+
+For now, users are invited to use ``lisp(...)`` for all other special
+forms.  It's simple, it's safe.  Things like::
+
+  lisp('(setq-default %s %s)' % (name, value))
+
+are not so horrible... :-) Deep down, ``lisp()`` calls are what Pymacs
+do all the time under the table, all the rest are bits of sugar.  What
+would be needed is a visit to this special form support with wider
+eyes and mind, come up with a general unifying solution, rather than
+multiplying special cases.
+
+Support for Python dictionaries
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+While Pymacs mirrors Python tuples and lists into Emacs Lisp vectors and
+lists, it has nothing currently to reflect Python dictionaries.
+
+It has been suggested to use Emacs Lisp alists to do so, but this does
+not seem adequate to me.  Pymacs 0.0 and 0.1 did convert Python
+dicts to Emacs Lisp alists.  This was a mere toy to get experience with
+the Pymacs mechanics, not a serious idea.  Despite I wanted *something*
+for Python dicts, this choice was not very satisfying:
+
+  + Dicts access speed are O(1); alists are O(N).
+  + Dicts have no intrinsic order; alists are really a sequence.
+  + Dicts have no duplicate keys; alists may have shadows.
+
+The last two points, in particular, have the consequence that one cannot
+convert back and forth from Lisp and have results which compare with
+``(equal ...)``. This makes the equivalence especially ugly.  Proper
+lists and vectors in Lisp can be converted back and forth to Python
+and be ``(equal ...)``, so those equivalences are bearable.  The dict
+conversion was withdrawn in Pymacs 0.2; I thought I should better
+postpone until a better idea pops up, than let users develop habits with
+something wrong and doomed to be replaced.
+
+Emacs Lisp hash tables (as in Emacs 21) could be an acceptable
+equivalent for Python dicts.  This is what Brian McErlean did, and
+suggests.  My only reservation is about the Python need for non-mutable keys, something which Emacs does not guarantee.  As
+by default, from Lisp to Python, references are transmitted instead of
+contents, this would be a possible problem only when an expanded copy
+is requested from the Python side.  This would never be a problem going
+from Python to Emacs, so far as I understand things now.
+
+A nicer :code:`*Pymacs*` buffer
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+We might improve how the :code:`*Pymacs*` communication buffer looks.
+Let's sketch this quickly, in any case, I'm not sure how worth this is.
+The buffer might be turned into a more fully featured Emacs mode, so
+it can benefit from highlighting and colourisation, and other goodies.
+The first thing would be to install font-lock definitions.  The second
+thing would be to use indenting to show the proper nesting of calls
+between Emacs and Python, in both directions.  I would prefer this to be
+done as a display feature, not as part of the communication protocol.
+A third thing would be to automatically interpret object numbers on
+both sides, replacing them with clearer text whenever possible -- this
+information may often be deduced from earlier communications.  Finally,
+that mode could allow for some inspection on Pymacs object and status,
+and maybe also to control the external Python server described in
+another suggestion in this series, if it ever gets implemented.
+
+Vim-related thoughts
 --------------------
 
-Some people suggested important internal Pymacs changes.  In my opinion,
-new bigger features are better implemented in a careful way, first as
-examples or contributions, and moved closer to internal integration
-depending on how users use or appreciate them.  For now, Pymacs should
-concentrate at doing its own humble job well, and resist bloat.
+Emacs Lisp is deeply soldered into Emacs internals.  Vim has its own
+language, which people sometimes call Vimscript, similarly tightened
+into Vim.  My feeling is that Emacs Lisp allows for a more intimate
+handling of edit buffers and external processes than Vimscript does, yet
+this intimacy has a price in complexity, so all totalled, they may be
+perceived as comparable for most practical purposes.
 
-Before Pymacs closes to some version 1.0, some specifications should be
-revisited, user suggestions pondered, porting matters documented.  The
-test suite should grow up, we should collect more examples.  Pymacs
-should aim seamless integration with :file:`.el` files and with
-transparent :code:`autoload` (my little tries were not so successful).
-On the Python side, Pymacs *might* fake primitives like :code:`getindex`
-and :code:`putindex`, and better support iterators and some newer Python
-features.
+Pymacs allows customising Emacs with Python instead of Emacs Lisp, and
+then runs Python as a process external to Emacs, with a communication
+protocol between both processes.  Python may be built into Vim, and then
+both Python and Vim use a single process.  The same as Pymacs gives
+access to almost all of Emacs Lisp, Python within Vim gives access to
+almost all of Vimscript, but with a much smaller overhead than Pymacs.
 
-Pymacs is not much geared towards Python threads.  It is not clear yet if
-it would be reasonably tractable to better support them.
+Pymacs is not Emacs Lisp, and Python in Vim is not Vimscript either,
+tweaks are needed in both cases for accessing some of the underlying
+scripting facilities.  Pymacs is rather elegant, Python in Vim is rather
+clean.  Python itself is both elegant and clean, but one strong point of
+Python for me is the legibility, which builds deeper roots on the clean
+side than on the elegant side.  All in all, despite I know how debatable
+it can be, I guess I now have a prejudice towards Python in Vim.
+
+I figured out a simple way to have the same Python source usable both
+within Pymacs or Vim.  However, Emacs is byte oriented, while Vim is
+line oriented.  In a few Pymacs applications of mine, I internally
+toggle between line orientation and byte orientation, keeping both for
+speed most probably, while I see things would be a bit simpler (and
+maybe slower) if I was pushing myself on the line-oriented side.  Each
+of Emacs and Vim have their own logic and elegance, and it is probable
+that we loose overall if we try to emulate one with the other.
+
+The idea traversed me to convert all the few Pymacs examples so they
+work both for Pymacs and Vim, and through the documentation, publicise
+how people writing Python extensions could write them for both editors
+at once.  Yet, while doing so, one has to stretch either towards Emacs
+or Vim, and I guess I would favour Vim over Emacs when the time comes to
+evaluate efficiency-related choices.
+
+I also thought about writing a Pymacs module for running Python scripts
+already written for Vim, by offering a compatibility layer.  The
+complexity of this might be unbounded, I should study actual Python
+scripts for Vim before knowing better if this is thinkable or not.
