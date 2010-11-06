@@ -1437,8 +1437,48 @@ it would be reasonably tractable to better support them.
 Technical miscellany
 ====================
 
-Known limitations
------------------
+Known bugs or limitations
+-------------------------
+
+What is the difference between a bug and a limitation?  *Limitations*
+are either bugs not worth repairing, or else, bugs that we do not know
+yet how to repair.  While documenting a bug is indeed a way to postpone
+its solution, it does not necessarily turns it into a limitation.
+
+On a mailing list I once closely followed, a few maintainers were
+getting very, very upset whenever the word *bug* happened to be used
+in any message, especially if the bug was documented.  A distinguished
+member on this list (William N. Venable) coined the wonderful word
+*unfelicity*, as a way to discuss problems while avoiding human damage.
+
+Such delicacies are surely unneeded for Pymacs.  A bug is a bug!
+
+Needed control on stack unwinding
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+As Ali Gholami Rudi nicely summarized it (2008-02-12):
+
+  `Lisp programmers could use` :code:`inhibit-quit` `at various levels
+  of recursion, and use Pymacs at these various levels.  As an Emacs
+  quit might be propagate out of the stack, but stopping at various
+  levels of it when the Lisp programmers took measures for it, I think
+  there is no choice that finding some mechanism by which Python will
+  unstack in parallel with Emacs, that is, no more and no less, so if
+  Emacs resume processing at some intermediate level, Python should be
+  ready at the exact corresponding level on its side.`
+
+By doing ``pymacs-eval "(time.sleep(10))"``, and quitting, I once saw
+that:
+
+  + Emacs does not interrupt at once, and if :code:`inhibit-quit`
+    remains set while Emacs waits for the Pymacs helper, this is surely
+    not user friendly!
+
+  + At the end of the wait, I get a spurious IO error (I do not know
+    where it comes from). 
+
+Possible memory leak
+,,,,,,,,,,,,,,,,,,,,
 
 Memory may leak in some theoretical circumstances (I say theoretical,
 because no one ever reported this as being an actual problem).  As
@@ -1450,67 +1490,14 @@ Richard Stallman once put it (2002-08):
   else refers to either one of them.  Will you succeed in recognizing
   these two objects as garbage?`
 
-Speed issues
-------------
+Death from a Ctrl-C
+,,,,,,,,,,,,,,,,,,,
 
-Shoot out projects compare the relative speed of many popular languages,
-and the relative merits of Lisp and Python might interest Pymacs users.
-The first URL points to a version oriented towards Win32 systems, the
-second is more recent but Debian-oriented:
+Ali Gholami Rudi notices (2008-02-20) that Pymacs dies over::
 
-  + http://dada.perl.it/shootout/index.html
-  + http://shootout.alioth.debian.org/
+  M-x pymacs-eval RET lisp.kbd('C-c r r') RET
 
-I've not heard of any Python to Lisp compiler.  Lisp may be slow or fast
-depending on how one uses it, and how much one uses declarations.  Some
-Lisp systems have really excellent compilers, that give very fast code
-when properly hinted.
-
-Python itself may be slow or fast, once again depending on how one uses
-it.  With the proper bend, one can develop the habit of writing Python
-which shows honest speed.  And there is always Pyrex (and the very
-similar Cython), which is Python complemented with explicit declarations
-(a bit like some Lisp implementations), and which can buy a lot of
-speed.
-
-This is quite likely that one can have fast programs while using Python,
-or a mix of Python and either Pyrex or Cython (or even Psyco sometimes),
-that is, within Python paradigms, without feeling any need of resorting
-to Lisp.
-
-If Python looks like being slow while being used with Emacs, the problem
-probably lies in Emacs-Python communication which Pymacs implements.
-One has to learn how to do the proper compromises for having less
-communications.  (In that regard, Vim and Python are really linked
-together, so Python in Vim is likely faster than Pymacs for someone who
-does not pay special attention to such matters.)
-
-Ali Gholami Rudi also writes (2008-02):
-
-  `Well, there seems to be lots of overhead when transferring large
-  strings.  Transferring them requires:`
-
-    1. `escaping characters in the strings`
-    2. `putting them in` :code:`*Pymacs*` `buffer`
-    3. `sending the region to Python process`
-    4. `evaluating the Python string in Python-side (involves compiling)`
-
-  `In my experiments, transferring a ~5k-line file takes more than a
-  second on a relatively new computer (data from` :code:`rope-dev`\ `).
-  Improving that probably requires a new protocol that does not
-  use Python eval and has an optional debug buffer.  Probably few
-  applications need to transfer large strings to Python but if they do,
-  it is quite slow.`
-
-All in all, speed may sometimes become a real issue for Pymacs.  I once
-wrote within http://pinard.progiciels-bpi.ca/opinions/editors.html :
-
-  `While Pymacs is elegant in my opinion, one cannot effectively use
-  Pymacs (the Python part) without knowing at least the specification
-  of many Lisp functions, and I found that it requires some doing for a
-  Pymacs developer to decouple the Emacs interaction part from the purer
-  algorithmic part in applications.  Moreover, if you do not consider
-  speed issues, they bite you.`
+as there is a ``Ctrl-C`` in the value returned from Emacs.
 
 Suggestions to ponder
 ---------------------
@@ -1618,15 +1605,16 @@ so-called *keyword arguments*, and even provide a simple patch to do so::
            return lisp._eval(''.join(fragments))
 
 So far that I understand, there are just no keyword arguments in Emacs.
-I'm not aware of any standard Emacs reference explaining how keywords
-work, at the level of Emacs Lisp.  My impression is that keywords
-are nothing but a mirage created by ``defcustom`` only (is there any
-other?).  So I wonder if this isolated trickery, not even part of real
-Emacs Lisp, is important enough to warrant modifying something as
-fundamental as ``__call__`` in Pymacs.
+Keywords might be nothing but a mirage created by :code:`defcustom`
+only (maybe through :code:`define-minor-mode`) and :code:`defstruct`
+-- is there any other usage for keywords?  So I wonder if this unusual
+trickery, not even a real part of Emacs Lisp, is important enough to
+warrant modifying something as fundamental as :code:`__call__` in
+Pymacs.  Part of my reluctance might also come from my (unsubstanciated)
+fear that the above change would slow down the hearth of Pymacs.
 
-For now, users are invited to use ``lisp(...)`` for all other special
-forms.  It's simple, it's safe.  Things like::
+For now at least, users are invited to use ``lisp(...)`` for all other
+special forms.  It's simple, it's rather safe.  Things like::
 
   lisp('(setq-default %s %s)' % (name, value))
 
@@ -1686,6 +1674,68 @@ information may often be deduced from earlier communications.  Finally,
 that mode could allow for some inspection on Pymacs object and status,
 and maybe also to control the external Python server described in
 another suggestion in this series, if it ever gets implemented.
+
+Speed issues
+------------
+
+Shoot out projects compare the relative speed of many popular languages,
+and the relative merits of Lisp and Python might interest Pymacs users.
+The first URL points to a version oriented towards Win32 systems, the
+second is more recent but Debian-oriented:
+
+  + http://dada.perl.it/shootout/index.html
+  + http://shootout.alioth.debian.org/
+
+I've not heard of any Python to Lisp compiler.  Lisp may be slow or fast
+depending on how one uses it, and how much one uses declarations.  Some
+Lisp systems have really excellent compilers, that give very fast code
+when properly hinted.
+
+Python itself may be slow or fast, once again depending on how one uses
+it.  With the proper bend, one can develop the habit of writing Python
+which shows honest speed.  And there is always Pyrex (and the very
+similar Cython), which is Python complemented with explicit declarations
+(a bit like some Lisp implementations), and which can buy a lot of
+speed.
+
+This is quite likely that one can have fast programs while using Python,
+or a mix of Python and either Pyrex or Cython (or even Psyco sometimes),
+that is, within Python paradigms, without feeling any need of resorting
+to Lisp.
+
+If Python looks like being slow while being used with Emacs, the problem
+probably lies in Emacs-Python communication which Pymacs implements.
+One has to learn how to do the proper compromises for having less
+communications.  (In that regard, Vim and Python are really linked
+together, so Python in Vim is likely faster than Pymacs for someone who
+does not pay special attention to such matters.)
+
+Ali Gholami Rudi also writes (2008-02):
+
+  `Well, there seems to be lots of overhead when transferring large
+  strings.  Transferring them requires:`
+
+    1. `escaping characters in the strings`
+    2. `putting them in` :code:`*Pymacs*` `buffer`
+    3. `sending the region to Python process`
+    4. `evaluating the Python string in Python-side (involves compiling)`
+
+  `In my experiments, transferring a ~5k-line file takes more than a
+  second on a relatively new computer (data from` :code:`rope-dev`\ `).
+  Improving that probably requires a new protocol that does not
+  use Python eval and has an optional debug buffer.  Probably few
+  applications need to transfer large strings to Python but if they do,
+  it is quite slow.`
+
+All in all, speed may sometimes become a real issue for Pymacs.  I once
+wrote within http://pinard.progiciels-bpi.ca/opinions/editors.html :
+
+  `While Pymacs is elegant in my opinion, one cannot effectively use
+  Pymacs (the Python part) without knowing at least the specification
+  of many Lisp functions, and I found that it requires some doing for a
+  Pymacs developer to decouple the Emacs interaction part from the purer
+  algorithmic part in applications.  Moreover, if you do not consider
+  speed issues, they bite you.`
 
 Vim-related thoughts
 --------------------
