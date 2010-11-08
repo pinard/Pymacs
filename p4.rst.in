@@ -65,9 +65,7 @@ Pre-processor syntax
 There are two mechanisms in :code:`p4`.  One does in-line substitutions,
 the other takes care of conditional compilation.  In-line substitution
 occurs first, one line at a time, then conditional compilation occurs
-on the result of the substitutions.  The behaviour of :code:`p4` is
-unspecified when substitutions of a conditional-looking line yields
-multiple lines.
+on the result of the substitutions.
 
 The two mechanisms both rely on a preset *context*, which is a set
 of definitions.  Each definition relates a name to a Python value.
@@ -75,18 +73,24 @@ The context is built under the control of options given to the
 :code:`p4` program.  The same context is used both for substitution and
 conditionals.
 
+The behaviour of :code:`p4` is currently unspecified when substitutions
+of a single line produces multiple lines, for which the first or any
+other is meant for conditional compilation.  So don't do that!
+
 Substitutions
 -------------
 
 Substitution is triggered on each occurrence of ``@``\ :var:`NAME`\
-``@`` in the sources.  In each case, :var:`NAME` is the name of a
-context element.  That name and the surrounding ``@`` delimiters are
-then replaced by the string of the value associated with that name
-within the context.
+``@`` in the sources.  In each case, if :var:`NAME` is not the name of
+a context element, substitution just does not happen and the occurrence
+is left undisturbed — silently, without diagnostic.  If substitution
+happens, :var:`NAME` and the surrounding ``@`` delimiters get replaced
+by the string of the value associated with that name within the context.
 
-Unless ``@``\ :var:`NAME`\ ``@`` happens to sit within a Python
-string or a Python comment, it is invalid Python syntax.  So, if the
-substitution notation is used, pre-processing is likely mandatory.
+Unless ``@``\ :var:`NAME`\ ``@`` sits within a Python string or a Python
+comment, it is invalid Python syntax.  So (contrarily to conditionals
+described below), if the substitution notation is used, pre-processing
+is likely mandatory.
 
 Conditionals
 ------------
@@ -112,12 +116,13 @@ While it is possible to use very invalid Python syntax which, through
 program; users are much invited to use conditional compilation in such a
 way that sources meant for :code:`p4` are directly legal Python syntax.
 
-This idea could be pushed even further.  If the user manages to compute
-the context variables at run-time in the Python program, conditional
-compilation for some name could be replaced by run-time checks on that
-name merely by *not* defining the name in the :code:`p4` context.  By
-doing so, the test expressions involving that name may not be resolved
-by the pre-processor, and the simplifications just does not occur.
+This idea of writing conditionals as correct Python could be pushed
+even further.  If the user manages to compute and assign the context
+variables at run-time in the Python program, conditional compilation
+for some name could be replaced by run-time checks on that name merely
+by *not* defining the name in the :code:`p4` context.  By doing so,
+the test expressions involving that name may not be resolved by the
+pre-processor, and the simplifications just does not occur.
 
 Invoking :code:`p4`
 ===================

@@ -93,24 +93,24 @@ A few more substantial examples of Pymacs usage have been brought to my
 attention, and are available externally (listed here in no particular
 order):
 
-  + pymdev -- A Python Emacs Development Module:
+  + pymdev — A Python Emacs Development Module:
 
     + http://www.toolness.com/pymdev/
 
-  + Ropemacs -- Features like refactoring and code-assists:
+  + Ropemacs — Features like refactoring and code-assists:
 
     + http://rope.sf.net/ropemacs.html
     + http://rope.sf.net/hg/ropemacs
 
-  + Bicycle Repair Man -- A Refactoring Tool for Python:
+  + Bicycle Repair Man — A Refactoring Tool for Python:
 
     + http://bicyclerepair.sourceforge.net/
 
-  + Emacs Freex -- A personal wiki on steroids:
+  + Emacs Freex — A personal wiki on steroids:
 
     + http://www.princeton.edu/%7Egdetre/software/freex/docs/index.html
 
-  + PyJde -- Java dev source code browsing features in Emacs using Python:
+  + PyJde — Java dev source code browsing features in Emacs using Python:
 
     + http://code.google.com/p/pyjde/ 
 
@@ -1459,13 +1459,13 @@ Needed control on stack unwinding
 As Ali Gholami Rudi nicely summarized it (2008-02-12):
 
   `Lisp programmers could use` :code:`inhibit-quit` `at various levels
-  of recursion, and use Pymacs at these various levels.  As an Emacs
-  quit might be propagate out of the stack, but stopping at various
-  levels of it when the Lisp programmers took measures for it, I think
-  there is no choice that finding some mechanism by which Python will
-  unstack in parallel with Emacs, that is, no more and no less, so if
-  Emacs resume processing at some intermediate level, Python should be
-  ready at the exact corresponding level on its side.`
+  of recursion, and use Pymacs at these various levels.  As an Emacs`
+  :code:`quit` `might propagate out of the stack, but stopping at
+  various levels of it when the Lisp programmers took measures for it, I
+  think there is no choice that finding some mechanism by which Python
+  will unstack in parallel with Emacs, that is, no more and no less, so
+  if Emacs resumes processing at some intermediate level, Python should
+  be ready at the exact corresponding level on its side.`
 
 By doing ``pymacs-eval "(time.sleep(10))"``, and quitting, I once saw
 that:
@@ -1535,7 +1535,7 @@ low priority.
 In the meantime, one may use a small :file:`.el` file, like this one, on
 the Emacs load path::
 
-   # File zorglub.el -- just load zorglub.py.
+   # File zorglub.el — just load zorglub.py.
    (pymacs-load "zorglub")
    (provide 'zorglub)
 
@@ -1577,7 +1577,7 @@ I realise it might be a subtle point for people unfamiliar with
 Lisp. :code:`apply` on the Lisp side applies a function on a list of
 arguments, so the trick is to evaluate on the Python side something
 yielding a list, the contents of which are to be actual arguments.  I'm
-not fully sure this is the good direction to take, even if easy -- I
+not fully sure this is the good direction to take, even if easy — I
 mean here, that the real problem to solve is something else.
 
 On a related matter, Ali Gholami Rudi suggested that Pymacs supports Emacs
@@ -1669,7 +1669,7 @@ thing would be to use indenting to show the proper nesting of calls
 between Emacs and Python, in both directions.  I would prefer this to be
 done as a display feature, not as part of the communication protocol.
 A third thing would be to automatically interpret object numbers on
-both sides, replacing them with clearer text whenever possible -- this
+both sides, replacing them with clearer text whenever possible — this
 information may often be deduced from earlier communications.  Finally,
 that mode could allow for some inspection on Pymacs object and status,
 and maybe also to control the external Python server described in
