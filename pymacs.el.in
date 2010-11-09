@@ -108,6 +108,10 @@ The status of the Pymacs helper is checked at every such timeout.")
   "Expected maximum time, in seconds, to get another line of a reply.
 The status of the Pymacs helper is checked at every such timeout.")
 
+(defvar pymacs-auto-restart 'ask
+  "Should the Pymacs helper be restarted whenever it dies?
+Possible values are nil, t or ask.")
+
 (defvar pymacs-dreadful-zombies nil
   "If zombies should trigger hard errors, whenever they get called.
 If `nil', calling a zombie will merely produce a diagnostic message.")
@@ -269,6 +273,10 @@ equivalents, other structures are converted into Lisp handles."
 (defvar pymacs-used-ids nil
   "List of received IDs, currently allocated on the Python side.")
 
+;; This is set whenever the Pymacs helper successfully starts, and is
+;; also used to later detect the death of a previous helper.  If
+;; pymacs-use-hash-tables is unset, this variable receives `t' when
+;; the helper starts, so the detection works nevertheless.
 (defvar pymacs-weak-hash nil
   "Weak hash table, meant to find out which IDs are still needed.")
 
@@ -554,7 +562,8 @@ The timer is used only if `post-gc-hook' is not available.")
                  "Pymacs Lisp version is @VERSION@, Python is %s"
                  (cadr reply)))
             (pymacs-report-error "Pymacs got an invalid initial reply")))))
-    (when pymacs-use-hash-tables
+    (if (not pymacs-use-hash-tables)
+        (setq pymacs-weak-hash t)
       (if pymacs-weak-hash
           ;; A previous Pymacs session occurred in *this* Emacs session.  Some
           ;; IDs may hang around, which do not correspond to anything on the
@@ -599,6 +608,11 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
   (unless (and pymacs-transit-buffer
                (buffer-name pymacs-transit-buffer)
                (get-buffer-process pymacs-transit-buffer))
+    (when pymacs-weak-hash 
+      (unless (or (eq pymacs-auto-restart t)
+                  (and (eq pymacs-auto-restart 'ask)
+                       (yes-or-no-p "The Pymacs helper died.  Restart it? ")))
+        (pymacs-report-error "There is no Pymacs helper!")))
     (pymacs-start-services))
   (when pymacs-gc-wanted
     (pymacs-garbage-collect))

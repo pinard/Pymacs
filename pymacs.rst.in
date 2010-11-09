@@ -801,31 +801,58 @@ expecting the first line of a reply.  The :code:`pymacs-timeout-at-line`
 variable, which defaults to 2, says how many seconds to wait without
 checking, while expecting a line of the reply after the first.
 
+:code:`pymacs-auto-restart`
+,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+The Pymacs helper process is started as soon as it is needed, and gets
+associated with the :code:`*Pymacs*` buffer.  When that buffer is
+killed, as it occurs automatically whenever the Emacs session is ending,
+the Pymacs helper process is killed as well.  Any other disappearance of
+the helper is unexpected, and might be the consequence of some error in
+the Python side of the user application (or a Pymacs bug, maybe!).
+
+When the Pymacs helper dies, all useful Python objects it might contain
+also die with it.  So, after an unexpected death, there might now exist
+dangling references in Emacs Lisp space towards vanished Python objects,
+and using these references may be fatal to the application.  When the
+Pymacs helper dies, the safest thing to do is stopping all Pymacs
+functionality and even exiting Emacs.  On the other hand, it is not
+always practical having to restart everything in such cases: the user
+knows best, and is the one who ultimately decides.
+
+The Pymacs helper death is detected at the time a new Pymacs request
+gets initiated from the Emacs side.  Pymacs could not do much without a
+Pymacs helper, so it has either to restart a new Pymacs helper, or abort
+the Pymacs request.  The variable :code:`pymacs-auto-restart` controls how
+this is done.  The possible values are:
+
+  + ``nil`` — the Pymacs request is unconditionally aborted,
+  + ``t`` — a new Pymacs helper is silently launched, and the previous helper
+    death might well go unnoticed,
+  + ``'ask`` — the user interactively decides whether to restart the
+    Pymacs helper or not.  This is the default value.
+
 :code:`pymacs-dreadful-zombies`
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-When the Pymacs helper dies, all useful Python objects it might contain
-also die with it.  However, if the death occurs unexpectedly, instead of
-normally at the end of the Emacs session, there might now exist dangling
-references in Emacs Lisp space towards those vanished Python objects.
+When a Pymacs helper gets restarted in a given Emacs session, brand new
+Python objects may be created within that new helper.  There is not
+enough information kept on the Emacs Lisp side for the new Pymacs helper
+to recreate the useful Python objects which disappeared.  However, there
+is enough machinery to recover all their slot numbers (all references to
+opaque Python objects from Emacs Lisp space are transmitted in form of
+object slot numbers).
 
-Pymacs could not do much without a Pymacs helper, and likely, a new
-one will soon be created within the same Emacs session, and brand new
-Python objects may be created within that new helper.  Now, and this is
-a bit technical, all references are transmitted in form of object slot
-numbers.  As a consequence, the new Pymacs helper should be careful at
-never allocating a new Python object using a slot number of a useful
-vanished object, as this might possibly create fatal confusion.
-
-There is not enough information for the new Pymacs helper to recreate
-the useful objects which disappeared.  However, there is enough
-machinery to recover all their slot numbers, and then, all these slots
-are initialized with so-called *zombies*.  If Emacs later calls a
+The new Pymacs helper is given the list of all previous slot numbers
+still referenced from the Emacs side, and is then careful at never
+allocating a new Python object using an old slot number, as this might
+possibly create fatal confusion.  All the previous slots are initialized
+with so-called *zombies* on the Python side.  If Emacs later calls a
 vanished Python object, this merely awakes its zombie, which will then
 make some noise, then fall asleep again.  The noise has the form of a
 diagnostic within the ``*Messages*`` buffer, sometimes visible in the
-mini-buffer as well when the mini-buffer is not simultaneously used for
-some other purpose.
+mini-buffer too, at least when the mini-buffer is not simultaneously
+used for some other purpose.
 
 Zombies get more dreadful if :code:`pymacs-dreadful-zombies` is set to a
 non-:code:`nil` value.  In this case, calling a vanished Python object
