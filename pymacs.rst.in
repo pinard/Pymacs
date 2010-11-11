@@ -1143,6 +1143,25 @@ require some more ingenuity, one may write either ``(lisp['M-f2'],)`` or
 Debugging
 =========
 
+Finding bugs in a program is an art, which may be difficult enough
+already when there is a single process and a single language.  Pymacs
+involves a part (usually short) written in Emacs Lisp and another part
+(usually more substantial) written in Python, each running in their
+own process.  Both processes communicate which each other.  Moreover,
+to get debugging hints, Emacs is often the necessary door by which the
+programming user may catch glimpses on what is happening on both sides.
+
+To effectively debug Pymacs code, one benefits from having some
+familiarity with the communication protocol, and also from knowing
+how to observe both sides of this protocol at once.  The usual way is
+through the :code:`*Pymacs*` buffer within Emacs, which shows an Emacs
+view the whole protocol.  One may also view by forcing the Pymacs helper
+to save a trace file, which shows a Python view the whole protocol —
+unless there are communication errors, this should tell the same story
+as with the :code:`*Pymacs*` buffer.  These few topics are developed
+in the three following sections.  The remaning sections address more
+specific issues about Emacs Lisp or Python debugging.
+
 On the communication protocol
 -----------------------------
 
@@ -1156,25 +1175,24 @@ trickery over that simple idea.
   and when preparing a message for Emacs, Python generates Emacs Lisp
   expressions for Emacs to parse.
 
-+ Messages are exchanged in strictly alternating directions (from
-  Python to Emacs, from Emacs to Python, etc.), the first message being
-  sent by the Pymacs helper just after it started, identifying the
-  current Pymacs version.
++ Messages are exchanged in strictly alternating directions (from Python
+  to Emacs, from Emacs to Python, etc.), the first message being sent
+  by the Pymacs helper (from Python to Emacs) just after it started,
+  identifying the current Pymacs version.
 
 + Messages in both directions have a similar envelope.  Each physical
-  message has a prefix, the message contents, and a newline.  The
-  prefix starts with either ``<`` or ``>`` to mark the directionality,
-  immediately followed by the decimal expression of the contents length
-  counted in characters, immediately followed by a single horizontal
-  tab.  The count excludes the prefix, but includes the newline.
+  message has a prefix, the message contents, and a newline.  The prefix
+  starts with either ``<`` or ``>`` to mark the directionality, is
+  followed by the decimal expression of the contents length counted in
+  characters, and terminates with a single horizontal tab.  The count
+  excludes the prefix, but includes the newline.
 
 + In each direction, messages are made up of two elements: an action
   keyword and a single argument (yet the argument may sometimes be
-  complex).  As a special case, memory cleanup messages, from Python
-  to Emacs, use four elements: the atom :code:`free`, a list of slot
-  numbers to free, and then the real action and argument.  This is
-  because the cleanup is delayed and piggy-backed over some other
-  message from Python to Emacs.
+  complex).  As a special case, memory cleanup messages from Python to
+  Emacs use four elements: the atom :code:`free`, a list of slot numbers
+  to free, and then the real action and argument.  This is because the
+  cleanup is delayed and piggy-backed over some other message.
 
 + For Emacs originated messages, the action and the argument are
   separated by a space.  For Python originated messages, the action and
@@ -1182,7 +1200,7 @@ trickery over that simple idea.
 
 + Most actions in the following table are available in both
   directions, unless noted.  The first three actions *start* a new level
-  of Pymacs evaluation, the remaining actions end the current level.
+  of Pymacs evaluation, the two remaining actions end the current level.
 
   + :code:`eval` requests the evaluation of its expression argument.
   + :code:`exec` requests the execution of its statement argument (this may
@@ -1194,6 +1212,12 @@ trickery over that simple idea.
   + :code:`raise` represents the error reply to a request, the argument
     then holds a diagnostic string.
 
+  Python evaluation is done in the context of the :code:`Pymacs.pymacs`
+  module.  On the Emacs Lisp side, there is no concept of module name
+  spaces, so we internally use the ``pymacs-`` prefix as an attempt to
+  stay clean.  Users should ideally refrain from naming their Emacs Lisp
+  objects with a ``pymacs-`` prefix.
+
 The protocol may be fragile to interruption requests, so it tries to
 recognize each message action before evaluation is attempted.  The idea
 (not fully implemented yet) is to make the protocol part immune to
@@ -1202,17 +1226,16 @@ interruptions, but to allow evaluations themselves to be interrupted.
 The :code:`*Pymacs*` buffer
 ---------------------------
 
+
 Emacs and Python are two separate processes (well, each may use more
 than one process).  Pymacs implements a simple communication protocol
 between both, and does whatever needed so the programmers do not have
 to worry about details.  The main debugging tool is the communication
-buffer between Emacs and Python, which is named :code:`*Pymacs*`.  By
-default, this buffer gets erased before each transaction.  To make good
-debugging use of it, first set :code:`pymacs-trace-transit` to either
-:code:`t` or to some ``(KEEP . LIMIT)``.  As it is sometimes helpful to
-understand the communication protocol, it is briefly explained here,
-using an artificially complex example to do so.  Consider (this example
-assumes Python 2)::
+buffer between Emacs and Python, which is named :code:`*Pymacs*`.
+
+As it is sometimes helpful to understand the communication protocol, it
+is briefly explained here, using an artificially complex example to do
+so.  Consider (this example assumes Python 2)::
 
   (pymacs-eval "lisp('(pymacs-eval \"repr(2L**111)\")')")
   "2596148429267413814265248164610048L"
@@ -1240,22 +1263,6 @@ being produced.)
   >45     return "2596148429267413814265248164610048L"
   <47     (return "2596148429267413814265248164610048L")
 
-Python evaluation is done in the context of the :code:`Pymacs.pymacs`
-module, so for example a mere :code:`reply` really means
-``Pymacs.pymacs.reply``.  On the Emacs Lisp side, there is no concept of
-module name spaces, so we use the ``pymacs-`` prefix as an attempt to
-stay clean.  Users should ideally refrain from naming their Emacs Lisp
-objects with a ``pymacs-`` prefix.
-
-:code:`reply` and :code:`pymacs-reply` are special functions meant to
-indicate that an expected result is finally transmitted. :code:`error`
-and :code:`pymacs-error` are special functions that introduce
-a string which explains an exception which recently occurred.
-:code:`pymacs-expand` is a special function implementing the ``copy()``
-methods of Emacs Lisp handles or symbols.  In all other cases, the
-expression is a request for the other side, that request stacks until a
-corresponding reply is received.
-
 Part of the protocol manages memory, and this management generates some
 extra-noise in the :code:`*Pymacs*` buffer.  Whenever Emacs passes a
 structure to Python, an extra pointer is generated on the Emacs side to
@@ -1273,6 +1280,41 @@ purpose.
 
 Variable :code:`pymacs-trace-transit` may be modified for controlling
 how and when the :code:`*Pymacs*` buffer, or parts thereof, get erased.
+By default, this buffer gets erased before each transaction.  To make
+good debugging use of it, first set :code:`pymacs-trace-transit` to
+either :code:`t` or to some ``(KEEP . LIMIT)``.
+
+Debugging the Pymacs helper
+---------------------------
+
+The Pymacs helper is a Python program which accepts options and arguments.
+The available options, which are only meant for debugging, are:
+
+    -d FILE  Debug the protocol to FILE
+    -s FILE  Trace received signals to FILE
+
++ The ``-d`` option saves a copy of the communication protocol in the
+  given file, as seen from the Pymacs helper.  The file should be fairly
+  identical to the contents of the :code:`*Pymacs*` buffer within Emacs.
+
++ The ``-s`` option monitors most signals received by the Pymacs helper
+  and logs them in the given file.  Each log line merely contains a signal
+  number, possibly followed by a star if the interruption was allowed in.
+  Besides logging, signals are usually ignored.
+
+The arguments list directories to be added at the beginning of the
+Python module search path, and whenever Emacs launches the Pymacs
+helper, the contents of the Emacs Lisp :code:`pymacs-load-path` variable
+is turned into this argument list.
+
+The Pymacs helper options may be set through the :code:`PYMACS_OPTIONS`
+environment variable.  For example, one could execute something like::
+
+  export PYMACS_OPTIONS='-d /tmp/pymacs-debug -s /tmp/pymacs-signals'
+
+in a shell (presuming :code:`bash` here) and start Emacs from that
+shell.  Then, when Emacs launches the Pymacs helper, the above options
+are transmitted to it.
 
 Emacs usual debugging
 ---------------------
@@ -1304,6 +1346,23 @@ From the :code:`*Messages*` buffer, once :code:`ffap` activated, merely
 put the cursor on the file name of a Python module from the back trace,
 and ``C-x C-f RET`` will quickly open that source for you.
 
+Python usual debugging
+----------------------
+
+A common way to debug a Python script is to spread it with :code:`print`
+commands.  When such a Python script is executed under Pymacs control,
+the resulting output from these :code:`print` statement usually appear
+right within the :code:`*Pymacs*` buffer, and may be observed there.
+
+As such output gets intermixed with the Pymacs protocol itself, never
+ever print the symbol ``<``, immediately followed by the expression of a
+decimal number, immediately followed by a horizontal tab (``\t``).  If
+you were doing so, the communication protocol would get pretty mixed up,
+and Pymacs would break.  But you do not have to worry much about this:
+the forbidden sequence is unlikely in practice, would it be only because
+people do not often use horizontal tabs anymore — oh, tabs were once
+undoubtedly popular, but this was many years ago…
+
 Auto-reloading on save
 ----------------------
 
@@ -1327,38 +1386,6 @@ The code below assumes that Python files meant for Pymacs are kept in
                  (string-match "\\.py\\'" buffer-file-name))
         (pymacs-load (substring buffer-file-name 0 -3)))))
   (add-hook 'after-save-hook 'fp-maybe-pymacs-reload)
-
-Debugging the Pymacs helper
----------------------------
-
-The Pymacs helper is a Python program which accepts options and arguments.
-The available options, which are only meant for debugging, are:
-
-    -d FILE  Debug the protocol to FILE
-    -s FILE  Trace received signals to FILE
-
-+ The ``-d`` option saves a copy of the communication protocol in the
-  given file, as seen from the Pymacs helper.  The file should be fairly
-  identical to the contents of the :code:`*Pymacs*` buffer within Emacs.
-
-+ The ``-s`` option monitors most signals received by the Pymacs helper
-  and logs them in the given file.  Each log line merely contains a signal
-  number, possibly followed by a star if the interruption was allowed in.
-  Besides logging, signals are usually ignored.
-
-The arguments list directories to be added at the beginning of the
-Python module search path, and whenever Emacs launches the Pymacs
-helper, the contents of the Emacs Lisp :code:`pymacs-load-path` variable
-is turned into this argument list.
-
-The Pymacs helper options may be set through the :code:`PYMACS_OPTIONS`
-environment variable.  For example, one could execute something like::
-
-  export PYMACS_OPTIONS='-d /tmp/pymacs-debug -s /tmp/pymacs-signals'
-
-in a shell (presuming :code:`bash` here) and start Emacs from that shell.
-Then, when Emacs will launch the Pymacs helper, the above options will
-be obeyed.
 
 Administrative miscellany
 =========================
