@@ -172,8 +172,17 @@ equivalents, other structures are converted into Lisp handles."
 
 ;;; Integration details.
 
-;; Python functions and modules should ideally look like Lisp functions and
-;; modules.  This page tries to increase the integration seamlessness.
+;; This page tries to increase the integration seamlessness of Pymacs
+;; with the reminder of Emacs.
+
+;; Module "desktop" savagely kills `*Pymacs*' in some circumstances.
+;; Let's avoid such damage.
+
+(eval-after-load 'desktop
+  '(push "\\*Pymacs\\*" desktop-clear-preserve-buffers))
+
+;; Python functions and modules should ideally look like Lisp
+;; functions and modules.
 
 (defadvice documentation (around pymacs-ad-documentation activate)
   ;; Integration of doc-strings.
