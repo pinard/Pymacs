@@ -281,23 +281,23 @@ equivalents, other structures are converted into Lisp handles."
   "Weak hash table, meant to find out which IDs are still needed.")
 
 (defvar pymacs-gc-wanted nil
-  "Flag if it is time to clean up unused IDs on the Python side.")
+  "Flag that it is desirable to clean up unused IDs on the Python side.")
 
-(defvar pymacs-gc-running nil
-  "Flag telling that a Pymacs garbage collection is in progress.")
+(defvar pymacs-gc-inhibit nil
+  "Flag that a new Pymacs garbage collection should just not run now.")
 
 (defvar pymacs-gc-timer nil
   "Timer to trigger Pymacs garbage collection at regular time intervals.
 The timer is used only if `post-gc-hook' is not available.")
 
 (defun pymacs-schedule-gc (&optional xemacs-list)
-  (unless pymacs-gc-running
+  (unless pymacs-gc-inhibit
     (setq pymacs-gc-wanted t)))
 
 (defun pymacs-garbage-collect ()
   ;; Clean up unused IDs on the Python side.
-  (when pymacs-use-hash-tables
-    (let ((pymacs-gc-running t)
+  (when (and pymacs-use-hash-tables (not pymacs-gc-inhibit))
+    (let ((pymacs-gc-inhibit t)
           (pymacs-forget-mutability t)
           (ids pymacs-used-ids)
           used-ids unused-ids)
@@ -569,15 +569,17 @@ The timer is used only if `post-gc-hook' is not available.")
             (pymacs-report-error "Pymacs got an invalid initial reply")))))
     (if (not pymacs-use-hash-tables)
         (setq pymacs-weak-hash t)
-      (if pymacs-weak-hash
-          ;; A previous Pymacs session occurred in *this* Emacs session.  Some
-          ;; IDs may hang around, which do not correspond to anything on the
-          ;; Python side.  Python should not recycle such IDs for new objects.
-          (when pymacs-used-ids
-            (let ((pymacs-transit-buffer buffer)
-                  (pymacs-forget-mutability t))
-              (pymacs-apply "zombie_python" pymacs-used-ids)))
-        (setq pymacs-weak-hash (make-hash-table :weakness 'value)))
+      (when pymacs-used-ids
+        ;; A previous Pymacs session occurred in this Emacs session,
+        ;; some IDs hang around which do not correspond to anything on
+        ;; the Python side.  Python should not recycle such IDs for
+        ;; new objects.
+        (let ((pymacs-transit-buffer buffer)
+              (pymacs-forget-mutability t)
+              (pymacs-gc-inhibit t))
+          (pymacs-apply "zombie_python" pymacs-used-ids))
+        (setq pymacs-used-ids nil))
+      (setq pymacs-weak-hash (make-hash-table :weakness 'value))
       (if (boundp 'post-gc-hook)
           (add-hook 'post-gc-hook 'pymacs-schedule-gc)
         (setq pymacs-gc-timer (run-at-time 20 20 'pymacs-schedule-gc))))
@@ -598,7 +600,7 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
            (pymacs-cancel-timer pymacs-gc-timer)))
     (when pymacs-transit-buffer
       (kill-buffer pymacs-transit-buffer))
-    (setq pymacs-gc-running nil
+    (setq pymacs-gc-inhibit nil
           pymacs-gc-timer nil
           pymacs-transit-buffer nil
           pymacs-lisp nil
