@@ -178,6 +178,23 @@ The following notes, for MS Windows, have been provided by Greg Detre.
 
   from somewhere besides your scripts directory.
 
+Edit the configuration file
+---------------------------
+
+In most cases, you may safely skip this step, as it is only needed in
+unusual, problematic circumstances.  Merely check that none of the
+following applies to you.
+
+  + Under Aquamacs (which is a MacOS X native port of Emacs), it has
+    been reported that one gets `Lisp nesting exceeds max-lisp-eval-depth`
+    messages while interactively requesting the documentation for Lisp
+    functions (we do not know why).  If you have this problem, edit file
+    :file:`p4config.py`, locate the line defining :code:`DEFADVICE_OK`,
+    make sure it gets the string ``'nil'`` as a value, instead of the
+    string ``'t'``, then save the edited file before proceeding further.
+    This should work around the problem.  The price to pay is that you
+    will not get the Python docstring for modules imported through Pymacs.
+
 Check if Pymacs would work
 --------------------------
 

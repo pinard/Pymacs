@@ -184,45 +184,47 @@ equivalents, other structures are converted into Lisp handles."
 ;; Python functions and modules should ideally look like Lisp
 ;; functions and modules.
 
-(defadvice documentation (around pymacs-ad-documentation activate)
-  ;; Integration of doc-strings.
-  (let* ((reference (pymacs-python-reference function))
-         (python-doc (when reference
-                       (pymacs-eval (format "doc_string(%s)" reference)))))
-    (if (or reference python-doc)
-        (setq ad-return-value
-              (concat
-               "It interfaces to a Python function.\n\n"
-               (when python-doc
-                 (if raw python-doc (substitute-command-keys python-doc)))))
-      ad-do-it)))
+(when @DEFADVICE_OK@
 
-(defun pymacs-python-reference (object)
-  ;; Return the text reference of a Python object if possible, else nil.
-  (when (functionp object)
-    (let* ((definition (indirect-function object))
-           (body (and (pymacs-proper-list-p definition)
-                      (> (length definition) 2)
-                      (eq (car definition) 'lambda)
-                      (cddr definition))))
-      (when (and body (listp (car body)) (eq (caar body) 'interactive))
-        ;; Skip the interactive specification of a function.
-        (setq body (cdr body)))
-      (when (and body
-                 ;; Advised functions start with a string.
-                 (not (stringp (car body)))
-                 ;; Python trampolines hold exactly one expression.
-                 (= (length body) 1))
-        (let ((expression (car body)))
-          ;; EXPRESSION might now hold something like:
-          ;;    (pymacs-apply (quote (pymacs-python . N)) ARGUMENT-LIST)
-          (when (and (pymacs-proper-list-p expression)
-                     (= (length expression) 3)
-                     (eq (car expression) 'pymacs-apply)
-                     (eq (car (cadr expression)) 'quote))
-            (setq object (cadr (cadr expression))))))))
-  (when (eq (car-safe object) 'pymacs-python)
-    (format "python[%d]" (cdr object))))
+  (defadvice documentation (around pymacs-ad-documentation activate)
+    ;; Integration of doc-strings.
+    (let* ((reference (pymacs-python-reference function))
+           (python-doc (when reference
+                         (pymacs-eval (format "doc_string(%s)" reference)))))
+      (if (or reference python-doc)
+          (setq ad-return-value
+                (concat
+                 "It interfaces to a Python function.\n\n"
+                 (when python-doc
+                   (if raw python-doc (substitute-command-keys python-doc)))))
+        ad-do-it)))
+
+  (defun pymacs-python-reference (object)
+    ;; Return the text reference of a Python object if possible, else nil.
+    (when (functionp object)
+      (let* ((definition (indirect-function object))
+             (body (and (pymacs-proper-list-p definition)
+                        (> (length definition) 2)
+                        (eq (car definition) 'lambda)
+                        (cddr definition))))
+        (when (and body (listp (car body)) (eq (caar body) 'interactive))
+          ;; Skip the interactive specification of a function.
+          (setq body (cdr body)))
+        (when (and body
+                   ;; Advised functions start with a string.
+                   (not (stringp (car body)))
+                   ;; Python trampolines hold exactly one expression.
+                   (= (length body) 1))
+          (let ((expression (car body)))
+            ;; EXPRESSION might now hold something like:
+            ;;    (pymacs-apply (quote (pymacs-python . N)) ARGUMENT-LIST)
+            (when (and (pymacs-proper-list-p expression)
+                       (= (length expression) 3)
+                       (eq (car expression) 'pymacs-apply)
+                       (eq (car (cadr expression)) 'quote))
+              (setq object (cadr (cadr expression))))))))
+    (when (eq (car-safe object) 'pymacs-python)
+      (format "python[%d]" (cdr object)))))
 
 ;; The following functions are experimental -- they are not satisfactory yet.
 

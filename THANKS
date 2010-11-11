@@ -2,7 +2,9 @@ Pymacs has been written by François Pinard after an idea from Cedric Adjih,
 and much influenced by Brian McErlean.  Here is the list of contributors.
 
 ======================= ===================================================
+Alexander Solovyov      | piranha at piranha dot org dot ua
 Ali Gholami Rudi        | aligrudi at gmail dot com
+Brett                   | brettatoms at gmail dot com
 Brian McErlean          | b dot mcerlean at kainos dot com
 Brian van den Broek     | bvande at po-box dot mcgill dot ca
                         | http://home.cc.umanitoba.ca/~broek/
@@ -13,6 +15,7 @@ Carlos A. Rocha         | carlos dot rocha at gmail dot com
 Cedric Adjih            | adjih-pam at crepuscule dot com
                         | http://www.crepuscule.com/pyemacs/
 Christian Tanzer        | tanzer at swing dot co dot at
+Christopher Petrilli    | petrilli at amber dot org
 Dave Sellars            | dsellars at windriver dot com
 Dirk Vleugels           | dvl at 2scale dot net
 Eli Zaretskii           | eliz at is dot elta dot co dot il
@@ -35,6 +38,8 @@ Nirmal J. Patel         | merik at cc dot gatech dot edu
 Paul Foley              | mycroft at actrix dot gen dot nz
                         | http://users.actrix.co.nz/mycroft/
 Paul Winkler            | slinkp23 at yahoo dot com
+Quinn Weaver            | quinn at fairpath dot com
+                        | http://fairpath.com/
 Richard Stallman        | rms at gnu dot org
 Sebastian Waschik       | sebastian dot waschik at gmx dot de
 Skip Montanaro          | skip at pobox dot com
