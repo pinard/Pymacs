@@ -25,7 +25,7 @@ del get_version
 # functions documentation (we do not know why).  Set this variable to 'nil'
 # as a way to avoid the problem.
 
-DEFADVICE_OK = 'nil'
+DEFADVICE_OK = 't'
 
 # PYTHON gets the command name of the Python interpreter.
 
