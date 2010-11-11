@@ -518,6 +518,11 @@ The timer is used only if `post-gc-hook' is not available.")
   ;; This function gets called automatically, as needed.
   (let ((buffer (get-buffer-create "*Pymacs*")))
     (with-current-buffer buffer
+      ;; Erase the buffer in case some previous incarnation of the
+      ;; Pymacs helper died.  Otherwise, the "(goto-char (point-min))"
+      ;; below might not find the proper synchronising reply and later
+      ;; trigger a spurious "Protocol error" diagnostic.
+      (erase-buffer)
       (buffer-disable-undo)
       (pymacs-set-buffer-multibyte nil)
       (set-buffer-file-coding-system 'raw-text)
