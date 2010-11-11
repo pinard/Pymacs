@@ -1351,8 +1351,8 @@ Python usual debugging
 
 A common way to debug a Python script is to spread it with :code:`print`
 commands.  When such a Python script is executed under Pymacs control,
-the resulting output from these :code:`print` statement usually appear
-right within the :code:`*Pymacs*` buffer, and may be observed there.
+these :code:`print` statements display the resultst right within the
+:code:`*Pymacs*` buffer, and may be observed there.
 
 As such output gets intermixed with the Pymacs protocol itself, never
 ever print the symbol ``<``, immediately followed by the expression of a
