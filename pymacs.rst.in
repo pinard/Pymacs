@@ -261,7 +261,7 @@ be installed in turn.  Always start with the Python file.
   previous section for a discussion).  First, the script copies a few
   source files while configuring them: it presets the version string and
   the name of the Python interpreter, it also adapts the Python source
-  code which might differ, for example, between Python 2 and Python 3).
+  code which might differ, for example, between Python 2 and Python 3.
   Second, it installs the Python package through the Python standard
   Distutils tool.  To get an option reminder, do ``python setup.py
   install --help``.  Consult the Distutils documentation if you need
@@ -338,12 +338,15 @@ pymacs-eval RET``.  Emacs should prompt you for a Python expression.
 Try ``repr(2L**111) RET`` (rather use ``repr(2**111) RET``
 if you are using Python 3).  The mini buffer should display
 `"2596148429267413814265248164610048L"` (yet there is no ``L`` suffix
-in Python 3). ``M-x pymacs-load RET`` should prompt you for a Python
-module name.  Reply ``os RET RET`` (the second ``RET`` is for accepting
-the default prefix.  This should have the effect of importing the Python
-:code:`os` module within Emacs.  Typing ``M-: (os-getcwd) RET`` should
-echo the current directory in the message buffer, as returned by the
-:code:`os.getcwd` Python function.
+in Python 3).
+
+Let's do a second test.  Whether in the same Emacs session or not, ``M-x
+pymacs-load RET`` should prompt you for a Python module name.  Reply
+``os RET RET`` (the second ``RET`` is for accepting the default prefix.
+This should have the effect of importing the Python :code:`os` module
+within Emacs.  Typing ``M-: (os-getcwd) RET`` should echo the current
+directory in the message buffer, as returned by the :code:`os.getcwd`
+Python function.
 
 Porting and caveats
 -------------------
@@ -420,13 +423,15 @@ As Python strings do not have text properties, these are not reflected.
 This may be changed by setting the :code:`pymacs-mutable-strings`
 option: if this variable is not :code:`nil`, Emacs Lisp strings are
 then transmitted opaquely.  Python strings are always converted into
-Emacs Lisp strings.  Unicode strings are produced on the Python side for
-Emacs Lisp multi-byte strings, but only when they do not fit in ASCII,
-otherwise Python narrow strings are produced.  Conversely, Emacs Lisp
-multi-byte strings are produced for Python Unicode strings, but only
-when they do not fit ASCII, otherwise Emacs Lisp uni-byte strings are
-produced.  Currently, Pymacs behaviour is undefined for users wandering
-outside the limits of Emacs' :code:`utf-8` coding system.
+Emacs Lisp strings.  Python releases before version 3 make a distinction
+between Unicode and narrow strings: Unicode strings are then produced
+on the Python side for Emacs Lisp multi-byte strings, but only when
+they do not fit in ASCII, otherwise Python narrow strings are produced.
+Conversely, Emacs Lisp multi-byte strings are produced for Python
+strings, but only when they do not fit ASCII, otherwise Emacs Lisp
+uni-byte strings are produced.  Currently, Pymacs behaviour is undefined
+for users wandering outside the limits of Emacs' :code:`utf-8` coding
+system.
 
 Emacs Lisp symbols yield ``lisp[STRING]`` notations on the Python
 side, where :var:`STRING` names the symbol.  In the other direction,
@@ -1053,11 +1058,11 @@ Pymacs offers a device for evaluating a raw Emacs Lisp expression, or a
 sequence of such, expressed as a string.  One merely uses :code:`lisp`
 as a function, like this::
 
-  lisp("""
+  lisp('''
   ...
   POSSIBLY-LONG-SEQUENCE-OF-LISP-EXPRESSIONS
   ...
-  """)
+  ''')
 
 The Emacs Lisp value of the last or only expression in the sequence
 becomes the value of the :code:`lisp` call, after conversion back to
@@ -1084,7 +1089,7 @@ having consulted the user, return a list of the actual arguments to be
 used for the original function.  In the latter case, the specification
 string is used verbatim as the argument to the ``(interactive ...)``
 function on the Emacs side.  To get a short reminder about how this
-string is interpreted on the Emacs side, try ``C-h f interactive``
+string is interpreted on the Emacs side, try ``C-h f interactive RET``
 within Emacs.  Here is an example where an empty string is used to
 specify that an interactive has no arguments::
 
@@ -1625,7 +1630,7 @@ to indirectly autoload :file:`zorglub.py` as needed.
 Handling more special forms
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-The discussion started about the lack of specifici Pymacs support, on
+The discussion started about the lack of specific Pymacs support, on
 the Python side, for the Emacs Lisp :code:`setq-default` function.
 People also mentioned :code:`defvar` and :code:`defcustom`, but there
 are really many other special forms in Emacs Lisp.  (A special form is
