@@ -137,8 +137,7 @@ class Python(Launch):
                     '-c', 'from Pymacs.pymacs import main; main(\'..\')'],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         text = self.receive()
-        from Pymacs import __version__
-        assert text == '(version "%s")\n' % __version__, repr(text)
+        assert text == '(version "@VERSION@")\n', repr(text)
 
     if PYTHON3:
 

@@ -118,8 +118,7 @@ Arguments are added to the search path for Python modules.
             sys.stdout = os.fdopen(sys.stdout.fileno(), 'wb')
 
         # Start protocol and services.
-        from Pymacs import __version__
-        lisp._protocol.send('version', '"%s"' % __version__)
+        lisp._protocol.send('version', '"@VERSION@"')
         lisp._protocol.loop()
 
     def generic_handler(self, number, frame):
