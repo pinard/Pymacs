@@ -67,8 +67,8 @@ While Pymacs examples are no substitute for a careful reading of the
 Pymacs manual, the contemplation and study of others' nice works may
 well enligthen and deepen your understanding.  A few examples are
 included within the Pymacs distribution, each as a subdirectory of the
-:file:`contrib/` directory, and each haviing its own :file:`README`
-file.  These are listed below, easiest examples first:
+:file:`contrib/` directory, and each having its own :file:`README` file.
+These are listed below, easiest examples first:
 
   + Paul Winkler's example
 
@@ -117,7 +117,7 @@ order):
 The QaTeX project was influenced by Pymacs, according to its author:
 
   + http://qatex.sourceforge.net/
-  + http://www.pytex.org/doc/index.html#eurotex2005
+  + http://www.pytex.org/doc/eurotex2005.pdf
 
 Other resources
 ---------------
