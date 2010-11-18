@@ -56,22 +56,17 @@ pymacs.pdf: pymacs.rst.in
 
 # The following goals for the maintainer of the Pymacs Web site.
 
-push: local
-	find -name '*~' | xargs rm -fv
-	push alcyon -d entretien/pymacs
-	ssh alcyon 'make-web -C entretien/pymacs/web'
-
-local: p4.pdf pymacs.pdf pymacs.rst
-	make-web -C web
-
+ARCHIVES = web/src/archives
 VERSION = `grep '^version' setup.py | sed -e "s/'$$//" -e "s/.*'//"`
 
-publish:
+publish: p4.pdf pymacs.pdf pymacs.rst
+	find -name '*~' | xargs rm -fv
 	version=$(VERSION) && \
 	  git archive --format=tar --prefix=Pymacs-$$version/ HEAD . \
-	    | gzip > web/archives/Pymacs-$$version.tar.gz
-
-official: publish
-	rm -f web/archives/Pymacs.tar.gz
+	    | gzip > $(ARCHIVES)/Pymacs-$$version.tar.gz
+	rm -f $(ARCHIVES)/Pymacs.tar.gz
 	version=$(VERSION) && \
-	  ln -s Pymacs-$$version.tar.gz web/archives/Pymacs.tar.gz
+	  ln -s Pymacs-$$version.tar.gz $(ARCHIVES)/Pymacs.tar.gz
+	make-web -C web
+	synchro push alcyon -d entretien/pymacs
+	ssh alcyon 'make-web -C entretien/pymacs/web'
