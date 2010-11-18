@@ -1184,8 +1184,8 @@ as with the :code:`*Pymacs*` buffer.  These few topics are developed
 in the three following sections.  The remaning sections address more
 specific issues about Emacs Lisp or Python debugging.
 
-On the communication protocol
------------------------------
+The communication protocol
+--------------------------
 
 The Pymacs communication protocol is rather simple deep down, merely
 using evaluation on arrival on both sides.  All the rest is recursion
