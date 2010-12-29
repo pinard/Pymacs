@@ -141,7 +141,7 @@ with a "rebox.el" file having this single line::
 
      (pymacs-load "Pymacs.rebox")
 
-Install Pymacs from http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz .
+Install Pymacs from https://github.com/pinard/Pymacs .
 
 The Emacs function :code:`rebox-comment` automatically discovers the extent of
 the boxed comment near the cursor, possibly refills the text, then adjusts

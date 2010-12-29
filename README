@@ -5,6 +5,17 @@
 README file for Pymacs
 ======================
 
+.. contents::
+
+(There is a `Belorussian translation`__ for this page.)
+
+.. Translation by `Paul Bukhovko` bukhovko@gmail.com
+
+__ http://www.movavi.com/opensource/pymacs-be
+
+General
+=======
+
 Pymacs is a powerful tool which, once started from Emacs, allows
 both-way communication between Emacs Lisp and Python.  Pymacs aims
 Python as an extension language for Emacs rather than the other way
@@ -13,32 +24,105 @@ Emacs Lisp code, one may load and use Python modules.  Python functions
 may themselves use Emacs services, and handle Emacs Lisp objects kept in
 Emacs Lisp space.
 
-The Pymacs manual (either in `HTML format`__ or `PDF format`__) has
-installation instructions, a full description of the API, pointers
-to documented examples, to resources, and to other Pymacs sites
-or projects.  The distribution also includes the Poor's Python
+The Pymacs manual (either in `HTML format`__ or `PDF format`__ for the
+latest version) has installation instructions, a full description of the
+API, pointers to documented examples, to resources, and to other Pymacs
+sites or projects.  The distribution also includes the Poor's Python
 Pre-Processor (**p4**) and its manual (either in `HTML format`__ or `PDF
-format`__).
+format`__ for the latest version).
 
 __ http://pymacs.progiciels-bpi.ca/pymacs.html
 __ http://pymacs.progiciels-bpi.ca/pymacs.pdf
 __ http://pymacs.progiciels-bpi.ca/p4.html
 __ http://pymacs.progiciels-bpi.ca/p4.pdf
 
-The official distribution is available at:
+Source files and various distributions (either latest, pretest, or
+archive) are available through:
 
-  + http://pymacs.progiciels-bpi.ca/archives/Pymacs.tar.gz
-
-Some older distributions, and maybe beta pre-releases for testers,
-*might* be available in this directory:
-
-  + http://pymacs.progiciels-bpi.ca/archives/
-
-To get a copy of my sandbox repository for Pymacs, use::
-
-  git clone git://github.com/pinard/Pymacs.git
+  + https://github.com/pinard/Pymacs/
 
 Please report problems, comments and suggestions to `François Pinard`__
 at ``pinard@iro.umontreal.ca``.
 
 __ mailto:pinard@iro.umontreal.ca
+
+Notes for 0.24 beta2
+====================
+
+2010-11-14
+
+Hello to all.
+
+There is now a second Pymacs beta in the 0.24 series:
+
+  https://github.com/pinard/Pymacs/tarball/v0.24-beta2
+  https://github.com/pinard/Pymacs/zipball/v0.24-beta2
+
+depending on if you want a tar or zip archive.
+
+I would release 0.24 in a month or two, maybe, if it seems stable
+enough.  If I get no reports, I'll likely do the release!
+
+XEmacs support seems to be broken currently.  As I am not much of a
+XEmacs user, I would like to know if there enough interest and
+collaborators / testers to consider trying to resolve this?
+
+The biggest change is Python 3 support.  This required new installation
+mechanics, and a Python pre-processor written for the circumstance
+(named p4).
+
+Some errors have been corrected, both in the code and in the manual.
+The specifications are pretty stable.  The "Let" class got a "pops"
+method which pops everything in a single call.  A pymacs-auto-restart
+variable lets the user decide what to do if the Pymacs helper aborts.
+
+There has been a (courageous) attempt at supporting Jython 2.2, but no
+success yet.  I do not see this as a show stopper! :-)
+
+Notes for 0.24 beta1
+====================
+
+2008-02-28
+
+Hi!
+
+I just pushed out the first beta in the 0.24 series:
+
+  https://github.com/pinard/Pymacs/tarball/v0.24-beta1
+  https://github.com/pinard/Pymacs/zipball/v0.24-beta1
+
+depending on if you want a tar or zip archive.
+
+Not much in it, besides tiny configuration issues.  For example, today,
+someone reported problems using a XEmacs without support for Mule. 
+
+Notes for 0.23
+==============
+
+2008-02-15
+
+Hello to everybody, and Emacs users in the Python community.
+
+Here is Pymacs 0.23!  There has been a while, so I advise current Pymacs
+users to switch with caution.  All reported bugs have been squashed, if
+we except one about Emacs quit (``C-g``) not being obeyed gracefully.  A
+few suggestions have been postponed, to be pondered later.
+
+The manual is now in reST format, and everything Allout is gone.
+Postscript and PDF files are not anymore part of the distribution, you
+may find them on the Web site, or use the Makefile if you have needed
+tools.  Examples have been moved out of the manual into a new contrib/
+subdirectory, which also holds a few new contributions.  The example of
+a Python back-end for Emacs Gnus has been deleted.
+
+Python 1.5.2 compatibility has been dropped; use Python 2.2 or better.
+The Pymacs manual explains installation procedure, now simplified.  The
+pymacs-services script is gone, this should ease installing Pymacs on MS
+Windows.  There is also a small, still naive validation suite.
+
+The communication protocol has been revised: more clarity, less magic.
+Zombie objects are less dreadful by default.  The API now supports False
+and True constants, and Unicode strings (within limits set by Emacs).
+
+Special thanks to those who helped me at creating or testing this
+release.
