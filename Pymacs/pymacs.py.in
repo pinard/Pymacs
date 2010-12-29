@@ -36,6 +36,7 @@ if PYTHON3:
         return isinstance(value, collections.Callable)
 
     basestring = str
+    from imp import reload
 else:
     __metaclass__ = type
     import os, sys
