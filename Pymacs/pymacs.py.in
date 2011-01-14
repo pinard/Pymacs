@@ -98,7 +98,7 @@ Arguments are added to the search path for Python modules.
         # while executing any Python code received from the Lisp side.
         if signal is not None:
             if IO_ERRORS_WITH_SIGNALS:
-                # See the comment for IO_ERRORS_WITH_SIGNALS in p4config.py.
+                # See the comment for IO_ERRORS_WITH_SIGNALS in ppppconfig.py.
                 self.original_handler = signal.signal(
                         signal.SIGINT, self.interrupt_handler)
             else:

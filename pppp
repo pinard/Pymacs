@@ -4,10 +4,10 @@
 # François Pinard <pinard@iro.umontreal.ca>, 2010.
 
 """\
-Poor's Python Pre-Processor (p4).
+Poor's Python Pre-Processor (pppp).
 
-Usage: p4 -m [OPTION]... FILE1 FILE2
-  or:  p4 [OPTION]... [FILE]...
+Usage: pppp -m [OPTION]... FILE1 FILE2
+  or:  pppp [OPTION]... [FILE]...
 
 General options:
   -h   Print this help and do nothing else
@@ -58,7 +58,7 @@ line is removed and succeeding lines are either shifted or removed.
 __metaclass__ = type
 import os, re, sys
 
-endif_p4 = '#endif (p4)'
+endif_pppp = '#endif (pppp)'
 
 class Main:
     output = None
@@ -141,7 +141,7 @@ class Main:
                 return
             if margin == block_margin and not danger:
                 return
-            write(' ' * block_margin + endif_p4 + '\n')
+            write(' ' * block_margin + endif_pppp + '\n')
 
         def check_next(lines, lo, hi):
             for index in range(lo, hi):
@@ -396,7 +396,7 @@ class Main:
                 else:
                     state = SKIP
                 continue
-            if state in (UNKNOWN, TRUE) and not short.startswith(endif_p4):
+            if state in (UNKNOWN, TRUE) and not short.startswith(endif_pppp):
                 write_shifted(line)
 
     def each_substituded_line(self, lines):

@@ -7,44 +7,44 @@ PYTHON = python
 RST2LATEX = rst2latex
 
 PYSETUP = $(PYTHON) setup.py
-P4 = $(PYTHON) p4 -C p4config.py
+PPPP = $(PYTHON) pppp -C ppppconfig.py
 
 all:
-	$(P4) *.in Pymacs contrib tests
+	$(PPPP) *.in Pymacs contrib tests
 	$(PYSETUP) build
 
 check: clean-debug
-	$(P4) pymacs.el.in Pymacs tests
+	$(PPPP) pymacs.el.in Pymacs tests
 	cd tests && \
 	  EMACS="$(EMACS)" PYTHON="$(PYTHON)" \
 	  PYMACS_OPTIONS="-d debug-protocol -s debug-signals" \
 	  $(PYTHON) pytest -f t $(TEST)
 
 install:
-	$(P4) *.in Pymacs contrib tests
+	$(PPPP) *.in Pymacs contrib tests
 	$(PYSETUP) install
 
 clean: clean-debug
 	rm -rf build* contrib/rebox/build
-	rm -f */*py.class */*.pyc p4.pdf pymacs.pdf
-	$(P4) -c *.in Pymacs contrib tests
+	rm -f */*py.class */*.pyc pppp.pdf pymacs.pdf
+	$(PPPP) -c *.in Pymacs contrib tests
 
 clean-debug:
 	rm -f tests/debug-protocol tests/debug-signals
 
-p4.pdf: p4.rst.in
-	$(P4) p4.rst.in
+pppp.pdf: pppp.rst.in
+	$(PPPP) pppp.rst.in
 	rm -rf tmp-pdf
 	mkdir tmp-pdf
 	$(RST2LATEX) --use-latex-toc --input-encoding=UTF-8 \
-	  p4.rst tmp-pdf/p4.tex
-	cd tmp-pdf && pdflatex p4.tex
-	cd tmp-pdf && pdflatex p4.tex
-	mv -f tmp-pdf/p4.pdf $@
+	  pppp.rst tmp-pdf/pppp.tex
+	cd tmp-pdf && pdflatex pppp.tex
+	cd tmp-pdf && pdflatex pppp.tex
+	mv -f tmp-pdf/pppp.pdf $@
 	rm -rf tmp-pdf
 
 pymacs.pdf: pymacs.rst.in
-	$(P4) pymacs.rst.in
+	$(PPPP) pymacs.rst.in
 	rm -rf tmp-pdf
 	mkdir tmp-pdf
 	$(RST2LATEX) --use-latex-toc --input-encoding=UTF-8 \
@@ -59,7 +59,7 @@ pymacs.pdf: pymacs.rst.in
 ARCHIVES = web/src/archives
 VERSION = `grep '^version' setup.py | sed -e "s/'$$//" -e "s/.*'//"`
 
-publish: p4.pdf pymacs.pdf pymacs.rst
+publish: pppp.pdf pymacs.pdf pymacs.rst
 	find -name '*~' | xargs rm -fv
 	version=$(VERSION) && \
 	  git archive --format=tar --prefix=Pymacs-$$version/ HEAD . \

@@ -28,13 +28,13 @@ The Pymacs manual (either in `HTML format`__ or `PDF format`__ for the
 latest version) has installation instructions, a full description of the
 API, pointers to documented examples, to resources, and to other Pymacs
 sites or projects.  The distribution also includes the Poor's Python
-Pre-Processor (**p4**) and its manual (either in `HTML format`__ or `PDF
+Pre-Processor (**pppp**) and its manual (either in `HTML format`__ or `PDF
 format`__ for the latest version).
 
 __ http://pymacs.progiciels-bpi.ca/pymacs.html
 __ http://pymacs.progiciels-bpi.ca/pymacs.pdf
-__ http://pymacs.progiciels-bpi.ca/p4.html
-__ http://pymacs.progiciels-bpi.ca/p4.pdf
+__ http://pymacs.progiciels-bpi.ca/pppp.html
+__ http://pymacs.progiciels-bpi.ca/pppp.pdf
 
 Source files and various distributions (either latest, pretest, or
 archive) are available through:
@@ -69,7 +69,7 @@ collaborators / testers to consider trying to resolve this?
 
 The biggest change is Python 3 support.  This required new installation
 mechanics, and a Python pre-processor written for the circumstance
-(named p4).
+(named pppp).
 
 Some errors have been corrected, both in the code and in the manual.
 The specifications are pretty stable.  The "Let" class got a "pops"
@@ -94,7 +94,7 @@ I just pushed out the first beta in the 0.24 series:
 depending on if you want a tar or zip archive.
 
 Not much in it, besides tiny configuration issues.  For example, today,
-someone reported problems using a XEmacs without support for Mule. 
+someone reported problems using a XEmacs without support for Mule.
 
 Notes for 0.23
 ==============

@@ -189,7 +189,7 @@ following applies to you.
     been reported that one gets `Lisp nesting exceeds max-lisp-eval-depth`
     messages while interactively requesting the documentation for Lisp
     functions (we do not know why).  If you have this problem, edit file
-    :file:`p4config.py`, locate the line defining :code:`DEFADVICE_OK`,
+    :file:`ppppconfig.py`, locate the line defining :code:`DEFADVICE_OK`,
     make sure it gets the string ``'nil'`` as a value, instead of the
     string ``'t'``, then save the edited file before proceeding further.
     This should work around the problem.  The price to pay is that you

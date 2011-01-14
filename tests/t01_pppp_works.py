@@ -2,7 +2,7 @@
 
 # Checking if the Poor's Python Pre-Processor works.
 
-exec(compile(open('../p4').read(), '../p4', 'exec'))
+exec(compile(open('../pppp').read(), '../pppp', 'exec'))
 
 def setup_module(module):
     run.synclines = False
@@ -12,7 +12,7 @@ def validate(input, expected):
 
     def validate1(input, expected):
         fragments = []
-        run.transform_file('p4.py', input.splitlines(True), fragments.append)
+        run.transform_file('pppp.py', input.splitlines(True), fragments.append)
         output = ''.join(fragments)
         assert output == expected, (output, expected)
 

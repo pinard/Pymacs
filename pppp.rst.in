@@ -2,9 +2,9 @@
 .. role:: file(literal)
 .. role:: var(emphasis)
 
-================================
-p4 — Poor's Python Pre-Processor
-================================
+==================================
+pppp — Poor's Python Pre-Processor
+==================================
 
 ----------------------------------------------------------------
 (As within Pymacs @VERSION@)
@@ -20,8 +20,8 @@ p4 — Poor's Python Pre-Processor
 Introduction
 ============
 
-Why p4?
--------
+Why pppp?
+---------
 
 The Python community has long resisted the idea of a pre-processor for
 Python, and quite understandbly.  The usual features of a pre-processor
@@ -35,8 +35,8 @@ file which can be compiled by both Python 2 and Python 3.  The languages
 are so similar that it is irritating to keep sources separate: this is
 too much a burden for maintenance, in my opinion.
 
-This :code:`p4` tool was written to help porting Pymacs to Python 3.  I
-guess it could be useful for other Python programs or packages.
+This :code:`pppp` tool was written to help porting Pymacs to Python 3.
+I guess it could be useful for other Python programs or packages.
 
 Report problems, documentation flaws, or suggestions to François Pinard:
 
@@ -45,8 +45,8 @@ Report problems, documentation flaws, or suggestions to François Pinard:
 Installation
 ------------
 
-There is no installation machinery for :code:`p4`, and Pymacs does not
-install it either.  To install it, merely pick the :file:`p4` script
+There is no installation machinery for :code:`pppp`, and Pymacs does not
+install it either.  To install it, merely pick the :file:`pppp` script
 from the top-level of the Pymacs distribution, either going through the
 main Pymacs site:
 
@@ -62,7 +62,7 @@ That's all to it.
 Pre-processor syntax
 ====================
 
-There are two mechanisms in :code:`p4`.  One does in-line substitutions,
+There are two mechanisms in :code:`pppp`.  One does in-line substitutions,
 the other takes care of conditional compilation.  In-line substitution
 occurs first, one line at a time, then conditional compilation occurs
 on the result of the substitutions.
@@ -70,10 +70,10 @@ on the result of the substitutions.
 The two mechanisms both rely on a preset *context*, which is a set
 of definitions.  Each definition relates a name to a Python value.
 The context is built under the control of options given to the
-:code:`p4` program.  The same context is used both for substitution and
+:code:`pppp` program.  The same context is used both for substitution and
 conditionals.
 
-The behaviour of :code:`p4` is currently unspecified when substitutions
+The behaviour of :code:`pppp` is currently unspecified when substitutions
 of a single line produces multiple lines, for which the first or any
 other is meant for conditional compilation.  So don't do that!
 
@@ -112,25 +112,25 @@ adjusted according to the expression value, likely shifted back or fully
 removed.  Similarily, ``else`` clauses may sometimes get simplified.
 
 While it is possible to use very invalid Python syntax which, through
-:code:`p4` conditional compilation, is turned into a valid Python
+:code:`pppp` conditional compilation, is turned into a valid Python
 program; users are much invited to use conditional compilation in such a
-way that sources meant for :code:`p4` are directly legal Python syntax.
+way that sources meant for :code:`pppp` are directly legal Python syntax.
 
 This idea of writing conditionals as correct Python could be pushed
 even further.  If the user manages to compute and assign the context
 variables at run-time in the Python program, conditional compilation
 for some name could be replaced by run-time checks on that name merely
-by *not* defining the name in the :code:`p4` context.  By doing so,
+by *not* defining the name in the :code:`pppp` context.  By doing so,
 the test expressions involving that name may not be resolved by the
 pre-processor, and the simplifications just does not occur.
 
-Invoking :code:`p4`
-===================
+Invoking :code:`pppp`
+=====================
 
-The :code:`p4` command is called using the usual syntax for Unix / Linux
+The :code:`pppp` command is called using the usual syntax for Unix / Linux
 commands::
 
-  p4 [OPTION]... [ARGUMENT]...
+  pppp [OPTION]... [ARGUMENT]...
 
 The operating mode of the program, and the meaning of arguments, depend
 on some options being used or not.  Option ``-c`` forces clean out
@@ -157,9 +157,9 @@ it with the Python value ``True``.  Option ``-D`` :var:`name`\ ``=``\
 :var:`expr` adds :var:`name` into the context, associating with the
 value of the Python expression :var:`expr`.  Beware of Python characters
 which also have a meaning for the shell, proper quoting may be needed.
-Here is, for example, how to define a string while calling :code:`p4`::
+Here is, for example, how to define a string while calling :code:`pppp`::
 
-  p4 -D "version='0.24-beta2'" ...
+  pppp -D "version='0.24-beta2'" ...
 
 While evaluating :var:`expr`, there is no restriction to the context,
 and builtins are indeed available.  For exemple, to add the builtin
@@ -169,7 +169,7 @@ Option ``-C`` :var:`FILE` reads and evaluates :var:`FILE` as a Python
 source.  All variables computed at the outer level then become names
 in the context, and the values of these variables become the values
 associated with the names within the context.  Any function defined
-at the outer level of :var:`FILE` also gets available to :code:`p4`
+at the outer level of :var:`FILE` also gets available to :code:`pppp`
 pre-processing.
 
 Beware of uncleaned variables in :var:`FILE`.  For example, an ``import
@@ -179,7 +179,7 @@ is available to the pre-processor.  So if you have a line like::
 
   if sys.version_info[:2] == (2, 7):
 
-somewhere in your :code:`p4` source, this might be evaluated as ``True``
+somewhere in your :code:`pppp` source, this might be evaluated as ``True``
 or ``False`` at pre-processing time rather than at run-time, and this
 might not be what you wanted.
 
@@ -226,19 +226,19 @@ appears to use a Python shebang line (the precise heuristic checks that
 the first line of the file starts with ``!#`` and has ``ython`` written
 somewhere in it).
 
-The :code:`p4` tool assumes, by default, that the Python sources
+The :code:`pppp` tool assumes, by default, that the Python sources
 consistently use an indentation step, and that the indentation step is 4
 columns.  This can be changed with the ``-i`` :var:`INDENT` option.  For
 example, ``-i 8`` means that the indentation step is 8 columns.
 
-By default, :code:`p4` generates white lines in the pre-processed
+By default, :code:`pppp` generates white lines in the pre-processed
 results to replace any removed lines.  The idea is to guarantee usable
 line numbers in any later traceback, that is, numbers that refer to the
 correct position within the original file, before it was pre-processed.
 The file name would still differ by the ``.in`` suffix, of course, which
 is a lesser worse.  Whenever, as side-effect of substitutions, a single
 input line yields many output lines, line synchronisation may be lost.
-:code:`p4` then inhibits the production of replacement white lines until
+:code:`pppp` then inhibits the production of replacement white lines until
 the line synchronisation is recovered.  Option ``-n`` wholly inhibits
 the production of any white line only meant for synchronisation.
 
@@ -246,10 +246,10 @@ Because tracebacks mention the file name after pre-processing, and not
 the original source before pre-processing, users are likely to inspect
 the resulting file, and after a while, start modifying it without
 realizing ther mistake: a resulting file might be overwritten by a later
-invocation of :code:`p4`, so loosing user's modifications. To play safe,
-:code:`p4` attempts to detect this: it copies the modification time from
+invocation of :code:`pppp`, so loosing user's modifications. To play safe,
+:code:`pppp` attempts to detect this: it copies the modification time from
 the original into any resulting file it produces.  Then, whenever a
-resulting file is newer than the original source, :code:`p4` raises an
+resulting file is newer than the original source, :code:`pppp` raises an
 error instead of deleting or rewriting it.  Finally, as a way to force
 Python recompilation in case the resulting file becomes different, it
 removes an already compiled Python file, if any.  If you want to force
@@ -268,21 +268,21 @@ directories should be the same as those used for pre-processing.
 Merging versions
 ----------------
 
-As a way to help prepare a Python file for :code:`p4` pre-processing,
+As a way to help prepare a Python file for :code:`pppp` pre-processing,
 the program offers a mode able to produce a pre-processable file out of
 two versions of a given Python source.  For example::
 
-  p4 -mD VERSION2 script1.py script2.py > script.py.in
+  pppp -mD VERSION2 script1.py script2.py > script.py.in
 
 compares :file:`script1.py` with :file:`script2.py` and produces a merged
 version on :file:`script.py.in`.  Then, the command::
 
-  p4 -D VERSION2=False script.py.in
+  pppp -D VERSION2=False script.py.in
 
 would produce a file :file:`script.py` which is equivalent to
 :file:`script1.py`, while the command::
 
-  p4 -D VERSION2 script.py.in
+  pppp -D VERSION2 script.py.in
 
 would produce a file :file:`script.py` which is equivalent to
 :file:`script2.py`.
@@ -296,7 +296,7 @@ approximative.  This is merely a way to get started.  The real and
 patient work comes afterwards, with a text editor, to clean and fixup
 things, and bring the merged result closer to real Python syntax.
 
-While editing the result, you might find some ``#endif (p4)`` lines
+While editing the result, you might find some ``#endif (pppp)`` lines
 generated here and there.  These are protective measures, so the later
 pre-processing does not clearly produce wrong results.  These lines
 usually indicate problematic areas, for which revision and careful
@@ -307,7 +307,7 @@ Limitations
 
 + The need of a very consistent indentation, as far as the indentation
   step is considered, may be too stringent a condition.  It would surely
-  be nicer if :code:`p4` was able to adapt to the indentation in use.
+  be nicer if :code:`pppp` was able to adapt to the indentation in use.
 
 + This tool is easily fooled by unindented comments or multi-line
   strings, as it is driven only by textual line indentation.  It does not
