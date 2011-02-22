@@ -245,7 +245,7 @@ the production of any white line only meant for synchronisation.
 Because tracebacks mention the file name after pre-processing, and not
 the original source before pre-processing, users are likely to inspect
 the resulting file, and after a while, start modifying it without
-realizing ther mistake: a resulting file might be overwritten by a later
+realizing their mistake: a resulting file might be overwritten by a later
 invocation of :code:`pppp`, so loosing user's modifications. To play safe,
 :code:`pppp` attempts to detect this: it copies the modification time from
 the original into any resulting file it produces.  Then, whenever a
