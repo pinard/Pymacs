@@ -359,7 +359,7 @@ Emacs and XEmacs.
 
 From Pymacs 0.23 and upwards, Python 2.2 or better is likely needed,
 and for the Pymacs proper, I rely on testers or users for portability
-issues.  However, the validation suite itself requires Python 2.4 or
+issues.  However, the validation suite itself requires Python 2.6 or
 better, someone might choose to contribute the back porting.  Python 3.1
 support has been added for Pymacs 0.24.
 
@@ -728,9 +728,28 @@ Special Emacs Lisp variables
 ----------------------------
 
 Users could alter the inner working of Pymacs through a few variables,
-these are all documented here.  Except for :code:`pymacs-load-path`,
-which should be set before calling any Pymacs function, the value of
-these variables can be changed at any time.
+these are all documented here.  Except for :code:`pymacs-python-command`
+and :code:`pymacs-load-path`, which should be set before calling any
+Pymacs function, the value of these variables can be changed at any
+time.
+
+:code:`pymacs-python-command`
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+This variable is initialized with the Python executable that was used
+at installation time.  It tells Emacs about the Python interpreter to
+launch far starting the Pymacs helper.  The value of this variable may
+be overridden by setting the ``PYMACS_PYTHON`` environment variable, yet
+in practice, for newer versions of Pymacs, this is rarely needed.
+
+While the Python part of Pymacs is pre-processed and yields different
+sources for Python 2 and Python 3 (among other possibilities), the
+Emacs part of Pymacs is mostly configured at run time for various Emacs
+versions, so the same Emacs source is likely to work unaltered, would it
+be for different versions of Emacs and for different versions of Python.
+So it makes sense, at least in some special circumstances, giving the
+capability of selecting a specific Python interpreter by programmatical
+means within Emacs.
 
 :code:`pymacs-load-path`
 ,,,,,,,,,,,,,,,,,,,,,,,,
