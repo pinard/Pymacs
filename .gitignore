@@ -14,6 +14,7 @@ pppp.pdf
 pymacs.el
 pymacs.pdf
 pymacs.rst
+pymacs.wpu
 tests/debug-*
 tests/pytest
 tests/setup.py
