@@ -56,7 +56,7 @@
   (defalias 'pymacs-report-error (symbol-function 'error))
 
   ;; pymacs-set-buffer-multibyte
-  (if (boundp 'set-buffer-multibyte)
+  (if (fboundp 'set-buffer-multibyte)
       (defalias 'pymacs-set-buffer-multibyte 'set-buffer-multibyte)
     (defun pymacs-set-buffer-multibyte (flag)
       "For use in Emacs 20.2 or earlier.  Under XEmacs: no operation."
