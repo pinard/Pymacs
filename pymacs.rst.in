@@ -16,6 +16,12 @@ Extending Emacs with Python
 
 .. contents::
 .. sectnum::
+..
+
+There exists a `Romanian translation`__ of this manual.
+
+__ http://webhostinggeeks.com/science/pymacs-framework-ro
+.. By `Alexander Ovsov` alovsov@gmail.com
 
 Introduction
 ============

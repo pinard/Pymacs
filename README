@@ -7,11 +7,14 @@ README file for Pymacs
 
 .. contents::
 
-(There is a `Belorussian translation`__ for this page.)
-
-.. Translation by `Paul Bukhovko` bukhovko@gmail.com
+There exists a  README to `Belorussian translation`__ of this README file,
+and a `Romanian translation`__ of the Pymacs manual.
 
 __ http://www.movavi.com/opensource/pymacs-be
+.. By `Paul Bukhovko` bukhovko@gmail.com
+
+__ http://webhostinggeeks.com/science/pymacs-framework-ro
+.. By `Alexander Ovsov` alovsov@gmail.com
 
 General
 =======
