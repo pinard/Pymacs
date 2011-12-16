@@ -348,7 +348,7 @@ in Python 3).
 
 Let's do a second test.  Whether in the same Emacs session or not, ``M-x
 pymacs-load RET`` should prompt you for a Python module name.  Reply
-``os RET RET`` (the second ``RET`` is for accepting the default prefix.
+``os RET RET`` (the second ``RET`` is for accepting the default prefix).
 This should have the effect of importing the Python :code:`os` module
 within Emacs.  Typing ``M-: (os-getcwd) RET`` should echo the current
 directory in the message buffer, as returned by the :code:`os.getcwd`
@@ -1206,7 +1206,7 @@ view the whole protocol.  One may also view by forcing the Pymacs helper
 to save a trace file, which shows a Python view the whole protocol —
 unless there are communication errors, this should tell the same story
 as with the :code:`*Pymacs*` buffer.  These few topics are developed
-in the three following sections.  The remaning sections address more
+in the three following sections.  The remaining sections address more
 specific issues about Emacs Lisp or Python debugging.
 
 The communication protocol
@@ -1272,7 +1272,6 @@ interruptions, but to allow evaluations themselves to be interrupted.
 
 The :code:`*Pymacs*` buffer
 ---------------------------
-
 
 Emacs and Python are two separate processes (well, each may use more
 than one process).  Pymacs implements a simple communication protocol
@@ -1398,7 +1397,7 @@ Python usual debugging
 
 A common way to debug a Python script is to spread it with :code:`print`
 commands.  When such a Python script is executed under Pymacs control,
-these :code:`print` statements display the resultst right within the
+these :code:`print` statements display the results right within the
 :code:`*Pymacs*` buffer, and may be observed there.
 
 As such output gets intermixed with the Pymacs protocol itself, never
@@ -1752,11 +1751,12 @@ something wrong and doomed to be replaced.
 
 Emacs Lisp hash tables (as in Emacs 21) could be an acceptable
 equivalent for Python dicts.  This is what Brian McErlean did, and
-suggests.  My only reservation is about the Python need for non-mutable keys, something which Emacs does not guarantee.  As
-by default, from Lisp to Python, references are transmitted instead of
-contents, this would be a possible problem only when an expanded copy
-is requested from the Python side.  This would never be a problem going
-from Python to Emacs, so far as I understand things now.
+suggests.  My only reservation is about the Python need for non-mutable
+keys, something which Emacs does not guarantee.  As by default, from
+Lisp to Python, references are transmitted instead of contents, this
+would be a possible problem only when an expanded copy is requested from
+the Python side.  This would never be a problem going from Python to
+Emacs, so far as I understand things now.
 
 A nicer :code:`*Pymacs*` buffer
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
