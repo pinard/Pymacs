@@ -262,7 +262,18 @@ be installed in turn.  Always start with the Python file.
 + For the Python part
 
   From the top-level of the Pymacs distribution, execute ``make
-  install``.  If the Python interpreter has a non-standard name or
+  install``.  If you do not have a Make program (Microsoft Windows?)
+  read the ``Makefile`` file and emulate what ``make install`` does,
+  maybe something like this::
+
+    python pppp -C ppppconfig.py pppp.rst.in pymacs.el.in \
+      pymacs.rst.in Pymacs contrib tests
+    python setup.py install
+
+  Without ``make install``, you might also have to combine the two first
+  lines above into a single longer one, without the backslash.
+
+  If the Python interpreter has a non-standard name or
   location, rather do ``make install PYTHON=Some_Python`` (see the
   previous section for a discussion).  First, the script copies a few
   source files while configuring them: it presets the version string and
