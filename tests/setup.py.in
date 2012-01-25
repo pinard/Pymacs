@@ -25,7 +25,8 @@ import sys
 if '..' not in sys.path:
     sys.path.insert(0, '..')
 
-from Pymacs import lisp, pymacs
+import Pymacs
+lisp = Pymacs.lisp
 
 class Launch:
     # Make sure that ../Pymacs will be found in external processes.
@@ -134,7 +135,7 @@ class Python(Launch):
         import subprocess
         self.process = subprocess.Popen(
                 [os.environ.get('PYTHON') or 'python',
-                    '-c', 'from Pymacs.pymacs import main; main(\'..\')'],
+                    '-c', 'from Pymacs import main; main(\'..\')'],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         text = self.receive()
         assert text == '(version "@VERSION@")\n', repr(text)
@@ -152,7 +153,7 @@ class Python(Launch):
                             'got:\n' + (data + stdout.read()).decode('UTF-8'))
                 else:
                     diagnostic = 'got ' + repr(data)
-                raise pymacs.ProtocolError("'<' expected, %s\n" % diagnostic)
+                raise Pymacs.ProtocolError("'<' expected, %s\n" % diagnostic)
             while data[-1] != ord('\t'):
                 data += stdout.read(1)
             return str(stdout.read(int(data[1:-1])), 'UTF-8')
@@ -169,7 +170,7 @@ class Python(Launch):
                     diagnostic = 'got:\n' + data + stdout.read()
                 else:
                     diagnostic = 'got ' + repr(data)
-                raise pymacs.ProtocolError("'<' expected, %s\n" % diagnostic)
+                raise Pymacs.ProtocolError("'<' expected, %s\n" % diagnostic)
             while data[-1] != '\t':
                 data += stdout.read(1)
             return stdout.read(int(data[1:-1]))

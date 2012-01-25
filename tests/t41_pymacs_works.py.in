@@ -4,7 +4,8 @@
 
 import re
 import setup
-from Pymacs import lisp, pymacs
+import Pymacs
+lisp = Pymacs.lisp
 
 def setup_module(module):
     setup.start_emacs()
@@ -75,9 +76,9 @@ def test_1():
     for quotable, input, output in tests:
         fragments = []
         if PYTHON3:
-            pymacs.print_lisp(ascii(input), fragments.append, quotable)
+            Pymacs.print_lisp(ascii(input), fragments.append, quotable)
         else:
-            pymacs.print_lisp(repr(input), fragments.append, quotable)
+            Pymacs.print_lisp(repr(input), fragments.append, quotable)
         yield validate, ''.join(fragments), output
     tests = [('ord', ('(lambda (&rest arguments)'
                       ' (pymacs-apply (quote (pymacs-python . 0))'
@@ -85,7 +86,7 @@ def test_1():
              ('object()', '(pymacs-python . 0)')]
     for input, output in tests:
         fragments = []
-        pymacs.print_lisp(input, fragments.append, True)
+        Pymacs.print_lisp(input, fragments.append, True)
         yield validate, '\'' + ''.join(fragments), output
 
 def test_2():

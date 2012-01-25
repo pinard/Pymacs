@@ -1,7 +1,6 @@
 *~
 *.pyc
-Pymacs/__init__.py
-Pymacs/pymacs.py
+Pymacs.py
 build
 contrib/Giorgi/Pymacs/__init__.py
 contrib/Giorgi/rpcTest.py

@@ -4,13 +4,14 @@
 
 import re
 import setup
-from Pymacs import lisp, pymacs
+import Pymacs
+lisp = Pymacs.lisp
 
 def test_print_lisp():
 
     def validate(input, quoted, expected):
         fragments = []
-        pymacs.print_lisp(input, fragments.append, quoted)
+        Pymacs.print_lisp(input, fragments.append, quoted)
         output = re.sub(r'\(pymacs-(defun|python) [0-9]*',
                         r'(pymacs-\1 0',
                         ''.join(fragments))

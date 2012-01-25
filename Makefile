@@ -1,5 +1,5 @@
 # Interface between Emacs Lisp and Python - Makefile.
-# Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
+# Copyright © 2001, 2002, 2003, 2012 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
 
 EMACS = emacs
@@ -10,24 +10,24 @@ PYSETUP = $(PYTHON) setup.py
 PPPP = $(PYTHON) pppp -C ppppconfig.py
 
 all:
-	$(PPPP) *.in Pymacs contrib tests
+	$(PPPP) *.in contrib tests
 	$(PYSETUP) build
 
 check: clean-debug
-	$(PPPP) pymacs.el.in Pymacs tests
+	$(PPPP) pymacs.el.in Pymacs.py.in tests
 	cd tests && \
 	  EMACS="$(EMACS)" PYTHON="$(PYTHON)" \
 	  PYMACS_OPTIONS="-d debug-protocol -s debug-signals" \
 	  $(PYTHON) pytest -f t $(TEST)
 
 install:
-	$(PPPP) *.in Pymacs contrib tests
+	$(PPPP) *.in Pymacs.py.in contrib tests
 	$(PYSETUP) install
 
 clean: clean-debug
 	rm -rf build* contrib/rebox/build
 	rm -f */*py.class */*.pyc pppp.pdf pymacs.pdf
-	$(PPPP) -c *.in Pymacs contrib tests
+	$(PPPP) -c *.in contrib tests
 
 clean-debug:
 	rm -f tests/debug-protocol tests/debug-signals

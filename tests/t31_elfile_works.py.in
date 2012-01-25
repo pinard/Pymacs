@@ -4,7 +4,8 @@
 
 import re
 import setup
-from Pymacs import lisp, pymacs
+import Pymacs
+lisp = Pymacs.lisp
 
 def setup_module(module):
     setup.start_emacs()
@@ -81,13 +82,13 @@ def test_1():
     # TODO: Lisp and derivatives
     for quotable, input, output in tests:
         fragments = []
-        pymacs.print_lisp(input, fragments.append, quotable)
+        Pymacs.print_lisp(input, fragments.append, quotable)
         yield validate, ''.join(fragments), output
     tests = [(ord, '(pymacs-defun 0 nil)'),
              (object(), '(pymacs-python 0)')]
     for input, output in tests:
         fragments = []
-        pymacs.print_lisp(input, fragments.append, True)
+        Pymacs.print_lisp(input, fragments.append, True)
         yield validate, '\'' + ''.join(fragments), output
 
 def test_2():
@@ -147,12 +148,12 @@ def test_2():
     # TODO: Lisp and derivatives
     for quotable, input, output in tests:
         fragments = []
-        pymacs.print_lisp(input, fragments.append, quotable)
+        Pymacs.print_lisp(input, fragments.append, quotable)
         yield validate, ''.join(fragments), output
     #for input, output in (
     #        (ord, '(pymacs-defun 0 nil)'),
     #        (object(), '(pymacs-python 0)'),
     #        ):
     #    fragments = []
-    #    pymacs.print_lisp(input, fragments.append, True)
+    #    Pymacs.print_lisp(input, fragments.append, True)
     #    yield validate, '\'' + ''.join(fragments), output

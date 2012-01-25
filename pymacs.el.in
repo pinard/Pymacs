@@ -1,5 +1,5 @@
 ;;; Interface between Emacs Lisp and Python - Lisp part.    -*- emacs-lisp -*-
-;;; Copyright © 2001, 2002, 2003 Progiciels Bourbeau-Pinard inc.
+;;; Copyright © 2001, 2002, 2003, 2012 Progiciels Bourbeau-Pinard inc.
 ;;; François Pinard <pinard@iro.umontreal.ca>, 2001.
 
 ;;; This program is free software; you can redistribute it and/or modify
@@ -549,7 +549,7 @@ The timer is used only if `post-gc-hook' is not available.")
                             pymacs-python-command
                           python))
                       "-c" (concat "import sys;"
-                                   " from Pymacs.pymacs import main;"
+                                   " from Pymacs import main;"
                                    " main(*sys.argv[1:])")
                       (append
                        (and (>= emacs-major-version 24) '("-f"))

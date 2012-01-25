@@ -12,7 +12,8 @@ Extending Emacs with Python
 
   :Author: François Pinard
   :Email: pinard@iro.umontreal.ca
-  :Copyright: © Progiciels Bourbeau-Pinard inc., Montréal 2003, 2008, 2010
+  :Copyright: © Progiciels Bourbeau-Pinard inc., Montréal 2003, 2008, 2010,
+  2012
 
 .. contents::
 .. sectnum::
@@ -255,7 +256,7 @@ Hopefully, the suite is not run often, this is not a real problem.
 Install the Pymacs proper
 -------------------------
 
-Pymacs is a small package.  Putting the documentation and administrative
+Pymacs is lean.  Putting the documentation and administrative
 files aside, there is one Python file and one Emacs Lisp file to it, to
 be installed in turn.  Always start with the Python file.
 
@@ -279,7 +280,7 @@ be installed in turn.  Always start with the Python file.
   source files while configuring them: it presets the version string and
   the name of the Python interpreter, it also adapts the Python source
   code which might differ, for example, between Python 2 and Python 3.
-  Second, it installs the Python package through the Python standard
+  Second, it installs the Python file through the Python standard
   Distutils tool.  To get an option reminder, do ``python setup.py
   install --help``.  Consult the Distutils documentation if you need
   more information about this.
@@ -386,10 +387,10 @@ forever.  It should not be a practical problem in most simple cases.
 Some later versions of Emacs 20 silently create ordinary tables when
 asked for weak hash tables.  Older Emacses do not have hash tables.
 
-The :file:`Pymacs` Python package holds a single :file:`pymacs.py` file
-(and the mandatory :file:`__init__.py`).  Programmers might elect, but
-are not required, to install their own Pymacs applications either as
-sub-modules or sub-packages on :file:`Pymacs`.
+In earlier versions, Pymacs was installing a :file:`Pymacs`
+Python package holding a single :file:`pymacs.py` file (besides
+:file:`__init__.py`).  This is now replaced by a single
+:file:`Pymacs.py` file, and the API did not need to change.
 
 Emacs Lisp structures and Python objects
 ========================================
