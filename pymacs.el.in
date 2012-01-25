@@ -629,7 +629,7 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
   (unless (and pymacs-transit-buffer
                (buffer-name pymacs-transit-buffer)
                (get-buffer-process pymacs-transit-buffer))
-    (when pymacs-weak-hash 
+    (when pymacs-weak-hash
       (unless (or (eq pymacs-auto-restart t)
                   (and (eq pymacs-auto-restart 'ask)
                        (yes-or-no-p "The Pymacs helper died.  Restart it? ")))

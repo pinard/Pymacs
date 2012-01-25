@@ -25,8 +25,8 @@ diff -ur python-mode-1.0/pycomplete.el python-mode-1.0+/pycomplete.el
 -    (insert (pycomplete-pycomplete (py-symbol-near-point)
 -				   (py-find-global-imports)))))
 +  (let ((pymacs-forget-mutability t))
-+    (if (and 
-+         (and (eolp) (not (bolp)) 
++    (if (and
++         (and (eolp) (not (bolp))
 +         (not (char-before-blank))))
 +      (insert (pycomplete-pycomplete (py-symbol-near-point) (py-find-global-imports)))
 +      (indent-for-tab-command))))
@@ -51,8 +51,8 @@ diff -ur python-mode-1.0/pycomplete.el python-mode-1.0+/pycomplete.el
 +          nil t)
 +    (setq imports (append imports
 +                  (list (buffer-substring
-+                     (match-beginning 0) 
-+                     (match-end 0))))))  
++                     (match-beginning 0)
++                     (match-end 0))))))
        imports)))
  
 -(define-key py-mode-map "\M-\C-i"  'py-complete)
@@ -92,7 +92,7 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
 -
  import sys
  import os.path
-+import string 
++import string
 +from Pymacs import lisp
 +
 +
@@ -110,7 +110,7 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
 -    dots = s.split(".")
 +            except:
 +                continue
-+    dots = s.split(".") 
++    dots = s.split(".")
      if not s or len(dots) == 1:
          keys = set()
          keys.update(locald.keys())
@@ -119,7 +119,7 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
      sym = None
      for i in range(1, len(dots)):
 -        s = ".".join(dots[:i])
-+        s = ".".join(dots[:i])   
++        s = ".".join(dots[:i])
          try:
              sym = eval(s, globals(), locald)
          except NameError:
@@ -129,28 +129,28 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
                  return []
 -    if sym is not None:
 -        s = dots[-1]
-+    if sym is not None:  
-+        s = dots[-1]     
++    if sym is not None:
++        s = dots[-1]
          return [k for k in dir(sym) if k.startswith(s)]
  
 +def get_keyword_completition(s):
-+    # Reserved keywords for Python 2.5 
-+    keywords=""" and       del       from      not       while    
-+as        elif      global    or        with     
-+assert    else      if        pass      yield    
-+break     except    import    print              
-+class     exec      in        raise              
-+continue  finally   is        return             
++    # Reserved keywords for Python 2.5
++    keywords=""" and       del       from      not       while
++as        elif      global    or        with
++assert    else      if        pass      yield
++break     except    import    print
++class     exec      in        raise
++continue  finally   is        return
 +def       for       lambda    try
 +"""
 +    kl=keywords.split()
-+    
++
 +    return [ k+" " for k in kl if k.startswith(s)]
 +
 +def get_common_fuzzy_completition(s):
 +    result=[]
-+    # Then we add  some *common* words 
-+    commonFuzzyWords=""" self. """    
++    # Then we add  some *common* words
++    commonFuzzyWords=""" self. """
 +    kl=commonFuzzyWords.split()
 +    result=[ k for k in kl if k.startswith(s)]
 +    if len(result)==0:
@@ -166,8 +166,8 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
 +
  def pycomplete(s, imports=None):
      completions = get_all_completions(s, imports)
-+    
-+    
++
++
 +    # [GG] Extension1:
 +    if ENABLE_GG_FUZZY_GUESS : # and len(completions)==0:
 +        #lisp.message("Trying to complete using a fuzzy guess for:"+s)
@@ -178,7 +178,7 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
 +            completions.append(k)
 +        for k in k3:
 +            completions.append(k)
-+            
++
 +    lisp.message("DEBUG completions="+str(completions))
      dots = s.split(".")
 -    return os.path.commonprefix([k[len(dots[-1]):] for k in completions])
@@ -192,7 +192,7 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
 +            width = lisp.window_width() - 2
 +            colum = width / 20
 +            white = "                    "
-+            
++
 +            msg = ""
 +
 +            counter = 0
@@ -211,9 +211,9 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
 +        else:
 +            msg = "no completions for:"+s
 +
-+            
++
 +        lisp.message(msg)
-+    return  result       
++    return  result
 +
 +
 +
@@ -224,7 +224,7 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
      print "sy (sys in context) ->", pycomplete("sy", imports=["import sys"])
      print "foo. ->", pycomplete("foo.")
 -    print "Enc (email * imported) ->",
-+    print "Enc (email * imported) ->", 
++    print "Enc (email * imported) ->",
      print pycomplete("Enc", imports=["from email import *"])
      print "E (email * imported) ->",
      print pycomplete("E", imports=["from email import *"])
@@ -236,7 +236,7 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
 +def test():
 +    from Pymacs import lisp,utility
 +    log=utility.log
-+    
++
 +    lisp.switch_to_buffer("*Messages*")
 +    log.info("Testing PyComplete extension... (GG)")
 +    log.info(" ->" + str(pycomplete("")))
@@ -244,7 +244,7 @@ diff -ur python-mode-1.0/pycomplete.py python-mode-1.0+/pycomplete.py
 +    log.info("sy ->" + str(pycomplete("sy")))
 +    log.info("sy (sys in context) ->" + str(pycomplete("sy", imports=["import sys"])))
 +    log.info("foo. ->" + str(pycomplete("foo.")))
-+    log.info("Enc (email * imported) ->" + 
++    log.info("Enc (email * imported) ->" +
 +             str(pycomplete("Enc" , imports=["from email import *"])))
 +    log.info("E (email * imported) ->"+ str(pycomplete("E"  ,imports=["from email import *"])))
 +

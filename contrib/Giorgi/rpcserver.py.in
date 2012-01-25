@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 if PYTHON3:
     import xmlrpc.client
     from xmlrpc.server import SimpleXMLRPCServer
@@ -19,15 +20,15 @@ def publish_XMLRPC_Server():
     # We will allow dotted names:
     server.register_function(closeConnection,"closeConnection")
     server.register_instance(lisp, True)
-    
+
     #server.serve_forever()
     globals()['closeConnectionFlag']=False
-    
+
     while globals()['closeConnectionFlag']==False:
         server.handle_request()
 
     lisp.message("Connection closed")
-    
+
 # Support function: used to
 # stop serving:
 def closeConnection():

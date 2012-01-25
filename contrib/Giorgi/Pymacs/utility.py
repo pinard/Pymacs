@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright 2007 Giovanni Giorgi <jj@objectsroot.com>
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,13 +23,13 @@ class EmacsLog:
         #mx = mx + "\n"
         #lisp.set_buffer(self.logBuffer)
         #lisp.insert(mx)
-        
+
     def info(self, msg):
         self.show("I",msg)
-        
+
     def debug(self,msg):
         self.show("DEBUG",msg)
-        
+
 
     # Finest debugging
     def debugf(self,msg):
@@ -39,19 +40,19 @@ class BufferMan:
     def __init__(self):
         self.bufferName=lisp.buffer_name()
         self.fname=lisp.buffer_file_name()
-        
+
     def getBufferAsText(self):
         f=open(self.fname,"r")
         text=f.read()
         f.close()
         return text
-    
+
     def writeBuffer(self,text):
         f=open(self.fname,"w")
         f.write(text)
         f.close()
         self.reloadBuffer()
-        
+
     def reloadBuffer(self):
         # ;; (switch-to-buffer bname)
         # ;; (revert-buffer 'IGNORE-AUTO 'NOCONFIRM)

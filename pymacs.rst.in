@@ -118,7 +118,7 @@ order):
 
   + PyJde — Java dev source code browsing features in Emacs using Python:
 
-    + http://code.google.com/p/pyjde/ 
+    + http://code.google.com/p/pyjde/
 
 The QaTeX project was influenced by Pymacs, according to its author:
 
@@ -1586,7 +1586,7 @@ that:
     not user friendly!
 
   + At the end of the wait, I get a spurious IO error (I do not know
-    where it comes from). 
+    where it comes from).
 
 Possible memory leak
 ,,,,,,,,,,,,,,,,,,,,
@@ -1700,7 +1700,7 @@ so-called *keyword arguments*, and even provide a simple patch to do so::
   @@ -453,13 +453,16 @@
                write(') nil)')
                lisp._eval(''.join(fragments))
-   
+
   -    def __call__(self, *arguments):
   +    def __call__(self, *arguments, **keywords):
            fragments = []
