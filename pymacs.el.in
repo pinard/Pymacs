@@ -1,22 +1,40 @@
 ;;; pymacs.el --- Interface between Emacs Lisp and Python
 
-;;; Copyright © 2001, 2002, 2003, 2012 Progiciels Bourbeau-Pinard inc.
-;;; François Pinard <pinard@iro.umontreal.ca>, 2001.
+;; Copyright © 2001, 2002, 2003, 2012 Progiciels Bourbeau-Pinard inc.
 
-;;; This program is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; This program is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with this program; if not, write to the Free Software Foundation,
-;;; Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.  */
+;; Author: François Pinard <pinard@iro.umontreal.ca>
+;; Maintainer: François Pinard <pinard@iro.umontreal.ca>
+;; Created: 2001
+;; Version: @VERSION@
+;; Keywords: Python interface protocol
 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program; if not, write to the Free Software Foundation,
+;; Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.  */
+
+;;; Commentary:
+
+;; Pymacs is a powerful tool which, once started from Emacs, allows
+;; both-way communication between Emacs Lisp and Python.  Pymacs aims
+;; Python as an extension language for Emacs rather than the other way
+;; around.  Visit http://pymacs.progiciels-bpi.ca to read its manual,
+;; which also contains installation instructions.
+
+;;; Code:
+
+;; The code is organized into pages, grouping declarations by topic.
+;; Such pages are introduced by a form feed and a topic description.
+
 ;;; Portability stunts.
 
 (defvar pymacs-use-hash-tables
@@ -759,3 +777,4 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
         ((consp expression) (not (cdr (last expression))))))
 
 (provide 'pymacs)
+;;; pymacs.el ends here
