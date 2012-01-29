@@ -31,8 +31,8 @@ See the Pymacs documentation (check `README') for more information.
 
 # Identification of version.
 
-__package__ = 'Pymacs'
-__version__ = '@VERSION@'
+package = 'Pymacs'
+version = '@VERSION@'
 
 if PYTHON3:
     import collections, os, sys
@@ -124,7 +124,7 @@ Arguments are added to the search path for Python modules.
             sys.stdout = os.fdopen(sys.stdout.fileno(), 'wb')
 
         # Start protocol and services.
-        lisp._protocol.send('version', '"@VERSION@"')
+        lisp._protocol.send('version', '"%s"' % version)
         lisp._protocol.loop()
 
     def generic_handler(self, number, frame):

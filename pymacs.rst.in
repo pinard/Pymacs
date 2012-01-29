@@ -285,7 +285,7 @@ be installed in turn.  Always start with the Python file.
   install --help``.  Consult the Distutils documentation if you need
   more information about this.
 
-  That's normally all to it.  To check that :file:`pymacs.py` is
+  That's normally all to it.  To check that :file:`Pymacs.py` is
   properly installed, start an interactive Python session and type
   ``from Pymacs import lisp``: you should not receive any error.
 
@@ -387,10 +387,11 @@ forever.  It should not be a practical problem in most simple cases.
 Some later versions of Emacs 20 silently create ordinary tables when
 asked for weak hash tables.  Older Emacses do not have hash tables.
 
-In earlier versions, Pymacs was installing a :file:`Pymacs`
-Python package holding a single :file:`pymacs.py` file (besides
-:file:`__init__.py`).  This is now replaced by a single
-:file:`Pymacs.py` file, and the API did not need to change.
+In earlier versions, Pymacs was installing a :file:`Pymacs` Python
+package holding a single :file:`pymacs.py` file (besides the
+mandatory :file:`__init__.py`).  This is now replaced by a single
+:file:`Pymacs.py` file, and because of the capitalisation, the API did
+not need to change.
 
 Emacs Lisp structures and Python objects
 ========================================
@@ -1626,9 +1627,9 @@ actual need.  But if the challenge interests someone, please go ahead!
 
 Here is how it could go.  Pymacs has a Python interpreter running as a
 sub-process of Emacs.  In fact, Emacs loads :file:`pymacs.el`, which
-in turn gets Python to execute :file:`pymacs.py`, and both communicate
-afterwards. :file:`pymacs.py` is only active whenever :file:`pymacs.el`
-calls it, otherwise it is blocked. :file:`pymacs.py` could, under some
+in turn gets Python to execute :file:`Pymacs.py`, and both communicate
+afterwards. :file:`Pymacs.py` is only active whenever :file:`pymacs.el`
+calls it, otherwise it is blocked. :file:`Pymacs.py` could, under some
 option, start another thread within itself.  The initial thread would
 block waiting for Emacs, as usual.  The second thread would block
 waiting to serve any Python client wanting to access Emacs.  When this
@@ -1695,9 +1696,9 @@ mean here, that the real problem to solve is something else.
 On a related matter, Ali Gholami Rudi suggested that Pymacs supports Emacs
 so-called *keyword arguments*, and even provide a simple patch to do so::
 
-  diff --git a/Pymacs/pymacs.py b/Pymacs/pymacs.py
-  --- a/Pymacs/pymacs.py
-  +++ b/Pymacs/pymacs.py
+  diff --git a/Pymacs.py b/Pymacs.py
+  --- a/Pymacs.py
+  +++ b/Pymacs.py
   @@ -453,13 +453,16 @@
                write(') nil)')
                lisp._eval(''.join(fragments))

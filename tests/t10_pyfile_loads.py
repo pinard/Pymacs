@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Checking if pymacs.py loads.
+# Checking if Pymacs.py loads.
 
 def test_1():
     import setup

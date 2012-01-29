@@ -50,7 +50,7 @@ def get_module_name_if_python_file_handle():
     if fname==None:
         return None
     # check it:
-    if fname[-3:] == '.py' and (fname.endswith("pymacs.py")==False):
+    if fname[-3:] == '.py' and not fname.endswith("Pymacs.py")):
         # Ok, we have got something to do:
         # replace last / with a point and try it down:
         i=fname.rfind("/")

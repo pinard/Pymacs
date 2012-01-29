@@ -14,12 +14,10 @@ __author__ = "Fernando Perez. <fperez@pizero.colorado.edu>"
 __license__= "GPL"
 
 import re
-from Pymacs import pymacs
+from Pymacs import lisp
 
-# emacs is the global which handles lisp-based interaction with the active
+# lisp is the global which handles lisp-based interaction with the active
 # Emacs buffer from which any function is called
-
-emacs = pymacs.lisp
 
 # interactions is a global dict which MUST be updated for each new function
 # defined which we want to be visible to Emacs. Each function must have an
@@ -60,7 +58,7 @@ def clean_undo_after(checkpoint):
         """\
 Remove all intermediate boundaries from the Undo list since CHECKPOINT.
 """
-        emacs("""
+        lisp("""
 (let ((undo-list %s))
   (if (not (eq buffer-undo-list undo-list))
       (let ((cursor buffer-undo-list))
@@ -114,15 +112,15 @@ def cut_region(mode='string'):
     as a string or as a list of lines (mode='list').
 
     It is the caller's responsibility to insert the updated text at the
-    end back in the Emacs buffer with a call to emacs.insert(...)."""
+    end back in the Emacs buffer with a call to lisp.insert(...)."""
 
-    start, end = emacs.point(), emacs.mark(emacs.t)
+    start, end = lisp.point(), lisp.mark(lisp.t)
     # BUG: buffer_substring() can't extract regions with dos line endings (\r\n)
     # It dumps a traceback.
-    region = emacs.buffer_substring(start, end)
+    region = lisp.buffer_substring(start, end)
     if mode == 'list':
         region = region.splitlines()
-    emacs.delete_region(start, end)
+    lisp.delete_region(start, end)
     return region
     # cut_region() doesn't need an entry in interactions[] b/c it's meant to
     # be used internally by other functions in this module, not directly
@@ -135,10 +133,10 @@ def insert_text(text,offset=0):
     If called with no offset, leaves the cursor at the current position."""
 
     # save undo state so we can roll everything into a single operation for undo
-    checkpoint = emacs.buffer_undo_list.value()
-    user_pos = emacs.point()
-    emacs.insert(text)
-    emacs.goto_char(user_pos+offset)
+    checkpoint = lisp.buffer_undo_list.value()
+    user_pos = lisp.point()
+    lisp.insert(text)
+    lisp.goto_char(user_pos+offset)
     # Collapse all operations into a single one, for Undo.
     clean_undo_after(checkpoint)
 
@@ -147,27 +145,27 @@ def insert_indented_text(text,offset):
     """Insert indented text in buffer and move cursor to a certain offset."""
 
     # save undo state so we can roll everything into a single operation for undo
-    checkpoint = emacs.buffer_undo_list.value()
+    checkpoint = lisp.buffer_undo_list.value()
     # figure out if we are indented or not, and adapt text accordingly
     indent_level = get_line_offset()
     if indent_level > 0:
         text = indent(text,indent_level)
     # perform actual insertion with proper cursor positioning
     offset += indent_level
-    emacs.beginning_of_line()
-    user_pos = emacs.point()
-    emacs.insert(text)
-    emacs.goto_char(user_pos+offset)
+    lisp.beginning_of_line()
+    user_pos = lisp.point()
+    lisp.insert(text)
+    lisp.goto_char(user_pos+offset)
     # Collapse all operations into a single one, for Undo.
     clean_undo_after(checkpoint)
 
 #---------------------------------------------------------------------------
 def get_line_offset():
     """Return number of characters cursor is offset from margin.    """
-    user_pos = emacs.point()
-    emacs.beginning_of_line()
-    line_start = emacs.point()
-    emacs.goto_char(user_pos)
+    user_pos = lisp.point()
+    lisp.beginning_of_line()
+    line_start = lisp.point()
+    lisp.goto_char(user_pos)
     return user_pos - line_start
 # end get_line_offset()
 
@@ -201,7 +199,7 @@ def bow():
     Originally an example in Pymacs' README."""
 
     region = cut_region()
-    emacs.insert('\n'.join(region.split()))
+    lisp.insert('\n'.join(region.split()))
 
 # Update interactions[] for functions meant to be visible in Emacs.
 
@@ -230,13 +228,13 @@ def dos2unix():
     """Remove DOS line endings from a region.
     """
     # Save undo state so we can roll everything into a single operation for undo
-    checkpoint = emacs.buffer_undo_list.value()
+    checkpoint = lisp.buffer_undo_list.value()
     region = cut_region('list')
-    emacs.insert('\n'.join(region)+'\n')
+    lisp.insert('\n'.join(region)+'\n')
     # Collapse all operations into a single one, for Undo.
     clean_undo_after(checkpoint)
 
-# BUG: it's not working b/c of a bug in emacs.buffer_substring(), so let's not
+# BUG: it's not working b/c of a bug in lisp.buffer_substring(), so let's not
 # activate it for now.
 #interactions[dos2unix] = ''
 
