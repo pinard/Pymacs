@@ -348,7 +348,8 @@ The timer is used only if `post-gc-hook' is not available.")
       (setq pymacs-used-ids used-ids
             pymacs-gc-wanted nil)
       (when unused-ids
-        (pymacs-apply "free_python" unused-ids)))))
+        (let ((pymacs-forget-mutability t))
+          (pymacs-call "free_python" unused-ids))))))
 
 (defun pymacs-defuns (arguments)
   ;; Take one argument, a list holding a number of items divisible by 3.  The
@@ -615,7 +616,7 @@ The timer is used only if `post-gc-hook' is not available.")
         (let ((pymacs-transit-buffer buffer)
               (pymacs-forget-mutability t)
               (pymacs-gc-inhibit t))
-          (pymacs-apply "zombie_python" pymacs-used-ids))
+          (pymacs-call "zombie_python" pymacs-used-ids))
         (setq pymacs-used-ids nil))
       (setq pymacs-weak-hash (make-hash-table :weakness 'value))
       (if (boundp 'post-gc-hook)

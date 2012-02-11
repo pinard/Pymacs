@@ -471,13 +471,13 @@ def allocate_python(value):
         python.append(value)
     return index
 
-def free_python(*indices):
+def free_python(indices):
     # Return many handles to the pool.
     for index in indices:
         python[index] = None
         freed_list.append(index)
 
-def zombie_python(*indices):
+def zombie_python(indices):
     # Ensure that some handles are _not_ in the pool.
     for index in indices:
         while index >= len(python):
