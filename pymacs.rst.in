@@ -775,7 +775,7 @@ If, at the moment of the :code:`pymacs-autoload` call, :var:`FUNCTION`
 is already related to a loaded Python function, the autoloading
 declaration is ignored.
 
-Here are examples of usage for the :code:`pymacs-autoload` function:
+Here are examples of usage for the :code:`pymacs-autoload` function::
 
   (pymacs-autoload 'os-getenv "os" nil nil "sEnv name: ")
   (pymacs-autoload 'posix-getenv "os" "posix-" nil 
