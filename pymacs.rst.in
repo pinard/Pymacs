@@ -12,8 +12,7 @@ Extending Emacs with Python
 
   :Author: François Pinard
   :Email: pinard@iro.umontreal.ca
-  :Copyright: © Progiciels Bourbeau-Pinard inc., Montréal 2003, 2008, 2010,
-  2012
+  :Copyright: © Progiciels Bourbeau-Pinard inc., Montréal 2003, 2008, 2010, 2012
 
 .. contents::
 .. sectnum::
@@ -782,9 +781,10 @@ Here are examples of usage for the :code:`pymacs-autoload` function:
   (pymacs-autoload 'posix-getenv "os" "posix-" nil 
       '(list (read-string "Env name: ")))
 
-The interactive specification of the second example is given for
-illustrative purpose, as it could be written more simply, as in the
-first example.
+The second example could be written more simply as in the first
+example.  Moreover, both examples of an :var:INTERACTIVE argument are
+merely given here for illustration, as the real :code:`os-getenv`
+function is *not* interactive.
 
 Special Emacs Lisp variables
 ----------------------------
@@ -821,12 +821,12 @@ modules, when these modules are meant to be used from Emacs.  Best is to
 preset :code:`pymacs-load-path`, :code:`nil` by default, to a list of
 these directory names.  (Tilde expansions and such occur automatically.)
 
-Here is how it works.  The first time Pymacs is needed from Emacs,
-a Pymacs helper is automatically started as an Emacs subprocess, and
+Here is how it works.  The first time Pymacs is needed from Emacs, a
+Pymacs helper is automatically started as an Emacs subprocess, and
 given as arguments all strings in the :code:`pymacs-load-path` list.
-These arguments are added at the beginning of :code:`sys.path`,
-or moved at the beginning if they were already on :code:`sys.path`.
-So in practice, nothing is removed from :code:`sys.path`.
+These arguments are added at the beginning of :code:`sys.path`, or
+moved at the beginning if they were already on :code:`sys.path`.  So
+in practice, nothing is removed from :code:`sys.path`.
 
 :code:`pymacs-trace-transit`
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,
