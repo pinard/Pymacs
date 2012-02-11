@@ -161,6 +161,33 @@ If NOERROR is not nil, do not raise error when the module is not found."
           (t (pymacs-report-error "Pymacs loading %s...failed" module)))))
 
 ;;;###autoload
+(defun pymacs-autoload (function module &optional prefix docstring interactive)
+  "Pymacs's equivalent of the standard emacs facility `autoload'.
+Define FUNCTION to autoload from Python MODULE using PREFIX.
+If PREFIX is not given, it defaults to MODULE followed by a dash.
+Optional DOCSTRING documents FUNCTION until it gets loaded.
+INTERACTIVE is normally the argument to the function `interactive',
+t means `interactive' without arguments, nil means not interactive,
+which is the default."
+  (unless (symbolp function)
+    (error "`%s' should be a symbol" function))
+  (unless (stringp module)
+    (error "`%s' should be a string" module))
+  (unless (pymacs-python-reference function)
+
+    (defalias function
+      `(lambda (&rest args)
+         ,(or docstring
+              (format "`%s' function to be loaded from Python module `%s'"
+                      function module))
+         ,(cond ((eq interactive t) '(interactive))
+                (interactive `(interactive ,interactive)))
+         (pymacs-load ,module ,prefix)
+         (unless (pymacs-python-reference ',function)
+           (error "Pymacs autoload failed to define function %s" ',function))
+         (apply ',function args)))))
+
+;;;###autoload
 (defun pymacs-eval (text)
   "Compile TEXT as a Python expression, and return its value."
   (interactive "sPython expression? ")
@@ -224,34 +251,34 @@ equivalents, other structures are converted into Lisp handles."
                  "It interfaces to a Python function.\n\n"
                  (when python-doc
                    (if raw python-doc (substitute-command-keys python-doc)))))
-        ad-do-it)))
+        ad-do-it))))
 
-  (defun pymacs-python-reference (object)
-    ;; Return the text reference of a Python object if possible, else nil.
-    (when (functionp object)
-      (let* ((definition (indirect-function object))
-             (body (and (pymacs-proper-list-p definition)
-                        (> (length definition) 2)
-                        (eq (car definition) 'lambda)
-                        (cddr definition))))
-        (when (and body (listp (car body)) (eq (caar body) 'interactive))
-          ;; Skip the interactive specification of a function.
-          (setq body (cdr body)))
-        (when (and body
-                   ;; Advised functions start with a string.
-                   (not (stringp (car body)))
-                   ;; Python trampolines hold exactly one expression.
-                   (= (length body) 1))
-          (let ((expression (car body)))
-            ;; EXPRESSION might now hold something like:
-            ;;    (pymacs-apply (quote (pymacs-python . N)) ARGUMENT-LIST)
-            (when (and (pymacs-proper-list-p expression)
-                       (= (length expression) 3)
-                       (eq (car expression) 'pymacs-apply)
-                       (eq (car (cadr expression)) 'quote))
-              (setq object (cadr (cadr expression))))))))
-    (when (eq (car-safe object) 'pymacs-python)
-      (format "python[%d]" (cdr object)))))
+(defun pymacs-python-reference (object)
+  ;; Return the text reference of a Python object if possible, else nil.
+  (when (functionp object)
+    (let* ((definition (indirect-function object))
+           (body (and (pymacs-proper-list-p definition)
+                      (> (length definition) 2)
+                      (eq (car definition) 'lambda)
+                      (cddr definition))))
+      (when (and body (listp (car body)) (eq (caar body) 'interactive))
+        ;; Skip the interactive specification of a function.
+        (setq body (cdr body)))
+      (when (and body
+                 ;; Advised functions start with a string.
+                 (not (stringp (car body)))
+                 ;; Python trampolines hold exactly one expression.
+                 (= (length body) 1))
+        (let ((expression (car body)))
+          ;; EXPRESSION might now hold something like:
+          ;;    (pymacs-apply (quote (pymacs-python . N)) ARGUMENT-LIST)
+          (when (and (pymacs-proper-list-p expression)
+                     (= (length expression) 3)
+                     (eq (car expression) 'pymacs-apply)
+                     (eq (car (cadr expression)) 'quote))
+            (setq object (cadr (cadr expression))))))))
+  (when (eq (car-safe object) 'pymacs-python)
+    (format "python[%d]" (cdr object))))
 
 ;; The following functions are experimental -- they are not satisfactory yet.
 

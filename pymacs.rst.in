@@ -341,6 +341,7 @@ have one already in your home directory.  You need to add these lines::
   (autoload 'pymacs-eval "pymacs" nil t)
   (autoload 'pymacs-exec "pymacs" nil t)
   (autoload 'pymacs-load "pymacs" nil t)
+  (autoload 'pymacs-autoload "pymacs")
   ;;(eval-after-load "pymacs"
   ;;  '(add-to-list 'pymacs-load-path YOUR-PYMACS-DIRECTORY"))
 
@@ -630,12 +631,13 @@ functions are listed and detailed in the following subsections.  They
 really are the preferred way to call Python services with Pymacs.
 
 Even then, we do not expect that :code:`pymacs-exec`,
-:code:`pymacs-eval`, :code:`pymacs-call` or :code:`pymacs-apply` will be
-much used, if ever, in most Pymacs applications.  In practice, the Emacs
-Lisp side of a Pymacs application might call :code:`pymacs-load` a few
-times for linking into the Python modules, with the indirect effect of
-defining trampoline functions for these modules on the Emacs Lisp side,
-which can later be called like usual Emacs Lisp functions.
+:code:`pymacs-eval`, :code:`pymacs-call` or :code:`pymacs-apply` will
+be much used, if ever, in most Pymacs applications.  In practice, the
+Emacs Lisp side of a Pymacs application might call either
+:code:`pymacs-autoload` or :code:`pymacs-load` a few times for linking
+into the Python modules, with the indirect effect of defining
+trampoline functions for these modules on the Emacs Lisp side, which
+can later be called like usual Emacs Lisp functions.
 
 :code:`pymacs-exec`
 ,,,,,,,,,,,,,,,,,,,
@@ -685,7 +687,7 @@ instead of given separately, the function acts pretty much like
 ,,,,,,,,,,,,,,,,,,,
 
 Function ``(pymacs-load MODULE PREFIX)`` imports the Python
-:var:`module` into Emacs Lisp space. :var:`MODULE` is the name of the
+:var:`MODULE` into Emacs Lisp space. :var:`MODULE` is the name of the
 file containing the module, without any :file:`.py` or :file:`.pyc`
 extension.  If the directory part is omitted in :var:`MODULE`, the
 module will be looked into the current Python search path.  Dot notation
@@ -742,6 +744,47 @@ second line for Python 3)::
 After such a command, calling the function ``py-getattr``, say, with an
 opaque Python object and with a string naming an attribute, returns the
 value of that attribute for that object.
+
+:code:`pymacs-autoload`
+,,,,,,,,,,,,,,,,,,,,,,,
+
+Function ``(pymacs-autoload FUNCTION MODULE PREFIX DOCSTRING
+INTERACTIVE)`` is meant to mimic the functionality of the standard
+Emacs :code:`autoload` function.
+
+It declares :var:`FUNCTION` to be autoloaded from the specified Python
+:var:`MODULE`.  The :code:`pymacs-load` for this module is delayed
+until :var:`FUNCTION` is actually called.  Of course, if there are
+many such functions declared as autoloading the module, calling any of
+them will then load the module and resolve the autoloading for all of
+them at once.  For the meaning of the optional :var:`PREFIX` argument,
+see the documentation for the :code:`pymacs-load` function above.
+
+Before the function gets loaded for real, Emacs may still provide a
+documentation for it, which the user gives through the contents of the
+optional :var:`DOCSTRING`.  Emacs also needs to know if the function
+may be called interactively and, when this is the case, the arguments
+it may accept.  If the :var:`INTERACTIVE` argument is not provided, or
+when it is nil, the function is not known to be interactive.  A value
+of :code:`t` for :var:`INTERACTIVE` means that the function is
+interactive, but has no arguments.  Otherwise, :var:`INTERACTIVE`
+receives a description of the interaction to interactively get the
+function arguments.  See the Emacs documentation for function
+:code:`autoload` and :code:`interactive` for more information.
+
+If, at the moment of the :code:`pymacs-autoload` call, :var:`FUNCTION`
+is already related to a loaded Python function, the autoloading
+declaration is ignored.
+
+Here are examples of usage for the :code:`pymacs-autoload` function:
+
+  (pymacs-autoload 'os-getenv "os" nil nil "sEnv name: ")
+  (pymacs-autoload 'posix-getenv "os" "posix-" nil 
+      '(list (read-string "Env name: ")))
+
+The interactive specification of the second example is given for
+illustrative purpose, as it could be written more simply, as in the
+first example.
 
 Special Emacs Lisp variables
 ----------------------------
