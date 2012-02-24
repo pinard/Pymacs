@@ -445,8 +445,8 @@ def pymacs_load_helper(file_without_extension, prefix):
     return [lisp.quote, module]
 
 def doc_string(function):
-    if hasattr(function, '__doc__'):
-        return function.__doc__
+    import inspect
+    return inspect.getdoc(function)
 
 ## Garbage collection matters.
 
