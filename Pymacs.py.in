@@ -219,11 +219,12 @@ class Protocol:
                 except ProtocolError as exception:
                     sys.exit("Protocol error: %s\n" % exception)
                 except:
-                    import io, traceback
-                    buffer = io.StringIO()
-                    traceback.print_exc(file=buffer)
+                    import traceback
                     action = 'raise'
-                    value = buffer.getvalue()
+                    if lisp.debug_on_error.value() is None:
+                        value = traceback.format_exception_only(sys.exc_type,
+                            sys.exc_value)
+                        value = ''.join(value).rstrip()
                 if not done:
                     fragments = []
                     print_lisp(value, fragments.append, True)
@@ -286,11 +287,14 @@ class Protocol:
                 except ProtocolError, exception:
                     sys.exit("Protocol error: %s\n" % exception)
                 except:
-                    import StringIO, traceback
-                    buffer = StringIO.StringIO()
-                    traceback.print_exc(file=buffer)
+                    import traceback
                     action = 'raise'
-                    value = buffer.getvalue()
+                    if lisp.debug_on_error.value() is None:
+                        value = traceback.format_exception_only(sys.exc_type,
+                            sys.exc_value)
+                        value = ''.join(value).rstrip()
+                    else:
+                        value = traceback.format_exc()
                 if not done:
                     fragments = []
                     print_lisp(value, fragments.append, True)
