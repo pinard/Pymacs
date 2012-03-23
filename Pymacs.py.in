@@ -260,7 +260,7 @@ class Protocol:
                         value = None
                         try:
                             run.inhibit_quit = False
-                            exec text
+                            exec(text)
                         finally:
                             run.inhibit_quit = True
                     elif action == 'return':
