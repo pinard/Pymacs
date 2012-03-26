@@ -225,6 +225,8 @@ class Protocol:
                         value = traceback.format_exception_only(sys.exc_type,
                             sys.exc_value)
                         value = ''.join(value).rstrip()
+                    else:
+                        value = traceback.format_exc()
                 if not done:
                     fragments = []
                     print_lisp(value, fragments.append, True)
