@@ -178,7 +178,7 @@ which is the default."
     (defalias function
       `(lambda (&rest args)
          ,(or docstring
-              (format "`%s' function to be loaded from Python module `%s'"
+              (format "Function `%s' to be loaded from Python module `%s'"
                       function module))
          ,(cond ((eq interactive t) '(interactive))
                 (interactive `(interactive ,interactive)))
