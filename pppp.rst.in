@@ -107,7 +107,7 @@ functions referred to by the expression are known in the context (and
 presuming there is no syntax error or other run-time error while
 evaluating the expression), the expression gets a dependable value.
 The ``if`` or ``elif`` line is itself removed (well, in some cases, an
-``elif`` might become and ``else``), and the following block of lines is
+``elif`` might become an ``else``), and the following block of lines is
 adjusted according to the expression value, likely shifted back or fully
 removed.  Similarily, ``else`` clauses may sometimes get simplified.
 
