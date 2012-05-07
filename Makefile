@@ -26,7 +26,7 @@ install:
 
 clean: clean-debug
 	rm -rf build* contrib/rebox/build
-	rm -f */*py.class */*.pyc pppp.pdf pymacs.pdf
+	rm -f */*py.class *.pyc */*.pyc pppp.pdf pymacs.pdf
 	$(PPPP) -c *.in contrib tests
 
 clean-debug:
