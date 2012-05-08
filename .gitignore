@@ -1,6 +1,7 @@
 *~
 *.pyc
 *.elc
+GNUmakefile
 Pymacs.py
 build
 contrib/Giorgi/Pymacs/__init__.py
