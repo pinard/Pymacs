@@ -11,7 +11,7 @@ PPPP = $(PYTHON) pppp -C ppppconfig.py
 
 all:
 	$(PPPP) *.in contrib tests
-	$(PYSETUP) build
+	$(PYSETUP) --quiet build
 
 check: clean-debug
 	$(PPPP) pymacs.el.in Pymacs.py.in tests
