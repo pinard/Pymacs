@@ -266,8 +266,8 @@ be installed in turn.  Always start with the Python file.
   read the ``Makefile`` file and emulate what ``make install`` does,
   maybe something like this::
 
-    python pppp -C ppppconfig.py pppp.rst.in pymacs.el.in \
-      pymacs.rst.in Pymacs.py.in contrib tests
+    python pppp -C ppppconfig.py \
+      Pymacs.py.in pppp.rst.in pymacs.el.in pymacs.rst.in contrib tests
     python setup.py install
 
   Without ``make install``, you might also have to combine the two first

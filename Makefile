@@ -10,7 +10,7 @@ PYSETUP = $(PYTHON) setup.py
 PPPP = $(PYTHON) pppp -C ppppconfig.py
 
 all:
-	$(PPPP) *.in contrib tests
+	$(PPPP) Pymacs.py.in pppp.rst.in pymacs.el.in pymacs.rst.in contrib tests
 	$(PYSETUP) --quiet build
 
 check: clean-debug
@@ -21,7 +21,7 @@ check: clean-debug
 	  $(PYTHON) pytest -f t $(TEST)
 
 install:
-	$(PPPP) *.in Pymacs.py.in contrib tests
+	$(PPPP) Pymacs.py.in pppp.rst.in pymacs.el.in pymacs.rst.in contrib tests
 	$(PYSETUP) install
 
 clean: clean-debug
