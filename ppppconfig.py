@@ -7,11 +7,11 @@
 # VERSION is the name of the Pymacs version, as declared within setup.py.
 
 def get_version():
-    import re
-    for line in open('setup.py'):
-        match = re.match('version *= *([\'"][^\'"]*[\'"])', line)
-        if match:
-            return eval(match.group(1))
+    for line in open('setup.cfg'):
+        if '=' in line:
+            key, value = line.split('=', 1)
+            if key.strip() == 'version':
+                return value.strip()
 
 VERSION = get_version()
 del get_version
@@ -20,7 +20,7 @@ del get_version
 # =====================================
 
 # DEFADVICE_OK is 't' when it is safe to use defadvice.  It has been reported
-# that, at least under Aquamacs (an MacOS X native port of Emacs), one gets
+# that, at least under Aquamacs (a MacOS X native port of Emacs), one gets
 # "Lisp nesting exceeds `max-lisp-eval-depth'" messages while requesting
 # functions documentation (we do not know why).  Set this variable to 'nil'
 # as a way to avoid the problem.
