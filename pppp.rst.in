@@ -159,7 +159,7 @@ value of the Python expression :var:`expr`.  Beware of Python characters
 which also have a meaning for the shell, proper quoting may be needed.
 Here is, for example, how to define a string while calling :code:`pppp`::
 
-  pppp -D "version='0.24-beta2'" ...
+  pppp -D "version='@VERSION@'" ...
 
 While evaluating :var:`expr`, there is no restriction to the context,
 and builtins are indeed available.  For exemple, to add the builtin
