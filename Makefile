@@ -9,8 +9,7 @@ RST2LATEX = rst2latex
 PYSETUP = $(PYTHON) setup.py
 PPPP = $(PYTHON) pppp -C ppppconfig.py
 
-all:
-	$(PPPP) Pymacs.py.in pppp.rst.in pymacs.el.in pymacs.rst.in contrib tests
+all: prepare
 	$(PYSETUP) --quiet build
 
 check: clean-debug
@@ -20,9 +19,11 @@ check: clean-debug
 	  PYMACS_OPTIONS="-d debug-protocol -s debug-signals" \
 	  $(PYTHON) pytest -f t $(TEST)
 
-install:
-	$(PPPP) Pymacs.py.in pppp.rst.in pymacs.el.in pymacs.rst.in contrib tests
+install: prepare
 	$(PYSETUP) install
+
+prepare:
+	$(PPPP) Pymacs.py.in pppp.rst.in pymacs.el.in pymacs.rst.in contrib tests
 
 clean: clean-debug
 	rm -rf build* contrib/rebox/build
