@@ -34,8 +34,11 @@ See the Pymacs documentation (check `README') for more information.
 package = 'Pymacs'
 version = '@VERSION@'
 
+import os
+import sys
+
 if PYTHON3:
-    import collections, os, sys
+    import collections
 
     def callable(value):
         return isinstance(value, collections.Callable)
@@ -44,11 +47,11 @@ if PYTHON3:
     from imp import reload
 else:
     __metaclass__ = type
-    import os, sys
+
 
 def fixup_icanon():
-    # otherwise sys.stdin.read hangs for large inputs in emacs 24
-    # see comment in emacs source code sysdep.c
+    # Otherwise sys.stdin.read hangs for large inputs in emacs 24.
+    # See comment in emacs source code sysdep.c.
     import termios
     a = termios.tcgetattr(1)
     a[3] &= ~termios.ICANON
@@ -61,6 +64,7 @@ except ImportError:
     signal = None
 
 ## Python services for Emacs applications.
+
 
 class Main:
     debug_file = None
@@ -149,9 +153,15 @@ if OLD_EXCEPTIONS:
     ProtocolError = 'ProtocolError'
     ZombieError = 'ZombieError'
 else:
-    class error(Exception): pass
-    class ProtocolError(error): pass
-    class ZombieError(error): pass
+    class error(Exception):
+        pass
+
+    class ProtocolError(error):
+        pass
+
+    class ZombieError(error):
+        pass
+
 
 class Protocol:
 
@@ -392,6 +402,7 @@ class Protocol:
             sys.stdout.write(prefix + text)
             sys.stdout.flush()
 
+
 def pymacs_load_helper(file_without_extension, prefix):
     # This function imports a Python module, then returns a Lisp expression
     # which, when later evaluated, will install trampoline definitions
@@ -450,6 +461,7 @@ def pymacs_load_helper(file_without_extension, prefix):
                 module]
     return [lisp.quote, module]
 
+
 def doc_string(function):
     import inspect
     return inspect.getdoc(function)
@@ -465,6 +477,7 @@ def doc_string(function):
 python = []
 freed_list = []
 
+
 def allocate_python(value):
     assert not isinstance(value, str), (type(value), repr(value))
     # Allocate some handle to hold VALUE, return its index.
@@ -477,11 +490,13 @@ def allocate_python(value):
         python.append(value)
     return index
 
+
 def free_python(indices):
     # Return many handles to the pool.
     for index in indices:
         python[index] = None
         freed_list.append(index)
+
 
 def zombie_python(indices):
     # Ensure that some handles are _not_ in the pool.
@@ -493,6 +508,7 @@ def zombie_python(indices):
         freed_list.remove(index)
     # Merely to make `*Pymacs*' a bit more readable.
     freed_list.sort()
+
 
 def zombie(*arguments):
     # This catch-all function is set as the value for any function which
@@ -507,6 +523,7 @@ def zombie(*arguments):
     lisp.message(diagnostic)
 
 ## Emacs services for Python applications.
+
 
 class Let:
 
@@ -606,6 +623,7 @@ class Let:
         assert method == Let.pop_window_excursion, (method, data)
         lisp.set_window_configuration(data)
 
+
 class Symbol:
 
     def __init__(self, text):
@@ -644,6 +662,7 @@ class Symbol:
         write(')')
         return lisp._eval(''.join(fragments))
 
+
 class Lisp:
 
     def __init__(self, index):
@@ -664,6 +683,7 @@ class Lisp:
     def copy(self):
         return lisp._expand(str(self))
 
+
 class Buffer(Lisp):
     pass
 
@@ -674,6 +694,7 @@ class Buffer(Lisp):
 
     #def point(self):
     #    return lisp.point(self)
+
 
 class List(Lisp):
 
@@ -707,6 +728,7 @@ class List(Lisp):
         write(')')
         lisp._eval(''.join(fragments))
 
+
 class Table(Lisp):
 
     def __getitem__(self, key):
@@ -727,6 +749,7 @@ class Table(Lisp):
         write(' %s)' % self)
         lisp._eval(''.join(fragments))
 
+
 class Vector(Lisp):
 
     def __len__(self):
@@ -742,6 +765,7 @@ class Vector(Lisp):
         print_lisp(value, write, True)
         write(')')
         lisp._eval(''.join(fragments))
+
 
 class Lisp_Interface:
 
