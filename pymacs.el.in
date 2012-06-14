@@ -155,7 +155,7 @@ If NOERROR is not nil, do not raise error when the module is not found."
                                nil nil default)))
      (list module prefix)))
   (message "Pymacs loading %s..." module)
-  (let ((lisp-code (pymacs-call "pymacs_load_helper" module prefix)))
+  (let ((lisp-code (pymacs-call "pymacs_load_helper" module prefix noerror)))
     (cond (lisp-code (let ((result (eval lisp-code)))
                        (add-to-list 'pymacs-load-history
                                     (list module prefix noerror)
@@ -163,8 +163,7 @@ If NOERROR is not nil, do not raise error when the module is not found."
                                     'append)
                        (message "Pymacs loading %s...done" module)
                        result))
-          (noerror (message "Pymacs loading %s...failed" module) nil)
-          (t (pymacs-report-error "Pymacs loading %s...failed" module)))))
+          (noerror (message "Pymacs loading %s...failed" module) nil))))
 
 ;;;###autoload
 (defun pymacs-autoload (function module &optional prefix docstring interactive)

@@ -403,7 +403,7 @@ class Protocol:
             sys.stdout.flush()
 
 
-def pymacs_load_helper(file_without_extension, prefix):
+def pymacs_load_helper(file_without_extension, prefix, noerror=None):
     # This function imports a Python module, then returns a Lisp expression
     # which, when later evaluated, will install trampoline definitions
     # in Emacs for accessing the Python module facilities.  Module, given
@@ -435,7 +435,10 @@ def pymacs_load_helper(file_without_extension, prefix):
             for component in module_components[1:]:
                 module = getattr(module, component)
     except ImportError:
-        return None
+        if noerror:
+            return None
+        else:
+            raise
     load_hook = module.__dict__.get('pymacs_load_hook')
     if load_hook:
         load_hook()
