@@ -232,8 +232,8 @@ class Protocol:
                     import traceback
                     action = 'raise'
                     if lisp.debug_on_error.value() is None:
-                        value = traceback.format_exception_only(sys.exc_type,
-                            sys.exc_value)
+                        value = traceback.format_exception_only(
+                            sys.exc_info[0], sys.exc_info[1])
                         value = ''.join(value).rstrip()
                     else:
                         value = traceback.format_exc()
@@ -302,8 +302,8 @@ class Protocol:
                     import traceback
                     action = 'raise'
                     if lisp.debug_on_error.value() is None:
-                        value = traceback.format_exception_only(sys.exc_type,
-                            sys.exc_value)
+                        value = traceback.format_exception_only(
+                            sys.exc_type, sys.exc_value)
                         value = ''.join(value).rstrip()
                     else:
                         value = traceback.format_exc()
