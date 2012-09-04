@@ -54,7 +54,7 @@ main Pymacs site:
 
 or more directly from GitHub:
 
-  + http://github.com/pinard/Pymacs
+  + https://github.com/pinard/Pymacs
 
 Copy that file somewhere on your search path, and make it executable.
 That's all to it.
