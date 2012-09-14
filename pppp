@@ -225,7 +225,7 @@ class Main:
         for input, output in self.each_pair(input, output):
             if not self.force:
                 if (os.path.exists(output)
-                        and os.path.getmtime(output) > os.path.getmtime(input)):
+                      and os.path.getmtime(output) > os.path.getmtime(input)):
                     sys.exit("ERROR: %s has been modified, keeping it!\n"
                              % output)
             if self.clean:
