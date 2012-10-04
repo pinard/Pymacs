@@ -2,7 +2,7 @@
 #+OPTIONS: H:2
 #+SETUPFILE: ~/fp/notes/setup/pymacs.org
 
-* README contents
+* .
 
 #+BEGIN_QUOTE
 Known translations
@@ -85,7 +85,6 @@ and True constants, and Unicode strings (within limits set by Emacs).
 
 Special thanks to those who helped me at creating or testing this
 release.
-
 * Informal notes
 # <<2012-05-06>>
 ** python-mode.el difficulty
@@ -102,4 +101,3 @@ The problem turns out to come from *python-mode.el* (a development copy), which 
 I saved a few notes on [[file:Emacs.org::*Packaging][Emacs Packaging]].  After having pondering them, I'll follow Gleb's advice, at least to get started and experiment.  Emacs packagers do not care about Python, and Python packagers ignore Emacs Lisp installation problems.  The pre-processing step in Pymacs is another source of concern.  In a word, I'll save the bottle of champagne for some later time! ☺
 
 There is some complexity in installers, both on Emacs and Python sides.  It's quite amusing: proponents of either side want an installer, and dismiss as trivial the problem of installing the other side.  Emacs users tell me: /Set PYTHONPATH approprietely and forget about it/.  Python users tell me: /Just put pymacs.el somewhere it will work, or ask the user/.  My feeling is that to do nicely implies both an Emacs installer and a Python installer.  There is difference of perspective as well: for users, simplicity means /both/; for the maintainer, simplicity means /neither/ ☺.
-
