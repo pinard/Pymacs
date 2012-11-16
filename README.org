@@ -21,8 +21,8 @@ The Pymacs manual (either in [[http://pymacs.progiciels-bpi.ca/pymacs.html][HTML
 
 Source files and various distributions are available through https://github.com/pinard/Pymacs/.  Please report problems, comments and suggestions to [[mailto:pinard@iro.umontreal.ca][François Pinard]].
 
-** <<2012-05-07>> Notes for 0.25
-[2012-05-07 lun] Hi everybody.
+** Notes for 0.25
+ <<2012-05-07>> [2012-05-07 lun] Hi everybody.
 
 Pymacs 0.25 is now available.  You may fetch it as one of:
 
@@ -59,10 +59,10 @@ Nice thanks to Pymacs contributors.  It was much fun working with you all!
 
 ** Notes for 0.24
 
-Whenever I tag a version -betaN or such, it might not be fully ready for public distribution, this is a welcome defect that ELPA cannot grok such versions.  Someone wanting to upload Pymacs nevertheless found his way around the limitation by renaming the version, I guess from 0.24-beta2 to 0.24.  Undoubtedly, it would have been polite to check with me first… As beta releases come before real releases, it should really have been 0.23.  Anyway, Marmelade now has a Pymacs 0.24.  For avoiding any more confusion, I'm skipping 0.24 — such a version does not officially exist.
+Whenever I tag a version =-betaN= or such, it might not be fully ready for public distribution, this is a welcome defect that ELPA cannot grok such versions.  Someone wanting to upload Pymacs nevertheless found his way around the limitation by renaming the version, I guess from =0.24-beta2= to =0.24=.  Undoubtedly, it would have been polite to check with me first… As beta releases come before real releases, it should really have been =0.23=.  Anyway, Marmelade now has a Pymacs 0.24.  For avoiding any more confusion, I'm skipping =0.24= — such a version does not officially exist.
 
-** <<2008-02-15>> Notes for 0.23
-[2008-02-15 ven] Hello to everybody, and Emacs users in the Python community.
+** Notes for 0.23
+<<2008-02-15>> [2008-02-15 ven] Hello to everybody, and Emacs users in the Python community.
 
 Here is Pymacs 0.23!  There has been a while, so I advise current Pymacs users to switch with caution.  All reported bugs have been squashed, if we except one about Emacs quit (*C-g*) not being obeyed gracefully.  A few suggestions have been postponed, to be pondered later.
 
