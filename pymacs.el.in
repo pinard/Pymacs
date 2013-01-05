@@ -679,7 +679,7 @@ Killing the Pymacs helper might create zombie objects.  Kill? "))
            (remove-hook 'post-gc-hook 'pymacs-schedule-gc))
           ((pymacs-timerp pymacs-gc-timer)
            (pymacs-cancel-timer pymacs-gc-timer)))
-    (when pymacs-transit-buffer
+    (when (buffer-live-p pymacs-transit-buffer)
       (kill-buffer pymacs-transit-buffer))
     (setq pymacs-gc-inhibit nil
           pymacs-gc-timer nil
