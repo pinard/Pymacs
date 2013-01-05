@@ -43,6 +43,12 @@
 
 (eval-and-compile
 
+  ;; pymacs-called-interactively-p
+  (defalias 'pymacs-called-interactively-p
+    (cond ((fboundp 'called-interactively-p) 'called-interactively-p)
+          ;; Emacs before 22.
+          (t 'interactive-p)))
+
   ;; pymacs-cancel-timer
   (defalias 'pymacs-cancel-timer
     (cond ((fboundp 'cancel-timer) 'cancel-timer)
@@ -197,7 +203,7 @@ which is the default."
   "Compile TEXT as a Python expression, and return its value."
   (interactive "sPython expression: ")
   (let ((value (pymacs-serve-until-reply "eval" `(princ ,text))))
-    (when (interactive-p)
+    (when (pymacs-called-interactively-p)
       (message "%S" value))
     value))
 
@@ -207,7 +213,7 @@ which is the default."
 This functionality is experimental, and does not appear to be useful."
   (interactive "sPython statements: ")
   (let ((value (pymacs-serve-until-reply "exec" `(princ ,text))))
-    (when (interactive-p)
+    (when (pymacs-called-interactively-p)
       (message "%S" value))
     value))
 
