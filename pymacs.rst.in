@@ -843,6 +843,16 @@ These arguments are added at the beginning of :code:`sys.path`, or
 moved at the beginning if they were already on :code:`sys.path`.  So
 in practice, nothing is removed from :code:`sys.path`.
 
+:code:`pymacs-after-load-functions`
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+The functions installed on this hook, if any, are run after loading a
+Python module.  Each function is called with a single argument, which
+is the Python module name, as given as the first argument to
+:code:`pymacs-load`.
+
+This hook initially contains no functions.
+
 :code:`pymacs-trace-transit`
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
