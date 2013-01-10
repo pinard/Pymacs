@@ -146,6 +146,11 @@ If `nil', calling a zombie will merely produce a diagnostic message.")
 
 (defvar pymacs-load-history nil "Pymacs loading history.")
 
+(defvar pymacs-after-load-functions nil
+  "Special hook run after loading a Python module.
+Each function there is called with a single argument, the Python
+module name passed to as the first argument of `pymacs-load'.")
+
 ;;;###autoload
 (defun pymacs-load (module &optional prefix noerror)
   "Import the Python module named MODULE into Emacs.
@@ -168,6 +173,7 @@ If NOERROR is not nil, do not raise error when the module is not found."
                                     ;; append so that order is kept
                                     'append)
                        (message "Pymacs loading %s...done" module)
+                       (run-hook-with-args 'pymacs-after-load-functions module)
                        result))
           (noerror (message "Pymacs loading %s...failed" module) nil))))
 
