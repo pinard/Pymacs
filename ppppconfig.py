@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # p4 configuration for Pymacs.
 
+
 # Overall Pymacs configuration
 # ============================
 
@@ -16,6 +17,7 @@ def get_version():
 VERSION = get_version()
 del get_version
 
+
 # Configuration for the Emacs Lisp side
 # =====================================
 
@@ -27,6 +29,7 @@ del get_version
 
 DEFADVICE_OK = 't'
 
+
 # PYTHON gets the command name of the Python interpreter.
 
 def get_python():
@@ -35,6 +38,7 @@ def get_python():
 
 PYTHON = get_python()
 del get_python
+
 
 # Configuration for Python (Pymacs helper)
 # ========================================
@@ -46,6 +50,7 @@ del get_python
 
 IO_ERRORS_WITH_SIGNALS = True
 
+
 # OLD_EXCEPTIONS is True for old Python or Jython versions.
 
 def get_old_exceptions():
@@ -53,6 +58,7 @@ def get_old_exceptions():
 
 OLD_EXCEPTIONS = get_old_exceptions()
 del get_old_exceptions
+
 
 # PYTHON3 is True within Python 3.
 
