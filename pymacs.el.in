@@ -519,6 +519,8 @@ The timer is used only if `post-gc-hook' is not available.")
                               (encode-coding-string expression 'utf-8)
                             (copy-sequence expression))))
                (set-text-properties 0 (length text) nil text)
+               (when multibyte
+                 (princ "b"))
                (princ (mapconcat 'identity
                                  (split-string (prin1-to-string text) "\n")
                                  "\\n"))
