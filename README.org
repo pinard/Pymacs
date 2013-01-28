@@ -2,15 +2,14 @@
 #+OPTIONS: H:2
 #+SETUPFILE: ~/fp/notes/setup/pymacs.org
 #+INCLUDE: ~/fp/notes/setup/jqindex.org
-
 #+BEGIN_QUOTE
-Known translations
+  Known translations
 
-| Document      | Language    | Translator          | Date         |
-|---------------+-------------+---------------------+--------------|
-| This file     | [[http://www.movavi.com/opensource/pymacs-be][Belorussian]] | [[mailto:bukhovko@gmail.com][Paul Bukhovko]]       |              |
-| This file     | [[http://uhrenstore.de/blog/readmedateifurpymacs][German]]      | [[mailto:romanova.anastasyia@gmail.com][Anastasiya Romanova]] | [2012-04-09] |
-| Pymacs manual | [[http://webhostinggeeks.com/science/pymacs-framework-ro][Romanian]]    | [[mailto:alovsov@gmail.com][Alexander Ovsov]]     |              |
+  | Document      | Language    | Translator          | Date         |
+  |---------------+-------------+---------------------+--------------|
+  | This file     | [[http://www.movavi.com/opensource/pymacs-be][Belorussian]] | [[mailto:bukhovko@gmail.com][Paul Bukhovko]]       |              |
+  | This file     | [[http://uhrenstore.de/blog/readmedateifurpymacs][German]]      | [[mailto:romanova.anastasyia@gmail.com][Anastasiya Romanova]] | [2012-04-09] |
+  | Pymacs manual | [[http://webhostinggeeks.com/science/pymacs-framework-ro][Romanian]]    | [[mailto:alovsov@gmail.com][Alexander Ovsov]]     |              |
 #+END_QUOTE
 
 Pymacs is a powerful tool which, once started from Emacs, allows both-way communication between Emacs Lisp and Python.  Pymacs aims Python as an extension language for Emacs rather than the other way around, and this asymmetry is reflected in some design choices.  Within Emacs Lisp code, one may load and use Python modules.  Python functions may themselves use Emacs services, and handle Emacs Lisp objects kept in Emacs Lisp space.
