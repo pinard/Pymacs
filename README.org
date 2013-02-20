@@ -1,7 +1,5 @@
 #+TITLE: Pymacs — Notes
 #+OPTIONS: H:2
-#+SETUPFILE: ~/fp/notes/setup/pymacs.org
-#+INCLUDE: ~/fp/notes/setup/jqindex.org
 #+BEGIN_QUOTE
   Known translations
 

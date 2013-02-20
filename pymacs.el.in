@@ -1,10 +1,10 @@
 ;;; pymacs.el --- Interface between Emacs Lisp and Python
 
-;; Copyright © 2001, 2002, 2003, 2012 Progiciels Bourbeau-Pinard inc.
+;; Copyright © 2001-2003, 2012, 2013 Progiciels Bourbeau-Pinard inc.
 
 ;; Author: François Pinard <pinard@iro.umontreal.ca>
 ;; Maintainer: François Pinard <pinard@iro.umontreal.ca>
-;; Created: 2001
+;; URL: https://github.com/pinard/Pymacs
 ;; Version: @VERSION@
 ;; Keywords: Python interface protocol
 
@@ -20,7 +20,7 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; if not, write to the Free Software Foundation,
-;; Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.  */
+;; Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 ;;; Commentary:
 
