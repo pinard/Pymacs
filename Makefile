@@ -9,7 +9,7 @@ RST2LATEX = rst2latex
 PYSETUP = $(PYTHON) setup.py
 PPPP = $(PYTHON) pppp -C ppppconfig.py
 
-all: prepare
+all pregithub: prepare
 	$(PYSETUP) --quiet build
 
 check: clean-debug
