@@ -11,6 +11,7 @@ contrib/Giorgi/setup.py
 contrib/rebox/Pymacs/__init__.py
 contrib/rebox/setup.py
 dist/
+html/
 pppp.rst
 pppp.pdf
 pymacs.el
