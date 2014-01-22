@@ -55,23 +55,6 @@ pymacs.pdf: pymacs.rst.in
 	mv -f tmp-pdf/pymacs.pdf $@
 	rm -rf tmp-pdf
 
-# The following goals for the maintainer of the Pymacs Web site.
-
-ARCHIVES = web/src/archives
-VERSION = `grep '^version' setup.py | sed -e "s/'$$//" -e "s/.*'//"`
-
-publish: pppp.pdf pymacs.pdf pymacs.rst
-	find -name '*~' | xargs rm -fv
-	version=$(VERSION) && \
-	  git archive --format=tar --prefix=Pymacs-$$version/ HEAD . \
-	    | gzip > $(ARCHIVES)/Pymacs-$$version.tar.gz
-	rm -f $(ARCHIVES)/Pymacs.tar.gz
-	version=$(VERSION) && \
-	  ln -s Pymacs-$$version.tar.gz $(ARCHIVES)/Pymacs.tar.gz
-	make-web -C web
-	synchro push alcyon -d entretien/pymacs
-	ssh alcyon 'make-web -C entretien/pymacs/web'
-
 ifneq "$(wildcard ~/etc/mes-sites/site.mk)" ""
 
 site: site-all
