@@ -1510,7 +1510,7 @@ The code below assumes that Python files meant for Pymacs are kept in
     (let ((pymacsdir (expand-file-name "~/share/emacs/python/")))
       (when (and (string-equal (file-name-directory buffer-file-name)
                                pymacsdir)
-                 (string-match "\\.py\\'" buffer-file-name))
+                 (string-match-p "\\.py\\'" buffer-file-name))
         (pymacs-load (substring buffer-file-name 0 -3)))))
   (add-hook 'after-save-hook 'fp-maybe-pymacs-reload)
 
