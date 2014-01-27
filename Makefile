@@ -60,31 +60,25 @@ ifneq "$(wildcard ~/etc/mes-sites/site.mk)" ""
 site: site-all
 
 package_name = Pymacs
-rootdir = $(HOME)/GitHub/Pymacs/web
 margin_color = "\#d1b7ff"
 caption_color = "\#f1e4eb"
 
-SITE_ROOT = 1
-GOALS = README.html contrib index.html org pppp.pdf pymacs.pdf
+GOALS = README.html contrib index.html pppp.pdf pymacs.pdf
 
 include ~/etc/mes-sites/site.mk
 
 $(htmldir)/README.html $(htmldir)/index.html:
-	ln -s ~/fp/web/$(htmldir)/org/Pymacs.html $@
+	@_2 "$$(basename $@ .html) \c"
+	@rm -f $@
+	@ln -s ~/html/org/Pymacs.html $@
 
-$(htmldir)/org: src/org
-	$(up1-symlink)
+$(htmldir)/contrib: contrib
+	$(symlink)
 
-$(htmldir)/pppp.pdf: ../pppp.pdf
-	$(up1-symlink)
+$(htmldir)/pppp.pdf: pppp.pdf
+	$(symlink)
 
-$(htmldir)/pymacs.pdf: ../pymacs.pdf
-	$(up1-symlink)
-
-../pppp.pdf: ../pppp.rst.in
-	$(MAKE) -C .. pppp.pdf
-
-../pymacs.pdf: ../pymacs.rst.in
-	$(MAKE) -C .. pymacs.pdf
+$(htmldir)/pymacs.pdf: pymacs.pdf
+	$(symlink)
 
 endif
