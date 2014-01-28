@@ -83,7 +83,7 @@ class Main:
                     name, value = value.split('=', 1)
                     self.context[name] = eval(value, {})
                 else:
-                    self.context[name] = True
+                    self.context[value] = True
             elif option == '-c':
                 self.clean = True
             elif option == '-f':
