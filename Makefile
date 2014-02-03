@@ -70,7 +70,7 @@ include ~/etc/mes-sites/site.mk
 $(htmldir)/README.html $(htmldir)/index.html:
 	@_2 "$$(basename $@ .html) \c"
 	@rm -f $@
-	@ln -s ~/html/org/Pymacs.html $@
+	@ln -s ~/html/notes/Pymacs.html $@
 
 $(htmldir)/contrib: contrib
 	$(symlink)
