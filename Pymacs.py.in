@@ -109,12 +109,12 @@ Arguments are added to the search path for Python modules.
             if IO_ERRORS_WITH_SIGNALS:
                 # See the comment for IO_ERRORS_WITH_SIGNALS in ppppconfig.py.
                 self.original_handler = signal.signal(
-                        signal.SIGINT, self.interrupt_handler)
+                    signal.SIGINT, self.interrupt_handler)
             else:
                 for counter in range(1, signal.NSIG):
                     if counter == signal.SIGINT:
                         self.original_handler = signal.signal(
-                                counter, self.interrupt_handler)
+                            counter, self.interrupt_handler)
                     else:
                         try:
                             signal.signal(counter, self.generic_handler)
@@ -822,9 +822,9 @@ lisp = Lisp_Interface()
 if PYTHON3:
 
     print_lisp_quoted_specials = {
-            ord('"'): '\\"', ord('\\'): '\\\\', ord('\b'): '\\b',
-            ord('\f'): '\\f',
-            ord('\n'): '\\n', ord('\r'): '\\r', ord('\t'): '\\t'}
+        ord('"'): '\\"', ord('\\'): '\\\\', ord('\b'): '\\b',
+        ord('\f'): '\\f',
+        ord('\n'): '\\n', ord('\r'): '\\r', ord('\t'): '\\t'}
 
     def print_lisp(value, write, quoted):
         if value is None:
@@ -897,8 +897,8 @@ if PYTHON3:
 else:
 
     print_lisp_quoted_specials = {
-            '"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f',
-            '\n': '\\n', '\r': '\\r', '\t': '\\t'}
+        '"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f',
+        '\n': '\\n', '\r': '\\r', '\t': '\\t'}
 
     def print_lisp(value, write, quoted):
         if value is None:
